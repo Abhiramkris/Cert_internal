@@ -8,7 +8,7 @@ export default async function PaymentsDashboard() {
   const user = await getUserProfile()
   const { data: projects } = await getProjects(user?.profile.role, user?.id || '')
   
-  if (!user || (user.profile.role !== 'Admin' && user.profile.role !== 'Manager' && user.profile.role !== 'HR')) {
+  if (!user || (user.profile.role !== 'Admin' && user.profile.role !== 'Manager')) {
     return <div className="p-8 text-zinc-400">Unauthorized access. Financial records are restricted to management.</div>
   }
 

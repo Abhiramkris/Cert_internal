@@ -25,12 +25,17 @@ export async function getProjectsMinimal() {
   return { data, error }
 }
 
-export async function getProjects() {
+export async function getProjects(role?: string, userId?: string) {
   const supabase = await createClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('projects')
     .select('*, project_team(*), payments(amount)')
-    .order('created_at', { ascending: false })
+  
+  if (role && userId && role !== 'Admin' && role !== 'Manager') {
+    query = query.eq('current_assignee_id', userId)
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false })
   
   return { data, error }
 }
@@ -82,5 +87,15 @@ export async function getProjectStageData(projectId: string) {
     .from('project_stage_data')
     .select('*, workflow_stages(*)')
     .eq('project_id', projectId)
+  return { data, error }
+}
+
+export async function getWebsiteConfig(projectId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('website_builder_config')
+    .select('*')
+    .eq('project_id', projectId)
+    .single()
   return { data, error }
 }

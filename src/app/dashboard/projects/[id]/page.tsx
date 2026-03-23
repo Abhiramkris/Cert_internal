@@ -1,24 +1,26 @@
-import { getProjectDetail, getUserProfile, getStaff, getProjectsMinimal, getWorkflowConfig } from '@/utils/supabase/queries'
+import { getProjectDetail, getUserProfile, getStaff, getProjectsMinimal, getWorkflowConfig, getWebsiteConfig } from '@/utils/supabase/queries'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { PendingButton } from '@/components/ui/pending-button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Users, FileText, Code, CheckCircle, MessageSquare, Globe, Search, IndianRupee, Settings } from 'lucide-react'
+import { ArrowLeft, Users, FileText, Code, CheckCircle, MessageSquare, Globe, Search, IndianRupee, Settings, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { AssignmentForm } from './assignment-form'
 import { PaymentForm } from './payment-form'
 import { RealtimeComments } from './realtime-comments'
 import { DeadlineEditor } from './deadline-editor'
+import { WebsiteBuilderConfigurator } from '@/components/projects/website-builder-configurator'
 import { DynamicStageForm } from '@/components/projects/dynamic-stage-form'
-import { finalizeProject } from '../actions'
+import { finalizeProject, selfAssignProject } from '../actions'
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
   const { id } = await params
   const user = await getUserProfile()
   const { data: project } = await getProjectDetail(id)
   const { data: staff } = await getStaff()
+  const { data: websiteConfig } = await getWebsiteConfig(id)
 
   if (!user || !project) return <div className="p-8 text-zinc-400">Project not found</div>
 
@@ -31,8 +33,11 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
   const isAssigned = user.id === project.current_assignee_id
   const isCorrectRole = user.profile.role === currentStage?.acting_role
 
-  // Manager can always action. Others only if assigned or correctly role-matched without assignee.
-  const canAction = isManager || isAssigned || (isCorrectRole && !project.current_assignee_id && !isAdmin)
+  // Manager/Admin can always action. Others only if assigned or correctly role-matched if project is held by a manager or unassigned.
+  const currentAssigneeRole = staff?.find(s => s.id === project.current_assignee_id)?.role
+  const isHeldByManager = currentAssigneeRole === 'Manager' || currentAssigneeRole === 'Admin'
+  
+  const canAction = isManager || isAdmin || isAssigned || (isCorrectRole && (!project.current_assignee_id || isHeldByManager))
 
   const stagesProgress = project.project_stage_data?.map((d: any) => d.workflow_stages?.status_key) || []
   const templateStages = project.workflow_templates?.workflow_stages || []
@@ -41,10 +46,10 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
 
   const { data: allProjects } = await getProjectsMinimal()
 
-  const canAssign = user.profile.role === 'Manager' || user.profile.role === 'HR' || user.profile.role === 'Admin'
+  const canAssign = user.profile.role === 'Manager' || user.profile.role === 'Admin'
   
-  // Strict restrictions for managers
-  const canManagePayments = user.profile.role === 'HR' || user.profile.role === 'Admin' || user.profile.role === 'Manager'
+  // Strict restrictions for managers/admin
+  const canManagePayments = user.profile.role === 'Admin' || user.profile.role === 'Manager'
 
   const totalPaid = project.payments?.reduce((sum: number, p: any) => sum + p.amount, 0) || 0
   const balance = project.budget - totalPaid
@@ -89,17 +94,16 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                   <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
                     Unassigned
                   </span>
-                  {/* Quick Assign Stub */}
-                  {(user.profile.role === 'Admin' || user.profile.role === 'Manager') && (
-                    <form action={async () => {
-                      'use server'
-                      const { supabase } = await import('@/utils/supabase/server').then(m => ({ supabase: m.createClient() }))
-                      const sb = await supabase
-                      await sb.from('projects').update({ current_assignee_id: user.profile.id }).eq('id', project.id)
-                      const { revalidatePath } = await import('next/cache')
-                      revalidatePath(`/dashboard/projects/${project.id}`)
-                    }}>
-                        <PendingButton variant="ghost" className="text-[9px] bg-amber-200 text-amber-800 px-2 py-0.5 h-auto rounded ml-1 uppercase hover:bg-amber-300 transition">Self-Assign</PendingButton>
+                  {/* Quick Assign Stub - Allow for Admin, Manager, or the Specific Role needed for the stage */}
+                  {(user.profile.role === 'Admin' || user.profile.role === 'Manager' || isCorrectRole) && (
+                    <form action={selfAssignProject.bind(null, project.id)} className="ml-2">
+                      <PendingButton 
+                        type="submit"
+                        variant="outline"
+                        className="h-7 px-3 text-[9px] font-black uppercase tracking-tighter border-amber-200 text-amber-700 bg-white hover:bg-amber-100 rounded-lg transition-all"
+                      >
+                        Self-Assign
+                      </PendingButton>
                     </form>
                   )}
                 </div>
@@ -128,15 +132,18 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="bg-transparent border-b border-zinc-200 p-0 rounded-none h-auto mb-8 w-full justify-start gap-8 flex-wrap">
-          {['overview', 'workflow', 'team', 'finances', 'comments'].map((tab) => {
+          {['overview', 'workflow', 'team', 'finances', 'generator', 'comments'].map((tab) => {
             if (tab === 'finances' && !canManagePayments) return null
+            if (tab === 'team' && !(isAdmin || isManager)) return null
+            if (tab === 'generator' && !(isManager || isAdmin || user.profile.role === 'Developer')) return null
             return (
               <TabsTrigger 
                 key={tab}
                 value={tab} 
-                className="rounded-none bg-transparent px-0 py-3 text-sm font-bold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-400 transition-all uppercase tracking-wider mb-2 lg:mb-0"
+                className="rounded-none bg-transparent px-0 py-3 text-sm font-bold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-400 transition-all uppercase tracking-wider mb-2 lg:mb-0 flex items-center gap-2"
               >
-                {tab}
+                {tab === 'generator' && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                {tab === 'generator' ? 'Code Generator' : tab}
               </TabsTrigger>
             )
           })}
@@ -161,15 +168,16 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 </CardContent>
               </Card>
 
-                  <DynamicStageForm 
-                    projectId={project.id} 
-                    stage={currentStage} 
-                    nextStage={templateStages[currentStageIndex + 1]}
-                    staff={staff || []}
-                    existingData={currentStageData}
-                    userProfile={user.profile}
-                    canAction={canAction}
-                  />
+              <DynamicStageForm 
+                projectId={project.id} 
+                stage={currentStage} 
+                nextStage={templateStages[currentStageIndex + 1]}
+                staff={staff || []}
+                existingData={currentStageData?.data || {}}
+                userProfile={user.profile}
+                canAction={canAction}
+                showBuilder={isManager || isAdmin || user.profile.role === 'Developer'}
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl shadow-sm">
@@ -351,6 +359,12 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           </TabsContent>
         )}
 
+        {(isManager || isAdmin || user.profile.role === 'Developer') && (
+          <TabsContent value="generator" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <WebsiteBuilderConfigurator projectId={project.id} initialConfig={websiteConfig} />
+          </TabsContent>
+        )}
+
         <TabsContent value="comments" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <RealtimeComments 
             projectId={project.id} 
@@ -361,30 +375,32 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           />
         </TabsContent>
 
-        <TabsContent value="team" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { role: 'Account Manager', id: project.project_team?.[0]?.manager_id, label: 'AM' },
-              { role: 'Creative Designer', id: project.project_team?.[0]?.designer_id, label: 'DSN' },
-              { role: 'SEO Specialist', id: project.project_team?.[0]?.seo_id, label: 'SEO' },
-              { role: 'Software Engineer', id: project.project_team?.[0]?.developer_id, label: 'SWE' },
-            ].map((member, i) => {
-              const staffMember = staff?.find(s => s.id === member.id)
-              return (
-                <Card key={i} className="bg-white border-zinc-200 p-8 flex flex-col items-center text-center shadow-sm group hover:border-zinc-300 transition-all duration-300">
-                  <div className="w-20 h-20 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-xl font-bold text-zinc-900 mb-6 shadow-inner group-hover:bg-zinc-100 transition-colors">
-                    {staffMember?.full_name?.charAt(0) || '?'}
-                  </div>
-                  <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-2">{member.role}</div>
-                  <h4 className="text-sm font-bold text-zinc-900 mb-5">{staffMember?.full_name || 'Unassigned'}</h4>
-                  <div className="text-[9px] bg-zinc-50 text-zinc-500 px-4 py-1.5 rounded-lg border border-zinc-100 font-bold tracking-widest uppercase">
-                    Ref // {member.label}
-                  </div>
-                </Card>
-              )
-            })}
-          </div>
-        </TabsContent>
+        {(isManager || isAdmin) && (
+          <TabsContent value="team" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { role: 'Account Manager', id: project.project_team?.[0]?.manager_id, label: 'AM' },
+                { role: 'Creative Designer', id: project.project_team?.[0]?.designer_id, label: 'DSN' },
+                { role: 'SEO Specialist', id: project.project_team?.[0]?.seo_id, label: 'SEO' },
+                { role: 'Software Engineer', id: project.project_team?.[0]?.developer_id, label: 'SWE' },
+              ].map((member, i) => {
+                const staffMember = staff?.find(s => s.id === member.id)
+                return (
+                  <Card key={i} className="bg-white border-zinc-200 p-8 flex flex-col items-center text-center shadow-sm group hover:border-zinc-300 transition-all duration-300">
+                    <div className="w-20 h-20 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-xl font-bold text-zinc-900 mb-6 shadow-inner group-hover:bg-zinc-100 transition-colors">
+                      {staffMember?.full_name?.charAt(0) || '?'}
+                    </div>
+                    <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-2">{member.role}</div>
+                    <h4 className="text-sm font-bold text-zinc-900 mb-5">{staffMember?.full_name || 'Unassigned'}</h4>
+                    <div className="text-[9px] bg-zinc-50 text-zinc-500 px-4 py-1.5 rounded-lg border border-zinc-100 font-bold tracking-widest uppercase">
+                      Ref // {member.label}
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

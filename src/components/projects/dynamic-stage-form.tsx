@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, Zap, CheckCircle2, ShieldAlert, User } from 'lucide-react'
+import { Loader2, Zap, CheckCircle2, ShieldAlert, User, Sparkles } from 'lucide-react'
+import { PendingButton } from '@/components/ui/pending-button'
 import { submitStageData } from '@/app/dashboard/projects/actions'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { WebsiteBuilderModal } from './website-builder-modal'
 
 interface DynamicStageFormProps {
   projectId: string
@@ -19,6 +21,7 @@ interface DynamicStageFormProps {
   existingData?: any
   userProfile: any
   canAction: boolean
+  showBuilder?: boolean
 }
 
 export function DynamicStageForm({ 
@@ -28,7 +31,8 @@ export function DynamicStageForm({
   staff = [],
   existingData = {}, 
   userProfile,
-  canAction 
+  canAction,
+  showBuilder = false
 }: DynamicStageFormProps) {
   const [isPending, setIsPending] = useState(false)
   const [clickCount, setClickCount] = useState(0)
@@ -223,8 +227,26 @@ export function DynamicStageForm({
                   {nextStage ? `Advance to ${nextStage.display_name}` : stage.next_status_key ? `Advance to ${stage.next_status_key.replace(/_/g, ' ')}` : 'Complete Project'}
                 </span>
               </div>
-              <Button 
-                disabled={isPending || clickCount >= 2}
+              <div className="flex items-center gap-4">
+                {showBuilder && (
+                  <WebsiteBuilderModal 
+                    projectId={projectId} 
+                    initialConfig={existingData?.website_config} 
+                    trigger={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-2xl px-6 h-12 font-black border-zinc-200 text-zinc-600 hover:bg-zinc-50 flex items-center gap-2 transition-all shadow-sm group"
+                      >
+                        <Sparkles className="w-4 h-4 text-amber-500 group-hover:rotate-12 transition-transform" />
+                        Configure Website
+                      </Button>
+                    }
+                  />
+                )}
+                <PendingButton 
+                loading={isPending}
+                disabled={clickCount >= 2}
                 type="submit" 
                 className={cn(
                   "rounded-2xl px-8 h-12 font-bold shadow-lg flex items-center gap-2 transition-all",
@@ -233,10 +255,11 @@ export function DynamicStageForm({
                     : "bg-zinc-900 text-white hover:bg-zinc-800 shadow-zinc-900/10"
                 )}
               >
-                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                <Zap className="w-4 h-4" />
                 {clickCount >= 2 ? "Submission Locked" : "Submit & Advance Stage"}
-              </Button>
+              </PendingButton>
             </div>
+          </div>
           )}
 
           {clickCount >= 2 && (

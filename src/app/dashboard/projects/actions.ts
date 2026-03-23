@@ -202,6 +202,19 @@ export async function assignTeam(projectId: string, formData: FormData) {
   revalidatePath(`/dashboard/projects/${projectId}`)
 }
 
+export async function selfAssignProject(projectId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+  
+  await supabase
+    .from('projects')
+    .update({ current_assignee_id: user.id })
+    .eq('id', projectId)
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
 export async function updateSEOConfig(projectId: string, formData: FormData) {
   const supabase = await createClient()
   
