@@ -1,77 +1,122 @@
 'use client'
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+import React, { useState, useEffect } from 'react'
+import { 
+  Settings2, 
+  Layers, 
+  Type, 
+  Sparkles, 
+  CheckCircle2, 
+  Download, 
+  Palette, 
+  AlignCenter, 
+  AlignLeft, 
+  AlignRight, 
+  Image as ImageIcon,
+  ChevronRight,
+  ChevronDown
+} from 'lucide-react'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PendingButton } from '@/components/ui/pending-button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 import { COMPONENT_TEMPLATES } from '@/utils/builder/templates'
 import { saveWebsiteConfig, generateProjectZip } from '@/app/dashboard/projects/builder-actions'
 import { toast } from 'sonner'
-import { Palette, Layers, Sparkles, Download, CheckCircle2, Type, AlignLeft, AlignCenter, AlignRight, Settings2, Eye } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
+import { PendingButton } from '@/components/ui/pending-button'
 
 interface WebsiteBuilderConfiguratorProps {
   projectId: string
   initialConfig?: any
+  project?: any
 }
 
-export function WebsiteBuilderConfigurator({ projectId, initialConfig }: WebsiteBuilderConfiguratorProps) {
+export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }: WebsiteBuilderConfiguratorProps) {
   const [step, setStep] = useState(1)
-  const [globalStyles, setGlobalStyles] = useState(initialConfig?.global_styles || {
+  const [activeModuleIndex, setActiveModuleIndex] = useState(0)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [previewingComponent, setPreviewingComponent] = useState<string | null>(null)
+  const [longPressTimer, setLongPressTimer] = useState<any>(null)
+
+  // 1. Global Styles State - High Contrast Defaults
+  const [globalStyles, setGlobalStyles] = useState(initialConfig?.globalStyles || {
     primary_color: '#000000',
-    secondary_color: '#ffffff',
-    accent_color: '#3b82f6',
+    accent_color: '#18181b',
     font_family_heading: 'Inter',
-    font_weight_heading: '900',
-    font_family_subheading: 'Inter',
-    font_weight_subheading: '500',
     font_family_body: 'Inter',
-    button_style: 'solid',
+    font_weight_heading: '900',
+    button_style: 'solid', 
     text_alignment: 'left',
-    spacing_scale: 'md',
-    border_radius: 'xl',
+    font_size_h1: '48',
+    font_size_h2: '32',
+    font_size_body: '16'
   })
 
-  const [selectedComponents, setSelectedComponents] = useState<string[]>(initialConfig?.selected_components || ['NAV_GLASS', 'HERO_CENTERED', 'FEATURES_GRID', 'FOOTER_SOCIAL'])
-  const [componentSettings, setComponentSettings] = useState<Record<string, any>>(initialConfig?.component_settings || {})
-  const [contentOverrides, setContentOverrides] = useState(initialConfig?.content_overrides || {
+  // 2. Selected Components State
+  const [selectedComponents, setSelectedComponents] = useState<string[]>(initialConfig?.selectedComponents || [])
+
+  // 3. Component Settings State
+  const [componentSettings, setComponentSettings] = useState<Record<string, any>>(initialConfig?.componentSettings || {})
+
+  // 4. Global Content Overrides
+  const [contentOverrides, setContentOverrides] = useState(initialConfig?.contentOverrides || {
     h1: '',
     description: '',
-    cta_primary: 'Launch Project',
-    cta_secondary: 'Learn More',
     email: '',
     phone: ''
   })
-  const [isSaving, setIsSaving] = useState(false)
-  const [isGenerating, setIsGenerating] = useState(false)
 
-  const steps = [
-    { id: 1, title: 'Identity', description: 'Content Overrides', icon: Sparkles },
-    { id: 2, title: 'Brand', description: 'Visual Identity', icon: Palette },
-    { id: 3, title: 'Architecture', description: 'Template Selection', icon: Layers },
-    { id: 4, title: 'Motion', description: 'Animation Design', icon: CheckCircle2 },
-    { id: 5, title: 'Finalize', description: 'Launch & Export', icon: Download },
-  ]
+  // Smart Pre-fill Effect
+  useEffect(() => {
+    if (project) {
+      setContentOverrides((prev: any) => ({
+        ...prev,
+        h1: prev.h1 || project.seo_config?.title || project.name || '',
+        description: prev.description || project.seo_config?.meta_description || project.description || '',
+        email: prev.email || project.client_email || '',
+        phone: prev.phone || project.client_phone || ''
+      }))
+    }
+  }, [project])
+
+  const toggleComponent = (key: string) => {
+    setSelectedComponents(prev => 
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    )
+  }
+
+  const setComponentInGroup = (prefix: string, key: string) => {
+    setSelectedComponents(prev => {
+      const filtered = prev.filter(k => !k.startsWith(prefix))
+      return [...filtered, key]
+    })
+  }
 
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      await saveWebsiteConfig(projectId, { 
-        global_styles: globalStyles, 
-        selected_components: selectedComponents,
-        content_overrides: contentOverrides,
-        component_settings: componentSettings
+      await saveWebsiteConfig(projectId, {
+        globalStyles,
+        selectedComponents,
+        componentSettings,
+        contentOverrides
       })
-      toast.success('Configuration synchronized')
-    } catch (err) {
-      toast.error('Sync failed')
+      toast.success('Architecture Synced')
+    } catch (error) {
+      toast.error('Failed to sync state')
     } finally {
       setIsSaving(false)
     }
@@ -80,476 +125,680 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig }: Website
   const handleGenerate = async () => {
     setIsGenerating(true)
     try {
+      // 1. Sync latest state first
+      await handleSave()
+      
+      // 2. Generate Ejected Bundle
       const result = await generateProjectZip(projectId)
+      
       if (result.success && result.data) {
-        const link = document.createElement('a')
-        link.href = `data:application/zip;base64,${result.data}`
-        link.download = result.fileName
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        toast.success('Site Ejected Successfully!')
+        // 3. Trigger Browser Download
+        const byteCharacters = atob(result.data)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: 'application/zip' })
+        
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = result.fileName || 'Project_Build.zip'
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        
+        toast.success('Production build ejected successfully')
+      } else {
+        toast.error('Build generation failed')
       }
-    } catch (err) {
-      toast.error('Ejection failed.')
+    } catch (error) {
+      console.error('Eject Error:', error)
+      toast.error('Failed to eject production build')
     } finally {
       setIsGenerating(false)
     }
   }
 
-  const setComponentInGroup = (groupPrefix: string, key: string) => {
-    setSelectedComponents(prev => [
-      ...prev.filter(c => !c.startsWith(groupPrefix)),
-      key
-    ])
-  }
-
-  const toggleComponent = (key: string) => {
-    setSelectedComponents(prev => 
-      prev.includes(key) ? prev.filter(c => c !== key) : [...prev, key]
-    )
-  }
-
-  const updateComponentAnimation = (key: string, animation: string) => {
-    setComponentSettings(prev => ({
-      ...prev,
-      [key]: { ...prev[key], animation }
-    }))
-  }
-
   return (
-    <div className="flex h-full w-full bg-white overflow-hidden">
-      {/* 1. Left Sidebar: Persistent Identity & Brand */}
-      <aside className="w-[340px] lg:w-[420px] border-r border-zinc-100 bg-white flex flex-col shadow-2xl z-20">
-        <div className="p-8 border-b border-zinc-50 bg-zinc-50/30">
-           <div className="flex items-center gap-4 mb-2">
-              <div className="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center shadow-lg shadow-zinc-200">
+    <div className="flex h-full w-full bg-zinc-50/50 overflow-hidden font-sans selection:bg-black selection:text-white">
+      {/* 1. Left Sidebar: Refined Dashboard Navigation */}
+      <aside className="w-[320px] lg:w-[350px] border-r border-zinc-200 bg-white flex flex-col z-20 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
+        <div className="p-6 border-b border-zinc-100">
+           <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-zinc-950 rounded-xl flex items-center justify-center shadow-lg shadow-zinc-200">
                  <Settings2 className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-lg font-black uppercase tracking-widest italic text-zinc-900">Brand Identity</h1>
+              <div>
+                <h1 className="text-lg font-bold tracking-tight text-zinc-900">Site Architect</h1>
+                <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Configuration Engine</p>
+              </div>
            </div>
-           <p className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Global Style System</p>
         </div>
 
         <Tabs defaultValue="global" className="flex-1 flex flex-col overflow-hidden">
-           <div className="px-8 pt-8">
-              <TabsList className="w-full h-14 bg-zinc-50 rounded-2xl p-1.5">
-                 <TabsTrigger value="global" className="flex-1 rounded-xl text-[11px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">Styles</TabsTrigger>
-                 <TabsTrigger value="content" className="flex-1 rounded-xl text-[11px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md transition-all">Content</TabsTrigger>
+           <div className="px-6 py-4">
+              <TabsList className="w-full h-10 bg-zinc-100/80 rounded-lg p-1 border border-zinc-200/50">
+                 <TabsTrigger value="global" className="flex-1 rounded-md text-[12px] font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm transition-all">Theme</TabsTrigger>
+                 <TabsTrigger value="content" className="flex-1 rounded-md text-[12px] font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm transition-all">Content</TabsTrigger>
               </TabsList>
            </div>
 
-           <div className="flex-1 overflow-y-auto p-8 space-y-10">
-              <TabsContent value="global" className="mt-0 space-y-10 outline-none">
-                 {/* Colors */}
-                 <div className="space-y-5">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Brand Palette</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                       <div className="relative group">
-                          <input 
-                            type="color" 
-                            value={globalStyles.primary_color} 
-                            onChange={(e) => setGlobalStyles({...globalStyles, primary_color: e.target.value})}
-                            className="w-full h-14 rounded-2xl border-none cursor-pointer shadow-sm group-hover:shadow-md transition-all"
-                          />
-                          <div className="absolute inset-x-0 bottom-2 flex justify-center pointer-events-none">
-                             <span className="text-[9px] font-black uppercase tracking-widest text-white mix-blend-difference">Primary</span>
-                          </div>
-                       </div>
-                       <div className="relative group">
-                          <input 
-                            type="color" 
-                            value={globalStyles.accent_color} 
-                            onChange={(e) => setGlobalStyles({...globalStyles, accent_color: e.target.value})}
-                            className="w-full h-14 rounded-2xl border-none cursor-pointer shadow-sm group-hover:shadow-md transition-all"
-                          />
-                          <div className="absolute inset-x-0 bottom-2 flex justify-center pointer-events-none">
-                             <span className="text-[9px] font-black uppercase tracking-widest text-white mix-blend-difference">Accent</span>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
+            <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-8 text-left">
+                <TabsContent value="global" className="mt-0 space-y-8 outline-none">
+                   {/* Colors */}
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                         <Palette className="w-4 h-4 text-zinc-400" />
+                         <Label className="text-[12px] font-bold text-zinc-950">Master Palette</Label>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                         <div className="space-y-2">
+                            <div className="group relative h-14 rounded-xl border border-zinc-200 p-1 bg-white hover:border-zinc-400 transition-all">
+                               <input 
+                                 type="color" 
+                                 value={globalStyles.primary_color} 
+                                 onChange={(e) => setGlobalStyles({...globalStyles, primary_color: e.target.value})}
+                                 className="absolute inset-0 w-full h-full border-none cursor-pointer p-0 opacity-0 z-10"
+                               />
+                               <div className="w-full h-full rounded-lg shadow-inner border border-black/5" style={{ backgroundColor: globalStyles.primary_color }} />
+                            </div>
+                            <p className="text-[10px] font-semibold text-zinc-500 text-center uppercase tracking-tight">Primary Base</p>
+                         </div>
+                         <div className="space-y-2">
+                            <div className="group relative h-14 rounded-xl border border-zinc-200 p-1 bg-white hover:border-zinc-400 transition-all">
+                               <input 
+                                 type="color" 
+                                 value={globalStyles.accent_color} 
+                                 onChange={(e) => setGlobalStyles({...globalStyles, accent_color: e.target.value})}
+                                 className="absolute inset-0 w-full h-full border-none cursor-pointer p-0 opacity-0 z-10"
+                               />
+                               <div className="w-full h-full rounded-lg shadow-inner border border-black/5" style={{ backgroundColor: globalStyles.accent_color }} />
+                            </div>
+                            <p className="text-[10px] font-semibold text-zinc-500 text-center uppercase tracking-tight">Accent Detail</p>
+                         </div>
+                      </div>
+                   </div>
 
-                 <Separator className="opacity-50" />
-
-                 {/* Typography */}
-                 <div className="space-y-5">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Typography</Label>
-                    <div className="space-y-4">
-                       <div className="p-5 bg-zinc-50 rounded-[2rem] space-y-4 border border-zinc-100/50 shadow-inner">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Headings</p>
-                          <Select 
-                            value={globalStyles.font_family_heading || 'Inter'} 
-                            onValueChange={(v) => setGlobalStyles({...globalStyles, font_family_heading: v})}
-                          >
-                            <SelectTrigger className="h-12 bg-white border-none rounded-xl text-sm font-bold shadow-sm">
-                               <SelectValue placeholder="Font Family" />
-                            </SelectTrigger>
-                            <SelectContent>
-                               {['Inter', 'Outfit', 'Manrope', 'Playfair Display', 'Clash Display'].map(f => (
-                                 <SelectItem key={f} value={f} className="text-sm font-bold">{f}</SelectItem>
+                   {/* Typography */}
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                         <Type className="w-4 h-4 text-zinc-400" />
+                         <Label className="text-[12px] font-bold text-zinc-950">Typography System</Label>
+                      </div>
+                      <div className="space-y-3">
+                         <div className="p-5 bg-zinc-50/50 rounded-xl space-y-4 border border-zinc-200/50">
+                            <Select 
+                              value={globalStyles.font_family_heading || 'Inter'} 
+                              onValueChange={(v) => setGlobalStyles({...globalStyles, font_family_heading: v})}
+                            >
+                              <SelectTrigger className="h-10 bg-white border-zinc-200 rounded-lg text-[13px] font-medium shadow-sm focus:ring-2 focus:ring-zinc-950/5">
+                                 <SelectValue placeholder="Select Font" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl border-zinc-200 shadow-xl">
+                                 {['Inter', 'Outfit', 'Manrope', 'Clash Display', 'General Sans'].map(f => (
+                                   <SelectItem key={f} value={f} className="text-[13px] font-medium">{f}</SelectItem>
+                                 ))}
+                              </SelectContent>
+                            </Select>
+                            <div className="flex gap-1 p-1 bg-zinc-100/50 rounded-lg border border-zinc-200/50">
+                               {['500', '700', '900'].map(w => (
+                                 <button 
+                                   key={w}
+                                   onClick={() => setGlobalStyles({...globalStyles, font_weight_heading: w})}
+                                   className={cn(
+                                     "flex-1 py-1.5 rounded-md text-[11px] font-bold transition-all",
+                                     globalStyles.font_weight_heading === w ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-500 hover:bg-white/50"
+                                   )}
+                                 >
+                                   {w === '500' ? 'Medium' : w === '700' ? 'Bold' : 'Black'}
+                                 </button>
                                ))}
-                            </SelectContent>
-                          </Select>
-                          <div className="flex gap-2">
-                             {['500', '700', '900'].map(w => (
-                               <button 
-                                 key={w}
-                                 onClick={() => setGlobalStyles({...globalStyles, font_weight_heading: w})}
-                                 className={cn(
-                                   "flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all",
-                                   globalStyles.font_weight_heading === w ? "bg-zinc-900 text-white shadow-lg" : "bg-white text-zinc-400 border border-zinc-100"
-                                 )}
-                               >
-                                 {w}
-                               </button>
-                             ))}
-                          </div>
-                       </div>
-                    </div>
-                 </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
 
-                 {/* Alignment */}
-                 <div className="space-y-5">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Layout Tone</Label>
-                    <div className="flex bg-zinc-50 p-1.5 rounded-2xl gap-1.5">
-                       {[
-                         { id: 'left', icon: AlignLeft },
-                         { id: 'center', icon: AlignCenter },
-                         { id: 'right', icon: AlignRight }
-                       ].map(align => (
-                         <button
-                           key={align.id}
-                           onClick={() => setGlobalStyles({...globalStyles, text_alignment: align.id})}
-                           className={cn(
-                             "flex-1 h-12 flex items-center justify-center rounded-xl transition-all",
-                             globalStyles.text_alignment === align.id ? "bg-white text-zinc-900 shadow-md" : "text-zinc-400 hover:text-zinc-600"
-                           )}
-                         >
-                            <align.icon className="w-5 h-5" />
-                         </button>
-                       ))}
-                    </div>
-                 </div>
+                   {/* Alignment & Style */}
+                   <div className="space-x-4 flex">
+                      <div className="space-y-4 flex-1">
+                         <Label className="text-[12px] font-bold text-zinc-950">Alignment</Label>
+                         <div className="flex bg-zinc-100/50 p-1 rounded-lg border border-zinc-200/50">
+                            {[
+                              { id: 'left', icon: AlignLeft },
+                              { id: 'center', icon: AlignCenter },
+                              { id: 'right', icon: AlignRight }
+                            ].map(align => (
+                              <button
+                                key={align.id}
+                                onClick={() => setGlobalStyles({...globalStyles, text_alignment: align.id})}
+                                className={cn(
+                                  "flex-1 h-9 flex items-center justify-center rounded-md transition-all",
+                                  globalStyles.text_alignment === align.id ? "bg-white text-zinc-950 shadow-sm border border-zinc-200/50" : "text-zinc-400 hover:text-zinc-600"
+                                )}
+                              >
+                                 <align.icon className="w-4 h-4" />
+                              </button>
+                            ))}
+                         </div>
+                      </div>
+                      
+                      <div className="space-y-4 flex-1">
+                         <Label className="text-[12px] font-bold text-zinc-950">Button Corner</Label>
+                         <div className="flex bg-zinc-100/50 p-1 rounded-lg border border-zinc-200/50">
+                            {['none', 'md', 'full'].map(radius => (
+                              <button
+                                key={radius}
+                                onClick={() => setGlobalStyles({...globalStyles, button_radius: radius})}
+                                className={cn(
+                                  "flex-1 h-9 flex items-center justify-center rounded-md transition-all text-[11px] font-bold",
+                                  (globalStyles.button_radius || 'md') === radius ? "bg-white text-zinc-950 shadow-sm border border-zinc-200/50" : "text-zinc-400 hover:text-zinc-600"
+                                )}
+                              >
+                                 {radius.toUpperCase()}
+                              </button>
+                            ))}
+                         </div>
+                      </div>
+                   </div>
 
-                 {/* Button Style */}
-                 <div className="space-y-5">
-                    <Label className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Interaction Style</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                       {['solid', 'gradient', 'outline', 'glass'].map(style => (
-                         <button
-                           key={style}
-                           onClick={() => setGlobalStyles({...globalStyles, button_style: style})}
-                           className={cn(
-                             "h-14 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-left flex items-center justify-between border",
-                             globalStyles.button_style === style ? "border-zinc-900 bg-zinc-50 shadow-md text-zinc-900" : "border-zinc-50 text-zinc-400 hover:border-zinc-200"
-                           )}
-                         >
-                            {style}
-                         </button>
-                       ))}
-                    </div>
-                 </div>
-              </TabsContent>
+                   <div className="space-y-4">
+                      <Label className="text-[12px] font-bold text-zinc-950">Component Style</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                         {[
+                           { id: 'solid', label: 'Solid Minimal' },
+                           { id: 'outline', label: 'Soft Outline' },
+                           { id: 'bold-border', label: 'Dashboard Bold' },
+                           { id: 'ghost', label: 'Subtle Ghost' }
+                         ].map(style => (
+                           <button
+                             key={style.id}
+                             onClick={() => setGlobalStyles({...globalStyles, button_style: style.id})}
+                             className={cn(
+                               "h-11 px-4 rounded-lg text-[11px] font-bold transition-all text-left border shrink-0",
+                               globalStyles.button_style === style.id ? "border-zinc-950 bg-zinc-950 text-white shadow-md shadow-zinc-200" : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300"
+                             )}
+                           >
+                              {style.label}
+                           </button>
+                         ))}
+                      </div>
+                   </div>
+               </TabsContent>
 
-              <TabsContent value="content" className="mt-0 space-y-8 outline-none">
-                 <div className="space-y-6">
-                    <div className="space-y-2">
-                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Main Headline</Label>
-                        <Input 
-                          value={contentOverrides.h1 || ''}
-                          onChange={(e) => setContentOverrides({...contentOverrides, h1: e.target.value})}
-                          placeholder="Brand Title"
-                          className="h-14 bg-zinc-50 border-none rounded-2xl px-5 text-sm font-bold shadow-inner"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Business Email</Label>
-                        <Input 
-                          value={contentOverrides.email || ''}
-                          onChange={(e) => setContentOverrides({...contentOverrides, email: e.target.value})}
-                          placeholder="contact@agency.com"
-                          className="h-14 bg-zinc-50 border-none rounded-2xl px-5 text-sm font-bold shadow-inner"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Tagline / Vision</Label>
-                        <Input 
-                          value={contentOverrides.description || ''}
-                          onChange={(e) => setContentOverrides({...contentOverrides, description: e.target.value})}
-                          placeholder="Short value prop"
-                          className="h-14 bg-zinc-50 border-none rounded-2xl px-5 text-sm font-bold shadow-inner"
-                        />
-                    </div>
-                 </div>
-              </TabsContent>
-           </div>
-           
-           <div className="p-8 bg-zinc-50/50 border-t border-zinc-100">
-              <PendingButton 
-                loading={isSaving} 
-                onClick={handleSave} 
-                className="w-full h-14 bg-white text-zinc-900 border border-zinc-200 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg hover:bg-zinc-50 transition-all active:scale-[0.98]"
-              >
-                 Sync Brand State
-              </PendingButton>
-           </div>
+               <TabsContent value="content" className="mt-0 space-y-10 outline-none">
+                  <div className="space-y-8">
+                     <div className="space-y-3">
+                        <Label className="text-[13px] font-black text-black">Main Headline</Label>
+                         <Input 
+                           value={contentOverrides.h1 || ''}
+                           onChange={(e) => setContentOverrides({...contentOverrides, h1: e.target.value})}
+                           placeholder="Core Objective"
+                           className="h-12 bg-white border-zinc-200 rounded-md px-4 text-sm font-black shadow-sm focus:border-black focus:ring-0 outline-none transition-all placeholder:text-zinc-200"
+                         />
+                     </div>
+                     <div className="space-y-3">
+                        <Label className="text-[13px] font-black text-black">Email Contact</Label>
+                         <Input 
+                           value={contentOverrides.email || ''}
+                           onChange={(e) => setContentOverrides({...contentOverrides, email: e.target.value})}
+                           placeholder="mail@production.io"
+                           className="h-12 bg-white border-zinc-200 rounded-md px-4 text-sm font-black shadow-sm focus:border-black focus:ring-0 outline-none transition-all placeholder:text-zinc-200"
+                         />
+                     </div>
+                     <div className="space-y-3">
+                        <Label className="text-[13px] font-black text-black">Project Description</Label>
+                         <Input 
+                           value={contentOverrides.description || ''}
+                           onChange={(e) => setContentOverrides({...contentOverrides, description: e.target.value})}
+                           placeholder="Technical Synopsis"
+                           className="h-12 bg-white border-zinc-200 rounded-md px-4 text-sm font-black shadow-sm focus:border-black focus:ring-0 outline-none transition-all placeholder:text-zinc-200"
+                         />
+                     </div>
+                  </div>
+               </TabsContent>
+            </div>
+            
+            <div className="p-6 bg-zinc-50 border-t border-zinc-100">
+               <PendingButton 
+                 loading={isSaving} 
+                 onClick={handleSave} 
+                 className="w-full h-11 bg-zinc-950 text-white rounded-xl text-[13px] font-bold shadow-lg shadow-zinc-200 hover:bg-zinc-800 transition-all active:scale-[0.98]"
+               >
+                  Save Configuration
+               </PendingButton>
+            </div>
         </Tabs>
       </aside>
 
-      {/* 2. Main Content: Fluid Stack Architect */}
+      {/* 2. Main Content: High-Contrast Architectural Flow */}
       <main className="flex-1 flex flex-col h-full bg-zinc-50/50 relative overflow-hidden">
-        {step < 3 ? (
+        {step === 1 && (
           <div className="flex-1 overflow-y-auto p-12 lg:p-16">
-            <div className="max-w-6xl mx-auto space-y-20 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-              {/* Header */}
-              <div className="space-y-4 text-center md:text-left">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-zinc-900 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  Site Architect
-                </div>
-                <h2 className="text-5xl font-black text-zinc-900 tracking-tighter italic">Stack Builder</h2>
-                <p className="text-zinc-500 font-bold text-sm uppercase tracking-widest opacity-60">Design your high-performance web experience</p>
-              </div>
+            <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+               {/* 2.1 Refined Header */}
+               <div className="space-y-3 text-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-zinc-200 rounded-lg text-zinc-600 text-[11px] font-bold shadow-sm">
+                    <Layers className="w-3.5 h-3.5" />
+                    Site Architecture
+                  </div>
+                  <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Select Components</h2>
+                  <p className="text-zinc-500 font-medium text-[14px]">Define the structural foundation for your website build.</p>
+               </div>
 
-              {/* Matrix of Available Modules */}
-              <div className="space-y-12 bg-white p-12 rounded-[3.5rem] shadow-2xl shadow-zinc-200/50 border border-zinc-100/50">
-                <div className="flex items-center justify-between">
-                   <div className="space-y-1">
-                      <h3 className="text-xl font-black text-zinc-900">Module Matrix</h3>
-                      <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Select the components for your site flow</p>
-                   </div>
-                   <div className="flex items-center gap-2 px-5 py-2.5 bg-zinc-50 rounded-2xl border border-zinc-100 text-[10px] font-black uppercase tracking-widest text-zinc-600">
-                      <Layers className="w-4 h-4" />
-                      {selectedComponents.length} Modules Active
-                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                {/* 2.2 Grid of Groups: 2-Column Responsive */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
                   {[
                     { title: 'Navigation', prefix: 'NAV_', multiple: false },
-                    { title: 'Hero Sections', prefix: 'HERO_', multiple: false },
-                    { title: 'Features', prefix: 'FEATURES_', multiple: true },
-                    { title: 'Conversion', prefix: 'CONTACT_', multiple: true },
+                    { title: 'Hero Section', prefix: 'HERO_', multiple: false },
+                    { title: 'Feature Modules', prefix: 'FEATURES_', multiple: true },
+                    { title: 'Contact & CTA', prefix: 'CONTACT_', multiple: true },
                     { title: 'Footer', prefix: 'FOOTER_', multiple: false },
                   ].map((group) => (
-                    <div key={group.title} className="space-y-6 p-8 bg-zinc-50 rounded-[2.5rem] border border-zinc-100/50">
-                       <p className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400 border-b border-zinc-200 pb-3 mb-2">{group.title}</p>
-                       <div className="space-y-3">
+                    <div key={group.title} className="p-6 rounded-2xl border border-zinc-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 text-left">
+                       <h3 className="text-sm font-bold text-zinc-900 mb-6 pb-3 border-b border-zinc-100 flex items-center justify-between">
+                         {group.title}
+                         {group.multiple && <Badge variant="secondary" className="bg-zinc-50 text-zinc-500 font-medium text-[10px] uppercase">Multi-select</Badge>}
+                       </h3>
+                       <div className="space-y-2.5">
                           {Object.entries(COMPONENT_TEMPLATES as Record<string, any>)
                             .filter(([key]) => key.startsWith(group.prefix))
                             .map(([key, template]) => (
                               <button 
                                 key={key}
+                                onMouseDown={() => {
+                                  const timer = setTimeout(() => setPreviewingComponent(key), 500)
+                                  setLongPressTimer(timer)
+                                }}
+                                onMouseUp={() => {
+                                  if (longPressTimer) clearTimeout(longPressTimer)
+                                }}
+                                onMouseLeave={() => {
+                                  if (longPressTimer) clearTimeout(longPressTimer)
+                                }}
                                 onClick={() => group.multiple ? toggleComponent(key) : setComponentInGroup(group.prefix, key)}
                                 className={cn(
-                                  "w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 group shadow-sm",
+                                  "w-full flex items-center justify-between p-4 rounded-xl transition-all border shrink-0 group/btn",
                                   selectedComponents.includes(key) 
-                                    ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200" 
-                                    : "bg-white text-zinc-500 hover:bg-zinc-100 border border-zinc-200/50"
+                                    ? "bg-zinc-950 border-zinc-950 text-white shadow-lg shadow-zinc-200 translate-y-[-1px]" 
+                                    : "bg-white border-zinc-100 text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50/50"
                                 )}
                               >
-                                 <div className="flex items-center gap-3">
-                                    <div className={cn(
-                                      "w-5 h-5 rounded-md flex items-center justify-center transition-all",
-                                      selectedComponents.includes(key) ? "bg-white/20" : "bg-zinc-100"
-                                    )}>
-                                       {selectedComponents.includes(key) && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                                    </div>
-                                    <span className="text-[11px] font-black uppercase tracking-widest">{template.name}</span>
+                                 <div className="flex flex-col items-start">
+                                   <span className="text-[13px] font-semibold">{template.name}</span>
+                                   <span className="text-[9px] text-zinc-400 font-medium group-hover/btn:text-zinc-600 transition-colors">Hold to Preview</span>
                                  </div>
                                  <div className={cn(
                                    "w-2 h-2 rounded-full transition-all",
-                                   selectedComponents.includes(key) ? "bg-emerald-400 animate-pulse" : "bg-zinc-200"
+                                   selectedComponents.includes(key) ? "bg-white" : "bg-zinc-200"
                                  )} />
                               </button>
                             ))}
                        </div>
                     </div>
                   ))}
+
+                  {/* Long Press Preview Overlay */}
+                  <AnimatePresence>
+                    {previewingComponent && (
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setPreviewingComponent(null)}
+                        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-8 lg:p-24"
+                      >
+                         <motion.div 
+                           initial={{ scale: 0.9, y: 20 }}
+                           animate={{ scale: 1, y: 0 }}
+                           exit={{ scale: 0.9, y: 20 }}
+                           className="w-full max-w-6xl bg-white rounded-[3rem] overflow-hidden shadow-2xl relative"
+                         >
+                            <div className="absolute top-8 right-8 z-10">
+                               <Button variant="ghost" size="icon" className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-md shadow-lg border border-zinc-100" onClick={() => setPreviewingComponent(null)}>
+                                  <Sparkles className="w-5 h-5" />
+                               </Button>
+                            </div>
+                            <div className="p-12 lg:p-20 overflow-y-auto max-h-[80vh] custom-scrollbar">
+                               {(COMPONENT_TEMPLATES as any)[previewingComponent]?.preview(
+                                 globalStyles, 
+                                 contentOverrides, 
+                                 {}
+                               )}
+                            </div>
+                            <div className="p-8 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
+                               <div>
+                                  <h4 className="text-xl font-bold text-zinc-950">{(COMPONENT_TEMPLATES as any)[previewingComponent]?.name}</h4>
+                                  <p className="text-sm font-medium text-zinc-500">Live Architectural Preview</p>
+                               </div>
+                               <Button 
+                                 className="h-12 px-8 bg-zinc-950 text-white rounded-xl font-bold"
+                                 onClick={() => {
+                                   const prefix = previewingComponent.split('_')[0] + '_'
+                                   const isMultiple = ['FEATURES_', 'CONTACT_'].includes(prefix)
+                                   if (isMultiple) toggleComponent(previewingComponent)
+                                   else setComponentInGroup(prefix, previewingComponent)
+                                   setPreviewingComponent(null)
+                                 }}
+                               >
+                                  Select this Module
+                               </Button>
+                            </div>
+                         </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+           <div className="flex-1 flex flex-col min-h-0 bg-white text-left">
+              {/* Architectural Breadcrumb: Left-Aligned Step Flow */}
+              <div className="h-16 bg-white border-b border-zinc-100 flex items-center px-10 gap-6 overflow-x-auto no-scrollbar z-10">
+                 {selectedComponents.map((key, idx) => {
+                   const template = (COMPONENT_TEMPLATES as any)[key]
+                   return (
+                     <button
+                       key={key}
+                       onClick={() => setActiveModuleIndex(idx)}
+                       className={cn(
+                         "flex items-center gap-3 whitespace-nowrap transition-all group",
+                         activeModuleIndex === idx ? "opacity-100" : "opacity-40 hover:opacity-100"
+                       )}
+                     >
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg border flex items-center justify-center text-[11px] font-bold transition-all",
+                          activeModuleIndex === idx ? "bg-zinc-950 text-white border-zinc-950 shadow-md" : "bg-white text-zinc-400 border-zinc-200 group-hover:border-zinc-300"
+                        )}>
+                           {idx + 1}
+                        </div>
+                        <span className={cn(
+                          "text-[12px] font-bold transition-colors",
+                          activeModuleIndex === idx ? "text-zinc-900" : "text-zinc-400"
+                        )}>
+                           {template?.name || key}
+                        </span>
+                        {idx < selectedComponents.length - 1 && <div className="w-4 h-px bg-zinc-100" />}
+                     </button>
+                   )
+                 })}
               </div>
 
-              {/* Granular Component Refinement Stack */}
-              {selectedComponents.length > 0 && (
-                <div className="space-y-12">
-                   <div className="space-y-4">
-                      <h3 className="text-3xl font-black text-zinc-900 tracking-tight italic">Refinement Stack</h3>
-                      <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest opacity-60">Deep configuration of active modules</p>
-                   </div>
+              {/* Split Configuration Engine */}
+              <div className="flex-1 flex overflow-hidden">
+                 {/* 2A. Module Inspector */}
+                 <div className="w-[400px] border-r border-zinc-200 bg-white flex flex-col p-8 overflow-y-auto z-10 text-left">
+                    <div className="mb-10">
+                       <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-zinc-100 border border-zinc-200 text-zinc-600 rounded-md text-[10px] font-bold uppercase tracking-wider mb-4">
+                         Unit {activeModuleIndex + 1}
+                       </div>
+                       <h3 className="text-2xl font-bold text-zinc-900 tracking-tight">
+                         {(COMPONENT_TEMPLATES as any)[selectedComponents[activeModuleIndex]]?.name}
+                       </h3>
+                    </div>
 
-                   <div className="grid grid-cols-1 gap-12">
-                      {selectedComponents.map(key => {
-                        const template = (COMPONENT_TEMPLATES as any)[key]
-                        if (!template) return null
-                        return (
-                          <Card key={key} className="rounded-[3.5rem] border-none shadow-2xl shadow-zinc-200/50 overflow-hidden bg-white group-hover:scale-[1.01] transition-transform duration-500">
-                             <div className="p-10 flex flex-col xl:flex-row gap-12">
-                                <div className="w-full xl:w-[320px] space-y-8">
-                                   <div className="flex items-center gap-4">
-                                      <div className="w-3 h-3 rounded-full bg-zinc-900" />
-                                      <h3 className="text-base font-black uppercase tracking-widest text-zinc-900">{template.name}</h3>
-                                   </div>
+                    <div className="space-y-12">
+                       {/* 1. Layout Unit */}
+                       <div className="space-y-6">
+                          <div className="flex items-center gap-2.5">
+                             <Layers className="w-4 h-4 text-zinc-400" />
+                             <Label className="text-[13px] font-bold text-zinc-900">Structural Layout</Label>
+                          </div>
+                          <div className="grid grid-cols-1 gap-2.5">
+                             {[
+                                { id: 'standard', name: 'Standard Layout' },
+                                { id: 'split-reversed', name: 'Mirrored Design' },
+                                { id: 'contained', name: 'Contained View' },
+                                { id: 'full-height', name: 'Fullscreen Stage' }
+                             ].map(v => (
+                                <button
+                                  key={v.id}
+                                  onClick={() => setComponentSettings(prev => ({
+                                    ...prev, 
+                                    [selectedComponents[activeModuleIndex]]: { ...prev[selectedComponents[activeModuleIndex]], layout_variant: v.id }
+                                  }))}
+                                  className={cn(
+                                    "w-full h-14 px-6 flex items-center justify-between transition-all border rounded-xl text-left",
+                                    (componentSettings[selectedComponents[activeModuleIndex]]?.layout_variant || 'standard') === v.id
+                                      ? "bg-zinc-950 text-white border-zinc-950 shadow-md"
+                                      : "bg-white text-zinc-500 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50/50"
+                                  )}
+                                >
+                                   <span className="text-[12px] font-bold">{v.name}</span>
+                                   <div className={cn("w-1.5 h-1.5 rounded-full", (componentSettings[selectedComponents[activeModuleIndex]]?.layout_variant || 'standard') === v.id ? "bg-white" : "bg-zinc-200")} />
+                                </button>
+                             ))}
+                          </div>
+                       </div>
 
-                                   <div className="space-y-6">
-                                      <div className="space-y-3">
-                                         <p className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Animation Motion</p>
-                                         <div className="grid grid-cols-2 gap-3">
-                                            {['none', 'fade', 'slide-up', 'zoom'].map(anim => (
-                                              <button
-                                                key={anim}
-                                                onClick={() => updateComponentAnimation(key, anim)}
-                                                className={cn(
-                                                  "py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
-                                                  (componentSettings[key]?.animation || 'fade') === anim 
-                                                    ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" 
-                                                    : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
-                                                )}
-                                              >
-                                                 {anim}
-                                              </button>
-                                            ))}
-                                         </div>
-                                      </div>
+                       {/* 2. Weight Scale */}
+                       <div className="space-y-6">
+                          <div className="flex items-center gap-2.5">
+                             <Type className="w-4 h-4 text-zinc-400" />
+                             <Label className="text-[13px] font-bold text-zinc-900">Hierarchy</Label>
+                          </div>
+                          <div className="flex bg-zinc-100/50 p-1 border border-zinc-200/50 rounded-xl gap-1">
+                              {[
+                                { id: 'h1', label: 'Primary' },
+                                { id: 'h2', label: 'Secondary' },
+                                { id: 'h3', label: 'Tertiary' }
+                              ].map(h => (
+                                <button
+                                  key={h.id}
+                                  onClick={() => setComponentSettings(prev => ({
+                                    ...prev, 
+                                    [selectedComponents[activeModuleIndex]]: { ...prev[selectedComponents[activeModuleIndex]], hierarchy: h.id }
+                                  }))}
+                                  className={cn(
+                                    "flex-1 h-9 rounded-lg text-[11px] font-bold transition-all",
+                                    (componentSettings[selectedComponents[activeModuleIndex]]?.hierarchy || 'h1') === h.id
+                                      ? "bg-white text-zinc-950 shadow-sm border border-zinc-200/50"
+                                      : "text-zinc-400 hover:text-zinc-600"
+                                  )}
+                                >
+                                   {h.label}
+                                </button>
+                              ))}
+                          </div>
+                       </div>
 
-                                      {(key.includes('HERO') || key.includes('FEATURES')) && (
-                                         <div className="space-y-3">
-                                            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Interaction Depth</p>
-                                            <Select 
-                                              value={componentSettings[key]?.cta_count?.toString() || '1'} 
-                                              onValueChange={(v) => setComponentSettings(prev => ({...prev, [key]: {...prev[key], cta_count: parseInt(v)}}))}
-                                            >
-                                               <SelectTrigger className="h-12 bg-zinc-50 border-none rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-inner">
-                                                  <SelectValue placeholder="Action Count" />
-                                               </SelectTrigger>
-                                               <SelectContent>
-                                                  <SelectItem value="1" className="text-[11px] font-black uppercase">Single CTA</SelectItem>
-                                                  <SelectItem value="2" className="text-[11px] font-black uppercase">Dual CTAs</SelectItem>
-                                               </SelectContent>
-                                            </Select>
-                                         </div>
-                                      )}
-
-                                      {key.includes('FEATURES') && (
-                                         <div className="space-y-3">
-                                            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Card Aesthetic</p>
-                                            <div className="flex flex-wrap gap-3">
-                                               {['standard', 'minimal', 'glass'].map(style => (
-                                                  <button
-                                                     key={style}
-                                                     onClick={() => setComponentSettings(prev => ({...prev, [key]: {...prev[key], card_style: style}}))}
-                                                     className={cn(
-                                                        "px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                                                        (componentSettings[key]?.card_style || 'standard') === style 
-                                                          ? "bg-zinc-900 text-white shadow-lg" 
-                                                          : "bg-zinc-50 text-zinc-400 hover:bg-zinc-100"
-                                                     )}
-                                                  >
-                                                     {style}
-                                                  </button>
-                                               ))}
-                                            </div>
-                                         </div>
-                                      )}
+                       {/* 3. Custom Cosmetics (for specific components) */}
+                       {selectedComponents[activeModuleIndex] === 'NAV_CUSTOM' && (
+                          <div className="space-y-6">
+                             <div className="flex items-center gap-2.5">
+                                <Palette className="w-4 h-4 text-zinc-400" />
+                                <Label className="text-[13px] font-bold text-zinc-900">Header Cosmetics</Label>
+                             </div>
+                             <div className="space-y-4 p-5 bg-zinc-50 border border-zinc-200 rounded-xl">
+                                <div className="space-y-2">
+                                   <Label className="text-[11px] font-bold text-zinc-500 uppercase text-left block">Background Color</Label>
+                                   <div className="flex items-center gap-3">
+                                      <input 
+                                        type="color" 
+                                        value={componentSettings[selectedComponents[activeModuleIndex]]?.bg_color || '#ffffff'}
+                                        onChange={(e) => setComponentSettings(prev => ({
+                                          ...prev, 
+                                          [selectedComponents[activeModuleIndex]]: { ...prev[selectedComponents[activeModuleIndex]], bg_color: e.target.value, bg_gradient: '' }
+                                        }))}
+                                        className="w-10 h-10 rounded-lg border border-zinc-200 p-1 bg-white cursor-pointer"
+                                      />
+                                      <span className="text-sm font-mono text-zinc-500">{componentSettings[selectedComponents[activeModuleIndex]]?.bg_color || '#ffffff'}</span>
                                    </div>
                                 </div>
-
-                                <div className="flex-1 bg-zinc-50 rounded-[2.5rem] min-h-[320px] flex items-center justify-center p-12 overflow-hidden border border-zinc-100 relative shadow-inner">
-                                   <div className="absolute top-6 left-8">
-                                      <Badge variant="outline" className="bg-white border-none font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400 px-5 py-2 shadow-sm rounded-full">Industrial Preview</Badge>
-                                   </div>
-                                   <div className="transform scale-[0.7] md:scale-[0.8] origin-center opacity-90 drop-shadow-3xl transition-transform duration-700">
-                                      {template.preview(globalStyles, contentOverrides, componentSettings[key])}
+                                <div className="space-y-3">
+                                   <Label className="text-[11px] font-bold text-zinc-500 uppercase text-left block">Preset Gradients</Label>
+                                   <div className="grid grid-cols-4 gap-2">
+                                      {[
+                                        'linear-gradient(to right, #000000, #434343)',
+                                        'linear-gradient(to right, #ee9ca7, #ffdde1)',
+                                        'linear-gradient(to right, #2193b0, #6dd5ed)',
+                                        'linear-gradient(to right, #cc2b5e, #753a88)'
+                                      ].map((grad, i) => (
+                                         <button 
+                                           key={i}
+                                           onClick={() => setComponentSettings(prev => ({
+                                             ...prev, 
+                                             [selectedComponents[activeModuleIndex]]: { ...prev[selectedComponents[activeModuleIndex]], bg_gradient: grad }
+                                           }))}
+                                           className={cn(
+                                             "w-full aspect-square rounded-lg border-2 transition-all",
+                                             componentSettings[selectedComponents[activeModuleIndex]]?.bg_gradient === grad ? "border-zinc-950 scale-110 shadow-md" : "border-transparent"
+                                           )}
+                                           style={{ backgroundImage: grad }}
+                                         />
+                                      ))}
                                    </div>
                                 </div>
                              </div>
-                          </Card>
-                        )
-                      })}
-                   </div>
-                </div>
-              )}
-            </div>
+                          </div>
+                       )}
+
+                       {/* 4. Dynamics */}
+                       <div className="space-y-6">
+                          <div className="flex items-center gap-2.5">
+                             <Sparkles className="w-4 h-4 text-zinc-400" />
+                             <Label className="text-[13px] font-bold text-zinc-900">Motion Effects</Label>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                              {[
+                                { id: 'fade', label: 'Soft Fade' },
+                                { id: 'slide-up', label: 'Slide Up' },
+                                { id: 'zoom', label: 'Zoom In' },
+                                { id: 'none', label: 'No Motion' }
+                              ].map(anim => (
+                                 <button
+                                   key={anim.id}
+                                   onClick={() => setComponentSettings(prev => ({
+                                     ...prev, 
+                                     [selectedComponents[activeModuleIndex]]: { ...prev[selectedComponents[activeModuleIndex]], animation: anim.id }
+                                   }))}
+                                   className={cn(
+                                     "h-11 border rounded-lg flex items-center justify-center text-[11px] font-bold transition-all",
+                                     (componentSettings[selectedComponents[activeModuleIndex]]?.animation || 'fade') === anim.id
+                                       ? "bg-zinc-950 text-white border-zinc-950 shadow-md"
+                                       : "bg-white text-zinc-500 border-zinc-200 hover:border-zinc-300"
+                                   )}
+                                 >
+                                    {anim.label}
+                                 </button>
+                              ))}
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* 2B. Large Scale Sandbox */}
+                 <div className="flex-1 bg-zinc-50/50 flex items-center justify-center p-8 lg:p-12 relative">
+                    <div className="absolute top-8 left-8 flex items-center gap-3">
+                       <div className="bg-zinc-900 text-white text-[10px] font-bold px-3 py-1 rounded-md uppercase tracking-wider shadow-lg shadow-zinc-200">Live Preview</div>
+                    </div>
+                    
+                    <div className="w-full h-full max-h-[750px] bg-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border border-zinc-200/80 rounded-[2rem] overflow-hidden relative group">
+                       <div className="absolute inset-0 p-8 lg:p-16 overflow-auto no-scrollbar scroll-smooth">
+                          <div className="transform scale-[0.6] lg:scale-[0.85] origin-top transition-transform duration-700">
+                            {(COMPONENT_TEMPLATES as any)[selectedComponents[activeModuleIndex]]?.preview(
+                              globalStyles, 
+                              contentOverrides, 
+                              componentSettings[selectedComponents[activeModuleIndex]]
+                            )}
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+             </div>
           </div>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center py-20 text-center space-y-12 animate-in zoom-in-95 duration-1000 bg-white">
-             <div className="w-32 h-32 bg-zinc-950 rounded-[2.5rem] flex items-center justify-center shadow-3xl shadow-zinc-200 rotate-12 hover:rotate-0 transition-transform duration-500">
-                <CheckCircle2 className="w-16 h-16 text-emerald-400" />
+        )}
+
+        {step === 3 && (
+          <div className="h-full flex flex-col items-center justify-center py-24 text-center space-y-12 animate-in zoom-in-95 duration-1000 bg-white">
+             <div className="w-24 h-24 bg-zinc-950 rounded-[2rem] flex items-center justify-center shadow-xl shadow-zinc-200 rotate-3 hover:rotate-0 transition-transform duration-700">
+                <CheckCircle2 className="w-10 h-10 text-white" />
              </div>
              <div className="space-y-4">
-                <h2 className="text-5xl font-black text-zinc-900 tracking-tighter italic">Architecture Verified</h2>
-                <p className="text-base font-bold text-zinc-400 uppercase tracking-[0.4em]">Final Industrial Stage</p>
+                <h2 className="text-4xl font-bold text-zinc-900 tracking-tight">System Ready</h2>
+                <p className="text-[14px] font-medium text-zinc-500">Your custom architecture has been successfully ejection-ready.</p>
              </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-12">
-                <Card className="p-10 rounded-[3rem] border-zinc-50 bg-zinc-50/30 text-left space-y-6 hover:shadow-xl transition-all group">
-                   <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                      <Palette className="w-6 h-6 text-zinc-900" />
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl px-12 text-left">
+                <div className="p-8 rounded-2xl border border-zinc-200 bg-zinc-50/50 space-y-4 hover:border-zinc-300 transition-all group">
+                   <div className="w-10 h-10 bg-white border border-zinc-200 rounded-lg flex items-center justify-center shadow-sm group-hover:bg-zinc-950 group-hover:border-zinc-950 transition-colors">
+                      <Palette className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
                    </div>
                    <div>
-                      <p className="text-[12px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">Global Identity</p>
-                      <div className="flex items-center gap-4">
-                         <div className="w-6 h-6 rounded-full shadow-md" style={{ backgroundColor: globalStyles.primary_color }} />
-                         <span className="text-sm font-black text-zinc-900 uppercase tracking-widest">{globalStyles.font_family_heading}</span>
-                      </div>
+                     <p className="text-sm font-bold text-zinc-900">Theme Assets</p>
+                     <p className="text-[12px] font-medium text-zinc-500">Global styles and typography tokens</p>
                    </div>
-                </Card>
-                <Card className="p-10 rounded-[3rem] border-zinc-50 bg-zinc-50/30 text-left space-y-6 hover:shadow-xl transition-all group">
-                   <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                      <Layers className="w-6 h-6 text-zinc-900" />
+                </div>
+                <div className="p-8 rounded-2xl border border-zinc-200 bg-zinc-50/50 space-y-4 hover:border-zinc-300 transition-all group">
+                   <div className="w-10 h-10 bg-white border border-zinc-200 rounded-lg flex items-center justify-center shadow-sm group-hover:bg-zinc-950 group-hover:border-zinc-950 transition-colors">
+                      <Layers className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
                    </div>
                    <div>
-                      <p className="text-[12px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">Stack Metadata</p>
-                      <p className="text-sm font-black text-zinc-900 uppercase tracking-widest">{selectedComponents.length} Pre-built Modules</p>
+                     <p className="text-sm font-bold text-zinc-900">Module Structure</p>
+                     <p className="text-[12px] font-medium text-zinc-500">Layout configurations and metadata</p>
                    </div>
-                </Card>
+                </div>
              </div>
 
              <PendingButton 
                loading={isGenerating} 
                onClick={handleGenerate} 
-               className="h-24 px-16 bg-zinc-950 text-white rounded-[2.5rem] text-[14px] font-black uppercase tracking-[0.3em] shadow-3xl shadow-zinc-300 hover:scale-[1.05] active:scale-[0.95] transition-all flex items-center gap-6 group"
+               className="h-16 px-12 bg-zinc-950 text-white rounded-2xl text-[14px] font-bold shadow-2xl shadow-zinc-200 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-4 group"
              >
-                <Download className="w-8 h-8 group-hover:translate-y-2 transition-transform duration-300 text-emerald-400" />
+                <Download className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
                 Eject Production Build
              </PendingButton>
           </div>
         )}
 
-        {/* Action Bar Footer */}
-        <footer className="p-10 border-t border-zinc-100 bg-white/80 backdrop-blur-xl flex items-center justify-between z-30">
+        {/* Action Infrastructure Footer */}
+        <footer className="h-20 border-t border-zinc-200 bg-white flex items-center justify-between px-8 z-30">
            <Button
              variant="ghost"
              onClick={() => {
-                if (step === 3) setStep(1)
+                if (step === 2) {
+                   if (activeModuleIndex > 0) setActiveModuleIndex(activeModuleIndex - 1)
+                   else setStep(1)
+                } else if (step === 3) setStep(2)
                 else window.location.reload()
              }}
-             className="rounded-2xl h-14 px-8 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-all border border-transparent hover:border-zinc-100"
+             className="h-10 px-6 text-[12px] font-bold text-zinc-500 hover:text-zinc-900 transition-colors rounded-xl"
            >
-              {step === 3 ? "Back to Architect" : "Exit Architect"}
+              {step === 1 ? "Cancel" : "Back One Step"}
            </Button>
+           
            <div className="flex items-center gap-6">
-              {step < 3 ? (
-                <div className="flex items-center gap-4">
-                   <p className="text-[11px] font-black uppercase tracking-widest text-zinc-300 mr-4">Architecture Active</p>
-                   <Button
-                     onClick={() => {
+              {step === 1 ? (
+                <Button
+                  disabled={selectedComponents.length === 0}
+                  onClick={() => setStep(2)}
+                  className="h-10 px-8 bg-zinc-900 text-white font-bold text-[13px] shadow-lg shadow-zinc-200 hover:bg-zinc-800 transition-all hover:scale-[1.02] rounded-xl"
+                >
+                   Continue to Configure
+                </Button>
+              ) : step === 2 ? (
+                <Button
+                  onClick={() => {
+                    if (activeModuleIndex < selectedComponents.length - 1) {
+                       setActiveModuleIndex(activeModuleIndex + 1)
+                    } else {
                        handleSave()
                        setStep(3)
-                     }}
-                     className="rounded-2xl h-14 px-12 bg-zinc-900 text-white font-black text-[12px] uppercase tracking-widest shadow-2xl shadow-zinc-200 hover:bg-zinc-800 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                   >
-                      Verify & Proceed
-                   </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => window.location.reload()}
-                  className="rounded-[2rem] h-14 px-12 bg-emerald-50 text-emerald-700 font-black text-[12px] uppercase tracking-widest hover:bg-emerald-100 transition-all shadow-lg shadow-emerald-100/50"
+                    }
+                  }}
+                  className="h-10 px-8 bg-zinc-900 text-white font-bold text-[13px] shadow-lg shadow-zinc-200 hover:bg-zinc-800 transition-all hover:scale-[1.02] flex items-center gap-2 rounded-xl"
                 >
-                   Finish Architecture
+                   {activeModuleIndex < selectedComponents.length - 1 ? (
+                     <>Next Component <ChevronRight className="w-4 h-4" /></>
+                   ) : (
+                     <>Finalize Build <CheckCircle2 className="w-4 h-4" /></>
+                   )}
                 </Button>
-              )}
+              ) : null}
            </div>
         </footer>
       </main>

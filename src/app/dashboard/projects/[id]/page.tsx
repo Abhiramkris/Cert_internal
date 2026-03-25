@@ -13,6 +13,7 @@ import { RealtimeComments } from './realtime-comments'
 import { DeadlineEditor } from './deadline-editor'
 import { WebsiteBuilderConfigurator } from '@/components/projects/website-builder-configurator'
 import { DynamicStageForm } from '@/components/projects/dynamic-stage-form'
+import { AddSeoModal } from '@/components/projects/add-seo-modal'
 import { finalizeProject, selfAssignProject } from '../actions'
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
@@ -36,7 +37,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
   // Manager/Admin can always action. Others only if assigned or correctly role-matched if project is held by a manager or unassigned.
   const currentAssigneeRole = staff?.find(s => s.id === project.current_assignee_id)?.role
   const isHeldByManager = currentAssigneeRole === 'Manager' || currentAssigneeRole === 'Admin'
-  
+
   const canAction = isManager || isAdmin || isAssigned || (isCorrectRole && (!project.current_assignee_id || isHeldByManager))
 
   const stagesProgress = project.project_stage_data?.map((d: any) => d.workflow_stages?.status_key) || []
@@ -47,7 +48,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
   const { data: allProjects } = await getProjectsMinimal()
 
   const canAssign = user.profile.role === 'Manager' || user.profile.role === 'Admin'
-  
+
   // Strict restrictions for managers/admin
   const canManagePayments = user.profile.role === 'Admin' || user.profile.role === 'Manager'
 
@@ -59,7 +60,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 pb-8">
         <div className="flex items-center gap-4">
-          <Link 
+          <Link
             href="/dashboard"
             className="flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl h-12 w-12 transition-all border border-zinc-100 shadow-sm shrink-0"
           >
@@ -73,11 +74,11 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
               <Badge variant="outline" className={cn(
                 "rounded-lg font-bold text-[10px] px-2 py-0.5 border-none uppercase tracking-tight",
                 project.status === 'NEW_LEAD' ? "bg-orange-100 text-orange-700" :
-                project.status === 'TEAM_ASSIGNED' ? "bg-blue-100 text-blue-700" :
-                project.status === 'SEO_COMPLETED' ? "bg-purple-100 text-purple-700" :
-                project.status === 'DEV_PREVIEW_READY' ? "bg-indigo-100 text-indigo-700" :
-                project.status === 'MANAGER_APPROVED' ? "bg-emerald-100 text-emerald-700" :
-                "bg-zinc-100 text-zinc-600"
+                  project.status === 'TEAM_ASSIGNED' ? "bg-blue-100 text-blue-700" :
+                    project.status === 'SEO_COMPLETED' ? "bg-purple-100 text-purple-700" :
+                      project.status === 'DEV_PREVIEW_READY' ? "bg-indigo-100 text-indigo-700" :
+                        project.status === 'MANAGER_APPROVED' ? "bg-emerald-100 text-emerald-700" :
+                          "bg-zinc-100 text-zinc-600"
               )}>
                 {project.status.replace(/_/g, ' ')}
               </Badge>
@@ -97,7 +98,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                   {/* Quick Assign Stub - Allow for Admin, Manager, or the Specific Role needed for the stage */}
                   {(user.profile.role === 'Admin' || user.profile.role === 'Manager' || isCorrectRole) && (
                     <form action={selfAssignProject.bind(null, project.id)} className="ml-2">
-                      <PendingButton 
+                      <PendingButton
                         type="submit"
                         variant="outline"
                         className="h-7 px-3 text-[9px] font-black uppercase tracking-tighter border-amber-200 text-amber-700 bg-white hover:bg-amber-100 rounded-lg transition-all"
@@ -120,7 +121,8 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
             <MessageSquare className="w-4 h-4 mr-2" />
             Messages
           </Button>
-          <Link 
+          <AddSeoModal projectId={project.id} existingConfig={project.seo_config?.[0]} />
+          <Link
             href={`/review/${project.secure_token}`}
             target="_blank"
             className={cn(buttonVariants({ variant: "default", size: "sm" }), "bg-zinc-900 hover:bg-zinc-800 text-white h-9 px-6 text-xs font-bold uppercase tracking-wider shadow-sm transition-all")}
@@ -137,9 +139,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
             if (tab === 'team' && !(isAdmin || isManager)) return null
             if (tab === 'generator' && !(isManager || isAdmin || user.profile.role === 'Developer')) return null
             return (
-              <TabsTrigger 
+              <TabsTrigger
                 key={tab}
-                value={tab} 
+                value={tab}
                 className="rounded-none bg-transparent px-0 py-3 text-sm font-bold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-400 transition-all uppercase tracking-wider mb-2 lg:mb-0 flex items-center gap-2"
               >
                 {tab === 'generator' && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
@@ -168,9 +170,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 </CardContent>
               </Card>
 
-              <DynamicStageForm 
-                projectId={project.id} 
-                stage={currentStage} 
+              <DynamicStageForm
+                projectId={project.id}
+                stage={currentStage}
                 nextStage={templateStages[currentStageIndex + 1]}
                 staff={staff || []}
                 existingData={currentStageData?.data || {}}
@@ -240,9 +242,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     </div>
                   </div>
                   <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-zinc-900 transition-all duration-700 ease-in-out" 
-                      style={{ width: `${progressPercentage}%` }} 
+                    <div
+                      className="h-full bg-zinc-900 transition-all duration-700 ease-in-out"
+                      style={{ width: `${progressPercentage}%` }}
                     />
                   </div>
                   <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">
@@ -261,9 +263,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     <span className="font-bold text-zinc-900">₹{totalPaid.toLocaleString()} <span className="text-[10px] text-zinc-300 font-medium">/ ₹{project.budget.toLocaleString()}</span></span>
                   </div>
                   <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden mb-4">
-                    <div 
-                      className="h-full bg-emerald-500 transition-all duration-700" 
-                      style={{ width: `${(totalPaid / project.budget) * 100}%` }} 
+                    <div
+                      className="h-full bg-emerald-500 transition-all duration-700"
+                      style={{ width: `${(totalPaid / project.budget) * 100}%` }}
                     />
                   </div>
                   {balance > 0 && (
@@ -275,7 +277,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
 
                   {balance <= 0 && project.status !== 'CLIENT_APPROVED' && (isManager || isAdmin) && (
                     <form action={finalizeProject.bind(null, project.id)} className="mt-4">
-                      <PendingButton 
+                      <PendingButton
                         type="submit"
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-[0.2em] h-11 rounded-xl shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2"
                       >
@@ -288,9 +290,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
               </Card>
 
               {(isManager || isAdmin || (canAssign && project.status === 'NEW_LEAD')) && (
-                <AssignmentForm 
-                  projectId={project.id} 
-                  team={project.project_team?.[0]} 
+                <AssignmentForm
+                  projectId={project.id}
+                  team={project.project_team?.[0]}
                   staff={staff || []}
                   currentStatus={project.status}
                   currentAssigneeId={project.current_assignee_id}
@@ -300,7 +302,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
               )}
 
               {(isManager || isAdmin) && (
-                <DeadlineEditor 
+                <DeadlineEditor
                   projectId={project.id}
                   deadlines={{
                     discovery_deadline: project.discovery_deadline,
@@ -328,22 +330,22 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     <div className={cn(
                       "flex items-center justify-center w-14 h-14 rounded-full border shrink-0 transition-all duration-300 z-10",
                       isActive ? "bg-zinc-900 border-zinc-900 text-white shadow-lg scale-110" :
-                      isCompleted ? "bg-white border-zinc-200 text-zinc-900 shadow-sm" :
-                      "bg-white border-zinc-100 text-zinc-300"
+                        isCompleted ? "bg-white border-zinc-200 text-zinc-900 shadow-sm" :
+                          "bg-white border-zinc-100 text-zinc-300"
                     )}>
                       {isCompleted && !isActive ? <CheckCircle className="w-6 h-6 text-emerald-500" /> : <Settings className="w-6 h-6" />}
                     </div>
                     <div className="ml-10 pt-2 flex-1">
                       <div className="flex items-center justify-between mb-1.5">
                         <h4 className={cn("text-sm font-bold tracking-tight transition-colors", isPending ? "text-zinc-400" : "text-zinc-900")}>{step.display_name}</h4>
-                        <span className={cn("text-[9px] font-bold px-2.5 py-1 rounded-lg border tracking-widest uppercase", 
+                        <span className={cn("text-[9px] font-bold px-2.5 py-1 rounded-lg border tracking-widest uppercase",
                           isCompleted && !isActive ? "bg-zinc-50 border-zinc-100 text-zinc-500" :
-                          isActive ? "bg-zinc-900 border-zinc-900 text-white" : "bg-transparent border-zinc-100 text-zinc-300"
+                            isActive ? "bg-zinc-900 border-zinc-900 text-white" : "bg-transparent border-zinc-100 text-zinc-300"
                         )}>{step.acting_role}</span>
                       </div>
                       <p className="text-xs text-zinc-500 font-medium leading-relaxed max-w-xl">
-                        {isActive ? `Currently being handled by ${step.acting_role}.` : 
-                         isCompleted ? `Phase completed.` : `Awaiting previous stages.`}
+                        {isActive ? `Currently being handled by ${step.acting_role}.` :
+                          isCompleted ? `Phase completed.` : `Awaiting previous stages.`}
                       </p>
                     </div>
                   </div>
@@ -361,15 +363,19 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
 
         {(isManager || isAdmin || user.profile.role === 'Developer') && (
           <TabsContent value="generator" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <WebsiteBuilderConfigurator projectId={project.id} initialConfig={websiteConfig} />
+            <WebsiteBuilderConfigurator
+              projectId={project.id}
+              initialConfig={websiteConfig}
+              project={project}
+            />
           </TabsContent>
         )}
 
         <TabsContent value="comments" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <RealtimeComments 
-            projectId={project.id} 
-            initialComments={project.comments || []} 
-            userId={user.profile.id} 
+          <RealtimeComments
+            projectId={project.id}
+            initialComments={project.comments || []}
+            userId={user.profile.id}
             projects={allProjects || []}
             staff={staff || []}
           />

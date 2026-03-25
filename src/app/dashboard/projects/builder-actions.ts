@@ -68,7 +68,7 @@ export async function generateProjectZip(projectId: string) {
       "next": "latest",
       "react": "latest",
       "react-dom": "latest",
-      "lucide-react": "latest",
+      "lucide-react": "^0.577.0",
       "clsx": "latest",
       "tailwind-merge": "latest",
       "framer-motion": "latest"

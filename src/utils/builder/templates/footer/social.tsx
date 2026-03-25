@@ -1,4 +1,5 @@
 import React from 'react';
+import { Instagram, Twitter, Linkedin, Github as GithubIcon } from 'lucide-react';
 
 export const FOOTER_SOCIAL = {
   name: 'High-Fidelity Social Footer',
@@ -32,7 +33,7 @@ export const FOOTER_SOCIAL = {
 'use client'
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Instagram, Twitter, Linkedin, Github } from 'lucide-react';
+import { Instagram, Twitter, Linkedin, Github as GithubIcon } from 'lucide-react';
 import config from '../data/config.json';
 
 export default function Footer() {
@@ -69,7 +70,7 @@ export default function Footer() {
             <Instagram className="w-5 h-5 text-zinc-500 hover:text-white cursor-pointer transition-colors" />
             <Twitter className="w-5 h-5 text-zinc-500 hover:text-white cursor-pointer transition-colors" />
             <Linkedin className="w-5 h-5 text-zinc-500 hover:text-white cursor-pointer transition-colors" />
-            <Github className="w-5 h-5 text-zinc-500 hover:text-white cursor-pointer transition-colors" />
+            <GithubIcon className="w-5 h-5 text-zinc-500 hover:text-white cursor-pointer transition-colors" />
           </div>
         </motion.div>
         

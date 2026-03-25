@@ -26,7 +26,7 @@ export default async function DashboardPage() {
           </p>
           <h1 className="text-[32px] font-bold tracking-tight text-zinc-900">Good morning {user.profile.full_name?.split(' ')[0]}</h1>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <Button variant="outline" className="rounded-2xl border-zinc-200 font-semibold px-4 py-6 text-zinc-600 h-auto text-[13px] bg-white shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:bg-zinc-50 border-none">
             <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -46,15 +46,15 @@ export default async function DashboardPage() {
         <AdminStats projects={projects || []} staff={staff || []} />
       )}
 
-      <ProjectPipelineTracker 
-        initialProjects={projects || []} 
-        staff={staff || []} 
+      <ProjectPipelineTracker
+        initialProjects={projects || []}
+        staff={staff || []}
         currentUserId={user.id}
       />
 
       {/* Secondary Widgets Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left Column (Span 3): Profile */}
         <div className="lg:col-span-3">
           <Card className="rounded-[2.5rem] border-none bg-gradient-to-br from-[#E6FFFA] to-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center relative overflow-hidden group h-full">
@@ -64,12 +64,12 @@ export default async function DashboardPage() {
             <div className="flex flex-col items-start px-2">
               <h2 className="text-xl font-bold text-zinc-900 tracking-tight">{user.profile.full_name}</h2>
               <p className="text-[12px] font-semibold text-zinc-500 mb-6 font-medium capitalize">
-                {{'Admin': 'System Administrator', 'Manager': 'Project Manager', 'SEO': 'SEO Specialist', 'Developer': 'Software Engineer', 'Sales': 'Sales Executive', 'HR': 'Human Resources', 'Designer': 'Creative Designer'}[user.profile.role as string] || user.profile.role}
+                {{ 'Admin': 'System Administrator', 'Manager': 'Project Manager', 'SEO': 'SEO Specialist', 'Developer': 'Software Engineer', 'Sales': 'Sales Executive', 'HR': 'Human Resources', 'Designer': 'Creative Designer' }[user.profile.role as string] || user.profile.role}
               </p>
             </div>
             <div className="absolute bottom-6 right-6 flex gap-2">
-               <Button size="icon" className="w-10 h-10 rounded-full bg-white text-zinc-900 shadow-md hover:scale-110 transition-transform"><Phone className="w-4 h-4" /></Button>
-               <Button size="icon" className="w-10 h-10 rounded-full bg-zinc-900 text-white shadow-md hover:scale-110 transition-transform"><Mail className="w-4 h-4" /></Button>
+              <Button size="icon" className="w-10 h-10 rounded-full bg-white text-zinc-900 shadow-md hover:scale-110 transition-transform"><Phone className="w-4 h-4" /></Button>
+              <Button size="icon" className="w-10 h-10 rounded-full bg-zinc-900 text-white shadow-md hover:scale-110 transition-transform"><Mail className="w-4 h-4" /></Button>
             </div>
           </Card>
         </div>

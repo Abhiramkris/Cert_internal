@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  BarChart3, 
-  Briefcase, 
-  Settings, 
-  Users, 
-  CheckCircle2, 
-  CreditCard, 
-  PlusCircle, 
+import {
+  BarChart3,
+  Briefcase,
+  Settings,
+  Users,
+  CheckCircle2,
+  CreditCard,
+  PlusCircle,
   Search,
   LayoutDashboard,
   LogOut,
@@ -28,7 +28,7 @@ interface SidebarProps {
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
-  
+
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Projects', href: '/dashboard/projects', icon: Briefcase },
@@ -40,7 +40,7 @@ export function Sidebar({ user }: SidebarProps) {
     navItems.push({ name: 'Team Management', href: '/dashboard/teams', icon: Users })
     navItems.push({ name: 'Payments', href: '/dashboard/payments', icon: CreditCard })
   }
-  
+
   if (user?.role === 'Admin') {
     navItems.push({ name: 'Admin Panel', href: '/dashboard/admin', icon: Settings })
   }
@@ -65,7 +65,7 @@ export function Sidebar({ user }: SidebarProps) {
             </span>
           </div>
         </div>
-        
+
         <div className="space-y-10">
           <div>
             <h3 className="px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Menu</h3>
@@ -78,8 +78,8 @@ export function Sidebar({ user }: SidebarProps) {
                     href={item.href}
                     className={cn(
                       "flex items-center gap-4 px-3 py-3 text-[13px] transition-all rounded-2xl group/item relative",
-                      isActive 
-                        ? "bg-[#10B981] text-white font-bold shadow-xl shadow-emerald-500/20" 
+                      isActive
+                        ? "bg-[#10B981] text-white font-bold shadow-xl shadow-emerald-500/20"
                         : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 font-medium"
                     )}
                   >
@@ -105,8 +105,8 @@ export function Sidebar({ user }: SidebarProps) {
                     href={item.href}
                     className={cn(
                       "flex items-center gap-4 px-3 py-3 text-[13px] transition-all rounded-2xl group/item",
-                      isActive 
-                        ? "bg-[#10B981] text-white font-bold shadow-xl shadow-emerald-500/20" 
+                      isActive
+                        ? "bg-[#10B981] text-white font-bold shadow-xl shadow-emerald-500/20"
                         : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 font-medium"
                     )}
                   >
@@ -130,8 +130,8 @@ export function Sidebar({ user }: SidebarProps) {
                       href={item.href}
                       className={cn(
                         "flex items-center gap-4 px-3 py-3 text-[13px] transition-all rounded-2xl group/item",
-                        isActive 
-                          ? "bg-zinc-900 text-white font-bold shadow-xl shadow-zinc-900/10" 
+                        isActive
+                          ? "bg-zinc-900 text-white font-bold shadow-xl shadow-zinc-900/10"
                           : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 font-medium"
                       )}
                     >
@@ -145,7 +145,7 @@ export function Sidebar({ user }: SidebarProps) {
           )}
         </div>
       </div>
-      
+
       <div className="p-4 flex flex-col gap-2 bg-white rounded-t-2xl shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.05)] border-t border-zinc-100 z-10 shrink-0">
         <div className="bg-white border border-zinc-100 p-2 rounded-2xl flex items-center justify-center overflow-hidden h-14 w-full">
           <div className="flex items-center gap-3 w-full justify-center group-hover:justify-start group-hover:px-2 transition-all">
@@ -155,13 +155,13 @@ export function Sidebar({ user }: SidebarProps) {
             <div className="flex-col min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
               <span className="text-[13px] font-bold text-zinc-900 block truncate tracking-tight">{user?.full_name}</span>
               <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">
-                {{'Admin': 'Administrator', 'Manager': 'Manager', 'SEO': 'SEO Specialist', 'Developer': 'Developer', 'Sales': 'Sales', 'HR': 'Human Resources', 'Designer': 'Designer'}[user?.role as string] || user?.role}
+                {{ 'Admin': 'Administrator', 'Manager': 'Manager', 'SEO': 'SEO Specialist', 'Developer': 'Developer', 'Sales': 'Sales', 'HR': 'Human Resources', 'Designer': 'Designer' }[user?.role as string] || user?.role}
               </span>
             </div>
           </div>
         </div>
 
-        <button 
+        <button
           onClick={async () => {
             const { signOut } = await import('@/app/login/actions')
             await signOut()

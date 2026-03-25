@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export const HERO_CENTERED = {
   name: 'Centered Hero',
@@ -7,6 +8,8 @@ export const HERO_CENTERED = {
     const style = config.button_style || 'solid';
     const align = config.text_alignment || 'center';
     const ctaCount = settings?.cta_count || 1;
+    const hierarchy = settings?.hierarchy || 'h1';
+    const variant = settings?.layout_variant || 'standard';
     
     const buttonClass = `px-8 py-3 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${
       style === 'solid' ? 'bg-zinc-900 text-white shadow-xl shadow-zinc-100' :
@@ -19,17 +22,42 @@ export const HERO_CENTERED = {
     const containerAlign = align === 'left' ? 'items-start' : align === 'right' ? 'items-end' : 'items-center';
     const mx = align === 'left' ? 'ml-0' : align === 'right' ? 'mr-0' : 'mx-auto';
 
+    const HeadingTag = (hierarchy || 'h1') as any;
+    const headingClass = cn(
+      "font-black text-zinc-900 tracking-tight leading-tight mb-4"
+    );
+
+    const getFontSize = () => {
+      if (hierarchy === 'h1') return `${config.font_size_h1 || 48}px`;
+      if (hierarchy === 'h2') return `${config.font_size_h2 || 32}px`;
+      return `${config.font_size_h3 || 24}px`;
+    };
+
     return (
-      <section className={`py-20 px-8 bg-white border-b border-zinc-50 relative overflow-hidden ${alignmentClass}`}>
+      <section className={cn(
+        "py-20 px-8 bg-white border-b border-zinc-50 relative overflow-hidden",
+        alignmentClass,
+        variant === 'full-height' && "min-h-[400px] flex items-center justify-center",
+        variant === 'contained' && "max-w-4xl mx-auto rounded-[3rem] border border-zinc-100 my-10"
+      )}>
         <div className={`relative z-10 flex flex-col ${containerAlign}`}>
           <div className="inline-block px-3 py-1 bg-zinc-100 rounded-full text-[8px] font-black uppercase tracking-widest text-zinc-500 mb-6">Premium Agency</div>
-          <h1 
-            className="text-4xl font-black text-zinc-900 tracking-tight leading-tight mb-4"
-            style={{ fontFamily: config.font_family_heading, fontWeight: config.font_weight_heading }}
+          <HeadingTag 
+            className={headingClass}
+            style={{ 
+              fontFamily: config.font_family_heading, 
+              fontWeight: config.font_weight_heading,
+              fontSize: getFontSize()
+            }}
           >
             {content?.h1 || 'Experience Excellence'}
-          </h1>
-          <p className={`text-sm text-zinc-500 font-medium mb-8 max-w-md ${mx}`}>{content?.description || 'Tailored digital solutions for modern businesses.'}</p>
+          </HeadingTag>
+          <p 
+            className={`text-sm text-zinc-500 font-medium mb-8 max-w-md ${mx}`}
+            style={{ fontSize: `${config.font_size_body || 16}px` }}
+          >
+            {content?.description || 'Tailored digital solutions for modern businesses.'}
+          </p>
           <div className="flex gap-4">
              <button className={buttonClass}>{content?.cta_primary || 'Explore'}</button>
              {ctaCount > 1 && <button className="px-8 py-3 text-[9px] font-black uppercase tracking-widest rounded-xl border border-zinc-200 text-zinc-400">Secondary</button>}
@@ -45,11 +73,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import config from '../data/config.json';
 
+// Industrial State-Machine Utility
+const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
+
 export default function Hero() {
   const settings = config.settings?.HERO_CENTERED || { animation: 'fade' };
   const global = config.styles;
   const ctaCount = settings.cta_count || 1;
   const align = global.text_alignment || 'center';
+  const hierarchy = settings.hierarchy || 'h1';
+  const variant = settings.layout_variant || 'standard';
   
   const variants = {
     none: { initial: {}, animate: {} },
@@ -62,26 +95,41 @@ export default function Hero() {
   
   const alignmentClass = align === 'left' ? 'text-left' : align === 'right' ? 'text-right' : 'text-center';
   const containerAlign = align === 'left' ? 'items-start' : align === 'right' ? 'items-end' : 'items-center';
-  const mx = align === 'left' ? 'ml-0' : align === 'right' ? 'mr-0' : 'mx-auto';
+  const mx = align === 'center' ? 'mx-auto' : align === 'right' ? 'ml-auto' : 'mr-auto';
+
+  const HeadingTag = hierarchy as any;
 
   return (
-    <section className="relative py-32 px-8 overflow-hidden bg-white">
+    <section className={cn(
+      "relative py-32 px-8 overflow-hidden bg-white",
+      variant === 'full-height' && "min-h-screen flex items-center",
+      variant === 'contained' && "max-w-7xl mx-auto rounded-[4rem] border border-zinc-100 my-20 shadow-2xl"
+    )}>
       <motion.div 
         {...selected}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
-        className={\`max-w-4xl \${mx} \${alignmentClass} flex flex-col \${containerAlign} relative z-10\`}
+        className={cn("max-w-4xl relative z-10 flex flex-col", mx, alignmentClass, containerAlign)}
       >
         <div className="inline-block px-4 py-1.5 bg-zinc-100 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-8">
           Crafting Digital Excellence
         </div>
-        <h1 
-          className="text-7xl font-black text-zinc-900 tracking-tight leading-[1.05] mb-8"
-          style={{ fontFamily: global.font_family_heading, fontWeight: global.font_weight_heading }}
+        <HeadingTag 
+          className={cn(
+            "font-black text-zinc-900 tracking-tight leading-[1.05] mb-8"
+          )}
+          style={{ 
+            fontFamily: global.font_family_heading, 
+            fontWeight: global.font_weight_heading,
+            fontSize: hierarchy === 'h1' ? (global.font_size_h1 + 'px') : hierarchy === 'h2' ? (global.font_size_h2 + 'px') : '32px'
+          }}
         >
           {config.content.h1 || 'Experience the Future of Digital Excellence'}
-        </h1>
-        <p className={\`text-xl text-zinc-500 font-medium leading-relaxed mb-12 max-w-2xl \${mx}\`}>
+        </HeadingTag>
+        <p 
+          className={cn("text-xl text-zinc-500 font-medium leading-relaxed mb-12 max-w-2xl", mx)}
+          style={{ fontSize: global.font_size_body + 'px' }}
+        >
           {config.content.description || 'Our agency delivers premium solutions tailored to your unique business needs.'}
         </p>
         <div className="flex flex-wrap items-center gap-6">

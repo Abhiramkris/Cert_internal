@@ -232,6 +232,7 @@ export function DynamicStageForm({
                   <WebsiteBuilderModal 
                     projectId={projectId} 
                     initialConfig={existingData?.website_config} 
+                    project={{ ...existingData, description: existingData.description || '' }} // Dynamic project context
                     trigger={
                       <Button
                         type="button"

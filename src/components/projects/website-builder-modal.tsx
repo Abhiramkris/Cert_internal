@@ -13,10 +13,11 @@ import { WebsiteBuilderConfigurator } from './website-builder-configurator'
 interface WebsiteBuilderModalProps {
   projectId: string
   initialConfig?: any
+  project?: any
   trigger?: React.ReactNode
 }
 
-export function WebsiteBuilderModal({ projectId, initialConfig, trigger }: WebsiteBuilderModalProps) {
+export function WebsiteBuilderModal({ projectId, initialConfig, project, trigger }: WebsiteBuilderModalProps) {
   return (
     <Dialog>
       <DialogTrigger
@@ -30,10 +31,12 @@ export function WebsiteBuilderModal({ projectId, initialConfig, trigger }: Websi
           </Button>
         )}
       />
-      <DialogContent className="max-w-[95vw] sm:max-w-[85vw] w-full h-[90vh] p-0 overflow-hidden border-none rounded-[3rem] bg-white shadow-2xl ring-0">
+      <DialogContent className="max-w-[95vw] sm:max-w-[85vw] w-full h-[90vh] p-0 overflow-hidden border-none rounded-3xl bg-white shadow-2xl ring-0">
+
         <WebsiteBuilderConfigurator 
           projectId={projectId} 
           initialConfig={initialConfig} 
+          project={project}
         />
       </DialogContent>
     </Dialog>

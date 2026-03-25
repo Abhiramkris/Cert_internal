@@ -2,17 +2,17 @@ import { createClient } from './server'
 
 export async function getUserProfile() {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) return null
-  
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
-    
+
   return { ...user, profile }
 }
 
@@ -30,13 +30,13 @@ export async function getProjects(role?: string, userId?: string) {
   let query = supabase
     .from('projects')
     .select('*, project_team(*), payments(amount)')
-  
+
   if (role && userId && role !== 'Admin' && role !== 'Manager') {
     query = query.eq('current_assignee_id', userId)
   }
 
   const { data, error } = await query.order('created_at', { ascending: false })
-  
+
   return { data, error }
 }
 
@@ -47,13 +47,13 @@ export async function getProjectDetail(id: string) {
     .select('*, project_team(*), seo_config(*), dev_config(*), comments(*), payments(*), workflow_templates(*, workflow_stages(*, workflow_fields(*))), project_stage_data(*, workflow_stages(*))')
     .eq('id', id)
     .single()
-    
+
   if (data?.comments) {
-    data.comments = data.comments.sort((a: any, b: any) => 
+    data.comments = data.comments.sort((a: any, b: any) =>
       new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     )
   }
-  
+
   return { data, error }
 }
 
@@ -68,7 +68,7 @@ export async function getStaff() {
 export async function getWorkflowConfig(statusKey?: string, templateId?: string) {
   const supabase = await createClient()
   let query = supabase.from('workflow_stages').select('*, workflow_fields(*)')
-  
+
   if (statusKey) {
     query = query.eq('status_key', statusKey)
   }
@@ -76,7 +76,7 @@ export async function getWorkflowConfig(statusKey?: string, templateId?: string)
   if (templateId) {
     query = query.eq('template_id', templateId)
   }
-  
+
   const { data, error } = await query.order('created_at', { ascending: true })
   return { data, error }
 }

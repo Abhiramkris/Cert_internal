@@ -1,11 +1,13 @@
-import React from 'react';
+import { cn } from '@/lib/utils';
 
 export const CONTACT_SIMPLE = {
   name: 'Premium Contact Form',
   type: 'section',
-  preview: (config: any, content: any) => {
+  preview: (config: any, content: any, settings: any) => {
     const style = config.button_style || 'solid';
     const align = config.text_alignment || 'center';
+    const hierarchy = settings?.hierarchy || 'h2';
+    const variant = settings?.layout_variant || 'standard';
     
     const alignmentClass = align === 'left' ? 'text-left' : align === 'right' ? 'text-right' : 'text-center';
     const containerAlign = align === 'left' ? 'items-start' : align === 'right' ? 'items-end' : 'items-center';
@@ -17,19 +19,32 @@ export const CONTACT_SIMPLE = {
       'bg-zinc-100/50 backdrop-blur-md border border-zinc-200'
     }`;
     
+    const isSplit = variant === 'split-reversed';
+    const HeadingTag = (hierarchy || 'h2') as any;
+
     return (
-      <section className={`py-20 px-8 bg-zinc-50 border-b border-zinc-100 ${alignmentClass}`}>
-        <div className={`max-w-md mx-auto flex flex-col ${containerAlign} space-y-8`}>
-          <div className={`flex flex-col ${containerAlign}`}>
-            <h2 
-              className="text-2xl font-black text-zinc-900 tracking-tight mb-2"
+      <section className={cn(
+        "py-20 px-8 bg-zinc-50 border-b border-zinc-100",
+        alignmentClass,
+        variant === 'contained' && "max-w-5xl mx-auto rounded-[3.5rem] my-10 border border-zinc-200"
+      )}>
+        <div className={cn(
+          "max-w-4xl mx-auto grid gap-12 items-center",
+          isSplit ? "grid-cols-1 md:grid-cols-2" : "flex flex-col"
+        )}>
+          <div className={cn("flex flex-col", containerAlign, isSplit && "order-2")}>
+            <HeadingTag 
+              className={cn(
+                "font-black text-zinc-900 tracking-tight mb-2",
+                hierarchy === 'h1' ? "text-4xl" : hierarchy === 'h2' ? "text-2xl" : "text-xl"
+              )}
               style={{ fontFamily: config.font_family_heading, fontWeight: config.font_weight_heading }}
             >
               Get in Touch
-            </h2>
+            </HeadingTag>
             <p className="text-xs text-zinc-500 font-medium">We'd love to hear from you. Send us a message.</p>
           </div>
-          <div className="w-full space-y-4">
+          <div className={cn("w-full space-y-4", isSplit && "order-1")}>
             <div className="h-10 bg-white rounded-xl border border-zinc-200" />
             <div className="h-10 bg-white rounded-xl border border-zinc-200" />
             <div className="h-32 bg-white rounded-xl border border-zinc-200" />
@@ -45,13 +60,18 @@ export const CONTACT_SIMPLE = {
 'use client'
 import React from 'react';
 import { motion } from 'framer-motion';
-import config from '../data/config.json';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import config from '../data/config.json';
+
+// Industrial State-Machine Utility
+const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
 
 export default function Contact() {
   const settings = config.settings?.CONTACT_SIMPLE || { animation: 'fade' };
   const global = config.styles;
   const align = global.text_alignment || 'left';
+  const hierarchy = settings.hierarchy || 'h2';
+  const variant = settings.layout_variant || 'standard';
   
   const variants = {
     none: { initial: {}, animate: {} },
@@ -65,44 +85,48 @@ export default function Contact() {
   const alignmentClass = align === 'center' ? 'text-center items-center' : align === 'right' ? 'text-right items-end' : 'text-left items-start';
   const mx = align === 'center' ? 'mx-auto' : align === 'right' ? 'ml-auto' : 'mr-auto';
 
+  const isSplit = variant === 'split-reversed';
+  const HeadingTag = hierarchy as any;
+
   return (
-    <section className={\`py-32 px-8 bg-zinc-50 overflow-hidden \${alignmentClass}\`}>
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24">
+    <section className={cn(
+      "py-32 px-8 bg-zinc-50 overflow-hidden",
+      alignmentClass,
+      variant === 'contained' && "max-w-7xl mx-auto rounded-[4rem] my-24 border border-zinc-100 shadow-2xl"
+    )}>
+      <div className={cn(
+        "max-w-7xl mx-auto grid gap-24 items-center",
+        isSplit ? "grid-cols-1 lg:grid-cols-2" : "flex flex-col"
+      )}>
         <motion.div 
           {...selected}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className={\`flex flex-col \${alignmentClass} space-y-12\`}
+          className={cn("flex flex-col space-y-12", alignmentClass, isSplit && "order-2")}
         >
-          <div className={\`flex flex-col \${alignmentClass} space-y-6\`}>
-            <h2 
-              className="text-6xl font-black text-zinc-900 tracking-tight leading-none italic"
+          <div className={cn("flex flex-col space-y-6", alignmentClass)}>
+            <HeadingTag 
+              className={cn(
+                "font-black text-zinc-900 tracking-tight leading-none italic",
+                hierarchy === 'h1' ? "text-7xl" : hierarchy === 'h2' ? "text-5xl" : "text-3xl"
+              )}
               style={{ fontFamily: global.font_family_heading, fontWeight: global.font_weight_heading }}
             >
               Let's build <br/> something great.
-            </h2>
-            <p className={\`text-xl text-zinc-500 font-medium leading-relaxed max-w-md \${mx}\`}>
+            </HeadingTag>
+            <p className={cn("text-xl text-zinc-500 font-medium leading-relaxed max-w-md", mx)}>
               Reach out to our elite engineering team to discuss your next digital breakthrough.
             </p>
           </div>
           
           <div className="space-y-8">
-             <div className={\`flex items-center gap-6 \${align === 'right' ? 'flex-row-reverse' : ''}\`}>
+             <div className={cn("flex items-center gap-6", align === 'right' && "flex-row-reverse")}>
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-zinc-100">
                    <Mail className="w-5 h-5 text-zinc-900" />
                 </div>
                 <div>
                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Email Us</p>
                    <p className="text-sm font-bold text-zinc-900">projects@agency.com</p>
-                </div>
-             </div>
-             <div className={\`flex items-center gap-6 \${align === 'right' ? 'flex-row-reverse' : ''}\`}>
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-zinc-100">
-                   <Phone className="w-5 h-5 text-zinc-900" />
-                </div>
-                <div>
-                   <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Call Us</p>
-                   <p className="text-sm font-bold text-zinc-900">+1 (555) 000-1111</p>
                 </div>
              </div>
           </div>
@@ -112,7 +136,11 @@ export default function Contact() {
           {...selected}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white p-12 rounded-[3.5rem] shadow-2xl shadow-zinc-200 border border-zinc-100"
+          className={cn(
+            "bg-white p-12 rounded-[3.5rem] shadow-2xl shadow-zinc-200 border border-zinc-100 w-full max-w-xl",
+            isSplit && "order-1",
+            !isSplit && mx
+          )}
         >
           <form className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
@@ -133,6 +161,7 @@ export default function Contact() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="btn-primary w-full h-16 !shadow-xl !rounded-3xl"
+              type="button"
             >
               <Send className="w-4 h-4" />
               Send Brief
