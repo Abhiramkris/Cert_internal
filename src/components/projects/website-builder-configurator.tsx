@@ -59,6 +59,10 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
     font_family_body: 'Inter',
     font_weight_heading: '900',
     button_style: 'solid', 
+    button_shadow: 'none',
+    button_animation: 'scale',
+    button_padding: 'standard',
+    show_secondary_cta: true,
     text_alignment: 'left',
     font_size_h1: '48',
     font_size_h2: '32',
@@ -109,10 +113,10 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
     setIsSaving(true)
     try {
       await saveWebsiteConfig(projectId, {
-        globalStyles,
-        selectedComponents,
-        componentSettings,
-        contentOverrides
+        global_styles: globalStyles,
+        selected_components: selectedComponents,
+        component_settings: componentSettings,
+        content_overrides: contentOverrides
       })
       toast.success('Architecture Synced')
     } catch (error) {
@@ -261,6 +265,184 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
                       </div>
                    </div>
 
+                    <Separator className="bg-zinc-200/50" />
+
+                    {/* Interactivity & Assets */}
+                    <div className="space-y-4">
+                       <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-zinc-400" />
+                          <Label className="text-[12px] font-bold text-zinc-950">Interactivity & Assets</Label>
+                       </div>
+                       <div className="p-5 bg-zinc-50/50 rounded-xl space-y-6 border border-zinc-200/50">
+                          {/* Button Shadow & Animation */}
+                          <div className="grid grid-cols-2 gap-4">
+                             <div className="space-y-3">
+                                <Label className="text-[11px] font-bold text-zinc-500 uppercase">Button Shadow</Label>
+                                <Select 
+                                  value={globalStyles.button_shadow || 'none'} 
+                                  onValueChange={(v) => setGlobalStyles({...globalStyles, button_shadow: v})}
+                                >
+                                  <SelectTrigger className="h-9 bg-white border-zinc-200 text-[12px]">
+                                     <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                     <SelectItem value="none">None</SelectItem>
+                                     <SelectItem value="soft">Soft</SelectItem>
+                                     <SelectItem value="hard">Hard</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                             </div>
+                             <div className="space-y-3">
+                                <Label className="text-[11px] font-bold text-zinc-500 uppercase">Animation</Label>
+                                <Select 
+                                  value={globalStyles.button_animation || 'scale'} 
+                                  onValueChange={(v) => setGlobalStyles({...globalStyles, button_animation: v})}
+                                >
+                                  <SelectTrigger className="h-9 bg-white border-zinc-200 text-[12px]">
+                                     <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                     <SelectItem value="none">None</SelectItem>
+                                     <SelectItem value="pulse">Pulse</SelectItem>
+                                     <SelectItem value="scale">Scale</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                             </div>
+                          </div>
+
+                          {/* Button Padding */}
+                          <div className="space-y-3">
+                             <Label className="text-[11px] font-bold text-zinc-500 uppercase">Button Size</Label>
+                             <div className="flex gap-1 p-1 bg-zinc-100/50 rounded-lg border border-zinc-200/50">
+                                {['compact', 'standard', 'large'].map(p => (
+                                  <button 
+                                    key={p}
+                                    onClick={() => setGlobalStyles({...globalStyles, button_padding: p})}
+                                    className={cn(
+                                      "flex-1 py-1.5 rounded-md text-[11px] font-bold transition-all",
+                                      globalStyles.button_padding === p ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-500 hover:bg-white/50"
+                                    )}
+                                  >
+                                    {p.toUpperCase()}
+                                  </button>
+                                ))}
+                             </div>
+                          </div>
+
+                          {/* Secondary CTA Toggle */}
+                          <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-zinc-200/50">
+                             <div className="space-y-0.5">
+                                <Label className="text-[12px] font-bold text-zinc-950">Secondary Buttons</Label>
+                                <p className="text-[10px] text-zinc-500 font-medium">Show supplementary actions</p>
+                             </div>
+                             <button 
+                               onClick={() => setGlobalStyles({...globalStyles, show_secondary_cta: !globalStyles.show_secondary_cta})}
+                               className={cn(
+                                 "w-10 h-5 rounded-full transition-colors relative",
+                                 globalStyles.show_secondary_cta ? "bg-zinc-950" : "bg-zinc-200"
+                               )}
+                             >
+                                <div className={cn(
+                                  "w-3 h-3 bg-white rounded-full absolute top-1 transition-all",
+                                  globalStyles.show_secondary_cta ? "right-1" : "left-1"
+                                )} />
+                             </button>
+                          </div>
+                       </div>
+                    </div>
+
+                   {/* Scale & Proportions */}
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                         <Type className="w-4 h-4 text-zinc-400" />
+                         <Label className="text-[12px] font-bold text-zinc-950">Scale & Proportions</Label>
+                      </div>
+                      <div className="p-5 bg-zinc-50/50 rounded-xl space-y-5 border border-zinc-200/50">
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                               <Label className="text-[11px] font-bold text-zinc-500 uppercase">H1 Size</Label>
+                               <span className="text-[11px] font-black text-zinc-900">{globalStyles.font_size_h1}px</span>
+                            </div>
+                            <input 
+                              type="range" min="24" max="120" step="2"
+                              value={globalStyles.font_size_h1}
+                              onChange={(e) => setGlobalStyles({...globalStyles, font_size_h1: e.target.value})}
+                              className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-zinc-950"
+                            />
+                         </div>
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                               <Label className="text-[11px] font-bold text-zinc-500 uppercase">H2 Size</Label>
+                               <span className="text-[11px] font-black text-zinc-900">{globalStyles.font_size_h2}px</span>
+                            </div>
+                            <input 
+                              type="range" min="18" max="80" step="2"
+                              value={globalStyles.font_size_h2}
+                              onChange={(e) => setGlobalStyles({...globalStyles, font_size_h2: e.target.value})}
+                              className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-zinc-950"
+                            />
+                         </div>
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                               <Label className="text-[11px] font-bold text-zinc-500 uppercase">Body Size</Label>
+                               <span className="text-[11px] font-black text-zinc-900">{globalStyles.font_size_body}px</span>
+                            </div>
+                            <input 
+                              type="range" min="12" max="24" step="1"
+                              value={globalStyles.font_size_body}
+                              onChange={(e) => setGlobalStyles({...globalStyles, font_size_body: e.target.value})}
+                              className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-zinc-950"
+                            />
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* Scale & Proportions */}
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                         <Type className="w-4 h-4 text-zinc-400" />
+                         <Label className="text-[12px] font-bold text-zinc-950">Scale & Proportions</Label>
+                      </div>
+                      <div className="p-5 bg-zinc-50/50 rounded-xl space-y-5 border border-zinc-200/50">
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                               <Label className="text-[11px] font-bold text-zinc-500 uppercase">H1 Size</Label>
+                               <span className="text-[11px] font-black text-zinc-900">{globalStyles.font_size_h1}px</span>
+                            </div>
+                            <input 
+                              type="range" min="24" max="120" step="2"
+                              value={globalStyles.font_size_h1}
+                              onChange={(e) => setGlobalStyles({...globalStyles, font_size_h1: e.target.value})}
+                              className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-zinc-950"
+                            />
+                         </div>
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                               <Label className="text-[11px] font-bold text-zinc-500 uppercase">H2 Size</Label>
+                               <span className="text-[11px] font-black text-zinc-900">{globalStyles.font_size_h2}px</span>
+                            </div>
+                            <input 
+                              type="range" min="18" max="80" step="2"
+                              value={globalStyles.font_size_h2}
+                              onChange={(e) => setGlobalStyles({...globalStyles, font_size_h2: e.target.value})}
+                              className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-zinc-950"
+                            />
+                         </div>
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                               <Label className="text-[11px] font-bold text-zinc-500 uppercase">Body Size</Label>
+                               <span className="text-[11px] font-black text-zinc-900">{globalStyles.font_size_body}px</span>
+                            </div>
+                            <input 
+                              type="range" min="12" max="24" step="1"
+                              value={globalStyles.font_size_body}
+                              onChange={(e) => setGlobalStyles({...globalStyles, font_size_body: e.target.value})}
+                              className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-zinc-950"
+                            />
+                         </div>
+                      </div>
+                   </div>
+
                    {/* Alignment & Style */}
                    <div className="space-x-4 flex">
                       <div className="space-y-4 flex-1">
@@ -326,7 +508,7 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
                          ))}
                       </div>
                    </div>
-               </TabsContent>
+                </TabsContent>
 
                <TabsContent value="content" className="mt-0 space-y-10 outline-none">
                   <div className="space-y-8">
@@ -337,7 +519,7 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
                            onChange={(e) => setContentOverrides({...contentOverrides, h1: e.target.value})}
                            placeholder="Core Objective"
                            className="h-12 bg-white border-zinc-200 rounded-md px-4 text-sm font-black shadow-sm focus:border-black focus:ring-0 outline-none transition-all placeholder:text-zinc-200"
-                         />
+                        />
                      </div>
                      <div className="space-y-3">
                         <Label className="text-[13px] font-black text-black">Email Contact</Label>
@@ -346,7 +528,7 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
                            onChange={(e) => setContentOverrides({...contentOverrides, email: e.target.value})}
                            placeholder="mail@production.io"
                            className="h-12 bg-white border-zinc-200 rounded-md px-4 text-sm font-black shadow-sm focus:border-black focus:ring-0 outline-none transition-all placeholder:text-zinc-200"
-                         />
+                        />
                      </div>
                      <div className="space-y-3">
                         <Label className="text-[13px] font-black text-black">Project Description</Label>
@@ -355,7 +537,7 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
                            onChange={(e) => setContentOverrides({...contentOverrides, description: e.target.value})}
                            placeholder="Technical Synopsis"
                            className="h-12 bg-white border-zinc-200 rounded-md px-4 text-sm font-black shadow-sm focus:border-black focus:ring-0 outline-none transition-all placeholder:text-zinc-200"
-                         />
+                        />
                      </div>
                   </div>
                </TabsContent>
@@ -709,8 +891,8 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
                        </div>
                     </div>
                  </div>
-             </div>
-          </div>
+              </div>
+           </div>
         )}
 
         {step === 3 && (
@@ -798,7 +980,14 @@ export function WebsiteBuilderConfigurator({ projectId, initialConfig, project }
                      <>Finalize Build <CheckCircle2 className="w-4 h-4" /></>
                    )}
                 </Button>
-              ) : null}
+              ) : (
+                <Button
+                  onClick={() => setStep(1)}
+                  className="h-10 px-8 bg-white border border-zinc-200 text-zinc-900 font-bold text-[13px] hover:bg-zinc-50 transition-all rounded-xl"
+                >
+                   Restart Architecture
+                </Button>
+              )}
            </div>
         </footer>
       </main>

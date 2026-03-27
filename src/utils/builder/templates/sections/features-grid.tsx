@@ -33,10 +33,13 @@ export const FEATURES_GRID = {
               <div className="w-8 h-8 bg-zinc-900 rounded-xl mb-4" />
               <HeadingTag 
                 className={cn(
-                  "font-black text-zinc-900 mb-1 uppercase tracking-widest",
-                  hierarchy === 'h1' ? "text-xl" : hierarchy === 'h2' ? "text-lg" : "text-[10px]"
+                  "font-black text-zinc-900 mb-1 uppercase tracking-widest"
                 )}
-                style={{ fontFamily: config.font_family_heading, fontWeight: config.font_weight_heading }}
+                style={{ 
+                  fontFamily: config.font_family_heading, 
+                  fontWeight: config.font_weight_heading,
+                  fontSize: `${hierarchy === 'h1' ? config.font_size_h1 * 0.4 : hierarchy === 'h2' ? config.font_size_h2 * 0.5 : config.font_size_body}px`
+                }}
               >
                 Feature {i}
               </HeadingTag>
@@ -115,10 +118,13 @@ export default function Features() {
               </div>
               <HeadingTag 
                 className={cn(
-                  "font-black text-zinc-950 mb-4 tracking-tight",
-                  hierarchy === 'h1' ? "text-4xl" : hierarchy === 'h2' ? "text-3xl" : "text-2xl"
+                  "font-black text-zinc-950 mb-4 tracking-tight"
                 )}
-                style={{ fontFamily: global.font_family_heading, fontWeight: global.font_weight_heading }}
+                style={{ 
+                  fontFamily: global.font_family_heading, 
+                  fontWeight: global.font_weight_heading,
+                  fontSize: (hierarchy === 'h1' ? global.font_size_h1 * 0.6 : hierarchy === 'h2' ? global.font_size_h2 * 0.7 : global.font_size_body * 1.2) + 'px'
+                }}
               >
                 {f.title}
               </HeadingTag>

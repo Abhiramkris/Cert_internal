@@ -3,6 +3,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import JSZip from 'jszip'
+import fs from 'fs/promises'
+import path from 'path'
 import { COMPONENT_TEMPLATES } from '@/utils/builder/templates'
 
 export async function saveWebsiteConfig(projectId: string, config: any) {
@@ -91,13 +93,20 @@ export async function generateProjectZip(projectId: string) {
       ...config.global_styles,
       font_family_heading: config.global_styles.font_family_heading || 'Inter',
       font_family_body: config.global_styles.font_family_body || 'Inter',
-      text_alignment: config.global_styles.text_alignment || 'left'
+      text_alignment: config.global_styles.text_alignment || 'left',
+      font_size_h1: config.global_styles.font_size_h1 || '48',
+      font_size_h2: config.global_styles.font_size_h2 || '32',
+      font_size_body: config.global_styles.font_size_body || '16',
+      button_shadow: config.global_styles.button_shadow || 'none',
+      button_animation: config.global_styles.button_animation || 'scale',
+      button_padding: config.global_styles.button_padding || 'standard',
+      show_secondary_cta: config.global_styles.show_secondary_cta !== false
     },
     content: {
       brand_name: project.client_name,
       description: project.description,
-      email: config.content_overrides.email || 'projects@agency.com',
-      phone: config.content_overrides.phone || '+1 (555) 000-1111',
+      email: config.content_overrides?.email || 'projects@agency.com',
+      phone: config.content_overrides?.phone || '+1 (555) 000-1111',
       privacy_intro: "We value your privacy and professional data integrity.",
       terms_intro: "Professional standards and service agreements apply to all digital breakthroughs.",
       ...config.content_overrides
@@ -163,6 +172,15 @@ export default function TermsPage() {
   zip.file('app/privacy/page.tsx', privacyCode)
   zip.file('app/terms/page.tsx', termsCode)
 
+  // 4.5 Include Assets
+  try {
+    const assetsFolder = zip.folder('public/assets')
+    const placeholderBuffer = await fs.readFile(path.join(process.cwd(), 'public/assets/hero-placeholder.png'))
+    assetsFolder?.file('hero-placeholder.png', placeholderBuffer)
+  } catch (err) {
+    console.warn('Assets folder or placeholder image not found, skipping inclusion.')
+  }
+
   // 3. Generate Components
   const componentsFolder = zip.folder('components')
   const selectedKeys = config.selected_components || []
@@ -219,12 +237,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 @tailwind utilities;
 
 body {
-  font-family: ${styles.font_family || 'sans-serif'};
+  font-family: ${styles.font_family_body || 'sans-serif'};
 }
 
 @layer components {
   .btn-primary {
-    @apply h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98];
+    @apply rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all flex items-center justify-center gap-2;
+    
+    /* Padding */
+    ${styles.button_padding === 'compact' ? 'padding: 0.75rem 1.75rem;' : ''}
+    ${styles.button_padding === 'standard' ? 'padding: 1rem 2.5rem;' : ''}
+    ${styles.button_padding === 'large' ? 'padding: 1.5rem 3.5rem;' : ''}
+
+    /* Style */
     ${styles.button_style === 'solid' ? `
     @apply bg-primary text-white shadow-xl shadow-primary/20 hover:shadow-primary/30;
     ` : ''}
@@ -235,13 +260,19 @@ body {
     ${styles.button_style === 'outline' ? `
     @apply border-2 border-primary text-primary hover:bg-primary hover:text-white shadow-lg shadow-primary/5;
     ` : ''}
-    ${styles.button_style === 'glass' ? `
-    @apply bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-white/20 shadow-2xl;
-    ` : ''}
+
+    /* Shadow */
+    ${styles.button_shadow === 'soft' ? 'box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);' : ''}
+    ${styles.button_shadow === 'hard' ? 'box-shadow: 8px 8px 0px 0px rgba(0,0,0,1); border: 2px solid #000;' : ''}
   }
 
   .btn-secondary {
-    @apply h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all flex items-center justify-center gap-2 hover:bg-zinc-50 border border-zinc-200 text-zinc-900;
+    @apply rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all flex items-center justify-center gap-2 hover:bg-zinc-50 border border-zinc-200 text-zinc-900;
+    
+    /* Padding */
+    ${styles.button_padding === 'compact' ? 'padding: 0.75rem 1.75rem;' : ''}
+    ${styles.button_padding === 'standard' ? 'padding: 1rem 2.5rem;' : ''}
+    ${styles.button_padding === 'large' ? 'padding: 1.5rem 3.5rem;' : ''}
   }
 }
   `)
