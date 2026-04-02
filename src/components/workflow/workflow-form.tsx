@@ -195,7 +195,7 @@ export function WorkflowForm({
                           placeholder={f.placeholder} 
                           defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
                           readOnly={readOnly}
-                          className="min-h-[120px] w-full bg-[#fafafa] border border-zinc-100 p-4 text-[12px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-900 transition-all outline-none resize-none placeholder:text-zinc-200 leading-relaxed rounded-none" 
+                          className="min-h-[120px] w-full bg-[#fafafa] border border-zinc-950 p-4 text-[13px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all outline-none resize-none placeholder:text-zinc-300 leading-relaxed rounded-none shadow-sm" 
                         />
                       ) : fieldType === 'select' || (f.options && f.options.length > 0) ? (
                         <select 
@@ -203,7 +203,7 @@ export function WorkflowForm({
                           name={fieldName} 
                           defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
                           disabled={readOnly}
-                          className="w-full h-11 bg-[#fafafa] border border-zinc-100 px-4 text-[12px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-900 transition-all appearance-none cursor-pointer outline-none rounded-none"
+                          className="w-full h-11 bg-[#fafafa] border border-zinc-950 px-4 text-[13px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all appearance-none cursor-pointer outline-none rounded-none shadow-sm"
                         >
                           <option value="">Select option</option>
                           {f.options?.map((o: string) => <option key={o} value={o}>{o}</option>)}
@@ -216,7 +216,7 @@ export function WorkflowForm({
                           placeholder={f.placeholder || "Enter details..."} 
                           defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
                           readOnly={readOnly}
-                          className="h-11 w-full bg-[#fafafa] border border-zinc-100 px-4 text-[12px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-900 transition-all placeholder:text-zinc-200 rounded-none" 
+                          className="h-11 w-full bg-[#fafafa] border border-zinc-950 px-4 text-[13px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all placeholder:text-zinc-300 rounded-none shadow-sm" 
                         />
                       )}
                     </div>

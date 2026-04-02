@@ -151,16 +151,16 @@ function HandoffTerminalContent({
           </div>
           <div className="space-y-0">
             <DialogTitle className="text-lg md:text-xl font-black text-zinc-900 tracking-tighter italic leading-none">{project.client_name}</DialogTitle>
-            <p className="text-[10px] md:text-[12px] font-black text-emerald-500 tracking-[0.05em] mt-1">Handoff Protocol</p>
+            <p className="text-[12px] md:text-[14px] font-black text-emerald-500 tracking-[0.05em] mt-1">Handoff Protocol</p>
           </div>
         </div>
 
-        <Badge variant="outline" className="h-7 md:h-8 px-3 md:px-4 rounded-none border-zinc-200 bg-zinc-100 text-zinc-900 font-black uppercase tracking-widest text-[8px] md:text-[9px]">
+        <Badge variant="outline" className="h-7 md:h-8 px-3 md:px-4 rounded-none border-zinc-200 bg-zinc-100 text-zinc-900 font-black uppercase tracking-widest text-[11px] md:text-[12px]">
           {currentStage?.display_name} Phase
         </Badge>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6 md:py-8 custom-scrollbar bg-[#fafafa]">
+      <div className="flex-1 overflow-y-auto px-6 md:px-8 py-4 md:py-6 custom-scrollbar bg-[#fafafa]">
         <div className="max-w-4xl mx-auto space-y-4">
           <form id={`handoff-form-${project.id}`} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
 
@@ -178,46 +178,41 @@ function HandoffTerminalContent({
               }}
             />
 
-            <div className="space-y-6 pt-12 border-t border-zinc-100/50">
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-6 border-b border-zinc-50 items-center md:col-span-2 group/field">
-                  <label className="text-[11px] font-black tracking-[0.05em] text-zinc-500 group-hover/field:text-zinc-950 transition-colors">Destination Phase</label>
-                  <div className="md:col-span-2">
-                    <div className="w-full h-11 bg-zinc-50 border border-zinc-100 px-4 text-[12px] font-black text-zinc-900 flex items-center rounded-none opacity-60">
-                      {nextStageObj?.display_name || 'Project Finalization'}
-                    </div>
+            <div className="border-t border-zinc-100/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-zinc-100/50">
+                <div className="space-y-2 group/field">
+                  <label className="text-[13px] font-black tracking-[0.05em] text-zinc-500 group-hover/field:text-zinc-950 transition-colors">Destination Phase</label>
+                  <div className="w-full h-11 bg-zinc-50 border border-zinc-950 px-4 text-[13px] font-black text-zinc-900 flex items-center rounded-none opacity-60">
+                    {nextStageObj?.display_name || 'Project Finalization'}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-6 border-b border-zinc-50 items-center md:col-span-2 group/field">
-                  <label className="text-[11px] font-black tracking-[0.05em] text-zinc-500 group-hover/field:text-zinc-950 transition-colors">Successor Unit</label>
-                  <div className="md:col-span-2">
-                    <select
-                      id={`handoff-assignee-${project.id}`}
-                      className="w-full h-11 bg-white border border-zinc-100 px-4 text-[12px] font-black text-zinc-900 focus:bg-white focus:border-zinc-200 transition-all appearance-none cursor-pointer outline-none rounded-none"
-                      defaultValue={project.current_assignee_id || ''}
-                      onChange={async (e) => {
-                        const targetStage = stages.find((s: any) => s.id === nextStageId)
-                        await saveHandoffPreset(project.id, targetStage?.status_key || '', e.target.value)
-                      }}
-                    >
-                      <option value="">Select Personnel</option>
-                      {filteredStaff?.map((s: any) => (
-                        <option key={s.id} value={s.id}>{s.full_name} ({s.role})</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-2 group/field">
+                  <label className="text-[13px] font-black tracking-[0.05em] text-zinc-500 group-hover/field:text-zinc-950 transition-colors">Successor Unit</label>
+                  <select
+                    id={`handoff-assignee-${project.id}`}
+                    className="w-full h-11 bg-white border border-zinc-950 px-4 text-[13px] font-black text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all appearance-none cursor-pointer outline-none rounded-none shadow-sm"
+                    defaultValue={project.current_assignee_id || ''}
+                    onChange={async (e) => {
+                      const targetStage = stages.find((s: any) => s.id === nextStageId)
+                      await saveHandoffPreset(project.id, targetStage?.status_key || '', e.target.value)
+                    }}
+                  >
+                    <option value="">Select Personnel</option>
+                    {filteredStaff?.map((s: any) => (
+                      <option key={s.id} value={s.id}>{s.full_name} ({s.role})</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               {isManager && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8 group/field">
-                  <label className="text-[11px] font-black tracking-[0.05em] text-zinc-500 group-hover/field:text-zinc-950 transition-colors pt-1">Strategic Note</label>
+                  <label className="text-[13px] font-black tracking-[0.05em] text-zinc-500 group-hover/field:text-zinc-950 transition-colors pt-1">Strategic Note</label>
                   <div className="md:col-span-2">
                     <textarea
                       id={`handoff-note-${project.id}`}
-                      className="min-h-[100px] w-full bg-white border border-zinc-100 p-4 text-[12px] font-black text-zinc-900 focus:bg-white focus:border-zinc-200 transition-all outline-none resize-none leading-relaxed placeholder:text-zinc-200 rounded-none"
+                      className="w-full min-h-[120px] bg-white border border-zinc-950 p-4 text-[13px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all outline-none resize-none placeholder:text-zinc-300 leading-relaxed rounded-none shadow-sm"
                       placeholder="Add context for successor..."
                     />
                   </div>
@@ -244,7 +239,7 @@ function HandoffTerminalContent({
                 setStudioProjectId(project.id)
                 setActiveProjectId(null)
               }}
-              className="h-10 md:h-12 px-4 md:px-6 bg-white text-zinc-900 border border-zinc-200 rounded-none font-black text-[11px] md:text-[12px] tracking-tight hover:bg-zinc-50 transition-all flex items-center gap-2"
+              className="h-10 md:h-12 px-4 md:px-6 bg-white text-zinc-900 border border-zinc-200 rounded-none font-black text-[13px] md:text-[12px] tracking-tight hover:bg-zinc-50 transition-all flex items-center gap-2"
             >
               <Code2 className="w-3.5 h-3.5 text-zinc-400" />
               Launch Studio Architect
@@ -501,12 +496,12 @@ export function ProjectPipelineTracker({
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 flex-1">
                       <div className="space-y-0.5">
-                        <span className="text-[11px] font-black text-zinc-500 tracking-tight block">Client Identity</span>
+                        <span className="text-[13px] font-black text-zinc-500 tracking-tight block">Client Identity</span>
                         <h3 className="text-sm font-black text-zinc-950 tracking-tight">{project.client_name}</h3>
                       </div>
 
                       <div className="space-y-0.5">
-                        <span className="text-[11px] font-black text-zinc-500 tracking-tight block">Current Phase</span>
+                        <span className="text-[13px] font-black text-zinc-500 tracking-tight block">Current Phase</span>
                         <div className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-none border border-zinc-200 bg-emerald-500" />
                           <span className="text-[12px] font-black text-zinc-900 tracking-tight">{currentStage?.display_name}</span>
@@ -514,14 +509,14 @@ export function ProjectPipelineTracker({
                       </div>
 
                       <div className="space-y-0.5">
-                        <span className="text-[11px] font-black text-zinc-500 tracking-tight block">Assignee</span>
+                        <span className="text-[13px] font-black text-zinc-500 tracking-tight block">Assignee</span>
                         <span className="text-[12px] font-black text-zinc-900 tracking-tight">
                           {staff?.find(s => s.id === project.current_assignee_id)?.full_name || 'Unassigned'}
                         </span>
                       </div>
 
                       <div className="space-y-0.5">
-                        <span className="text-[11px] font-black text-zinc-500 tracking-tight block">Timestamp</span>
+                        <span className="text-[13px] font-black text-zinc-500 tracking-tight block">Timestamp</span>
                         <span className="text-[12px] font-black text-zinc-500 tracking-tight tabular-nums">
                           {new Date(project.created_at).toLocaleDateString()}
                         </span>
@@ -562,7 +557,7 @@ export function ProjectPipelineTracker({
                   onTouchEnd={cancelLongPress}
                   onTouchMove={cancelLongPress}
                   className={cn(
-                    "group relative flex flex-col gap-4 py-6 border border-zinc-200 hover:bg-zinc-50/20 transition-all px-4 md:px-6 cursor-pointer rounded-none",
+                    "group relative flex flex-col gap-4 py-6 border border-zinc-950 hover:bg-zinc-50/20 transition-all px-4 md:px-6 cursor-pointer rounded-none h-full",
                     (currentUserRole === 'Admin' || currentUserRole === 'Manager')
                       ? (dynamicPhases.find(p => isStatusEquivalent(p.status, project.status))?.bg || "bg-white")
                       : "bg-white"
@@ -570,7 +565,7 @@ export function ProjectPipelineTracker({
                 >
                   {project.deadline && (
                     <div className={cn(
-                      "absolute -top-[1px] right-4 px-3 py-0.5 border-x border-b border-zinc-200 text-[9px] font-black uppercase tracking-widest",
+                      "absolute -top-[1px] right-4 px-3 py-0.5 border-x border-b border-zinc-950 text-[9px] font-black uppercase tracking-widest",
                       new Date(project.deadline).getTime() - new Date().getTime() < 172800000
                         ? "bg-rose-500 text-white animate-pulse"
                         : "bg-zinc-900 text-white"
@@ -582,14 +577,14 @@ export function ProjectPipelineTracker({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-black text-zinc-500 tracking-tight block leading-none mb-1">Mission ID: {project.id.slice(0, 8)}</span>
+                        <span className="text-[13px] font-black text-zinc-400 tracking-tight block uppercase leading-none">Mission ID: {project.id.slice(0, 8)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-[13px] font-black text-zinc-900 tracking-tight leading-none">
+                      <span className="text-[15px] font-black text-zinc-900 tracking-tight leading-none">
                         Stage {stages.indexOf(currentStage) + 1} <span className="text-zinc-400">/ {stages.length}</span>
                       </span>
-                      <div className="w-20 h-1 bg-zinc-100 border border-zinc-200 mt-2 relative overflow-hidden">
+                      <div className="w-20 h-1 bg-zinc-200 border border-zinc-300 mt-2 relative overflow-hidden">
                         <div
                           className="absolute left-0 top-0 h-full bg-zinc-950 transition-all duration-1000"
                           style={{ width: `${((stages.indexOf(currentStage) + 1) / stages.length) * 100}%` }}
@@ -597,34 +592,26 @@ export function ProjectPipelineTracker({
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1 flex flex-col justify-center">
                     <h3 className="text-lg font-black text-zinc-900 tracking-tighter uppercase leading-tight">{project.client_name}</h3>
                   </div>
-                  <div className="pt-4 border-t border-zinc-200 flex flex-col gap-1 mt-auto">
+                  <div className="pt-4 border-t border-zinc-950 flex flex-col gap-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className={cn("w-2 h-2 border border-zinc-200", currentStage?.color || 'bg-zinc-950')} />
-                        <span className="text-[10px] font-black text-zinc-900 uppercase tracking-widest">{currentStage?.display_name}</span>
+                        <div className={cn("w-2 h-2 border border-zinc-950", currentStage?.color || 'bg-zinc-950')} />
+                        <span className="text-[12px] font-black text-zinc-900 uppercase tracking-widest leading-none">{currentStage?.display_name}</span>
                       </div>
                       <Link href={`/dashboard/projects/${project.id}`} onClick={(e) => e.stopPropagation()}>
-                        <div className="w-8 h-8 border border-zinc-200 flex items-center justify-center hover:bg-zinc-950 hover:text-white transition-all">
+                        <div className="w-8 h-8 border border-zinc-950 flex items-center justify-center hover:bg-zinc-950 hover:text-white transition-all">
                           <ArrowRight className="w-3.5 h-3.5" />
                         </div>
                       </Link>
                     </div>
-                    {(() => {
-                      const latestComment = project.comments?.sort((a: any, b: any) =>
-                        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-                      )[0];
-                      if (!latestComment) return null;
-                      return (
-                        <div className="bg-zinc-50 border border-zinc-100 rounded-none group/comment relative overflow-hidden">
-                          <p className="text-[10px] font-bold text-zinc-900 line-clamp-1 leading-relaxed tracking-tight">
-                            {latestComment.content}
-                          </p>
-                        </div>
-                      );
-                    })()}
+                    <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-none">
+                      <p className="text-[12px] font-black text-zinc-900 uppercase tracking-[0.1em]">
+                        Under Development
+                      </p>
+                    </div>
                   </div>
                 </div>
               )
@@ -657,7 +644,7 @@ export function ProjectPipelineTracker({
 
       {/* Handoff Modal */}
       <Dialog open={!!activeProjectId} onOpenChange={(open) => !open && setActiveProjectId(null)}>
-        <DialogContent className="sm:max-w-6xl max-w-[95vw] bg-[#fafafa] border border-zinc-200 rounded-none p-0 overflow-hidden shadow-none flex flex-col h-[90vh] max-h-[90vh] outline-none">
+        <DialogContent className="sm:max-w-4xl max-w-[95vw] bg-[#fafafa] border border-zinc-200 rounded-none p-0 overflow-hidden shadow-none flex flex-col h-auto max-h-[95vh] outline-none">
           {activeProjectId && handoffProjectData && (
             <HandoffTerminalContent
               project={handoffProjectData}
@@ -694,7 +681,7 @@ export function ProjectPipelineTracker({
               <div key={key} className="grid grid-cols-1 md:grid-cols-3 gap-8 py-6 border-b border-zinc-50 items-center group/field">
                 <span className="text-[9px] text-zinc-400 font-black uppercase tracking-[0.3em] group-hover/field:text-zinc-950 transition-colors">{key.replace(/_/g, ' ')}</span>
                 <div className="md:col-span-2">
-                  <div className="bg-[#fafafa] border border-zinc-100 p-4 text-[11px] font-black uppercase tracking-widest text-zinc-900">
+                  <div className="bg-[#fafafa] border border-zinc-100 p-4 text-[13px] font-black uppercase tracking-widest text-zinc-900">
                     {String(value)}
                   </div>
                 </div>

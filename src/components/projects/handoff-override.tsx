@@ -26,14 +26,14 @@ export function HandoffOverride({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
         <div className="space-y-1">
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Next Destination</p>
-          <div className="h-12 w-full rounded-none border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-bold text-zinc-900 flex items-center opacity-60">
+          <div className="h-12 w-full rounded-none border border-zinc-950 bg-zinc-50 px-4 py-3 text-[13px] font-bold text-zinc-900 flex items-center opacity-60">
             {templateStages[currentStageIndex + 1]?.display_name || 'Project Finalization'}
           </div>
         </div>
         <div className="space-y-1">
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Next Owner</p>
           <select 
-            className="h-12 w-full rounded-none border border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-bold text-zinc-900 outline-none appearance-none cursor-pointer"
+            className="h-12 w-full rounded-none border border-zinc-950 bg-zinc-50 px-4 py-2 text-[13px] font-bold text-zinc-900 outline-none appearance-none cursor-pointer"
             onChange={async (e) => {
               const status = templateStages[currentStageIndex + 1]?.status_key || project.status
               await saveHandoffPreset(project.id, status, e.target.value)
@@ -73,7 +73,7 @@ export function HandoffOverride({
           </div>
           <select 
             name="status" 
-            className="h-12 w-full rounded-none border border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-bold text-zinc-900 outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all appearance-none cursor-pointer"
+            className="h-12 w-full rounded-none border border-zinc-950 bg-zinc-50 px-4 py-2 text-[13px] font-bold text-zinc-900 outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all appearance-none cursor-pointer"
             defaultValue={selectedStatus}
             onChange={async (e) => {
               const targetStatus = e.target.value
@@ -103,7 +103,7 @@ export function HandoffOverride({
           <select 
             id="detail-handoff-assignee"
             name="current_assignee_id" 
-            className="h-12 w-full rounded-none border border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-bold text-zinc-900 outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all appearance-none cursor-pointer"
+            className="h-12 w-full rounded-none border border-zinc-950 bg-zinc-50 px-4 py-2 text-[13px] font-bold text-zinc-900 outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all appearance-none cursor-pointer"
             onChange={async (e) => {
               const status = (document.querySelector('select[name="status"]') as HTMLSelectElement).value
               await saveHandoffPreset(project.id, status, e.target.value)
@@ -138,7 +138,7 @@ export function HandoffOverride({
            name="handoff_note"
            required={isStatusChanged}
            minLength={isStatusChanged ? 5 : 0}
-           className="w-full min-h-[80px] rounded-none border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-medium text-zinc-900 outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all resize-none"
+           className="w-full min-h-[80px] rounded-none border border-zinc-950 bg-zinc-50 px-4 py-3 text-[13px] font-medium text-zinc-900 outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all resize-none shadow-sm"
            placeholder={isStatusChanged ? "Managers must explain why the workflow direction was changed..." : "Add a handover note (optional)..."}
          />
       </div>

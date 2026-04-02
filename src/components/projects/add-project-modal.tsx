@@ -177,7 +177,7 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
                 value={selectedTemplateId || ''}
                 onChange={(e) => setSelectedTemplateId(e.target.value)}
                 required
-                className="flex h-14 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-base font-black text-zinc-900 appearance-none shadow-sm cursor-pointer outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all"
+                className="flex h-14 w-full rounded-2xl border border-zinc-950 bg-white px-4 py-2 text-base font-black text-zinc-900 appearance-none shadow-sm cursor-pointer outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all"
               >
                 {templates.map((t: any) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -200,19 +200,19 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
                     <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
                         <Label htmlFor="client_name" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Name</Label>
-                        <Input id="client_name" name="client_name" placeholder="ABC Corp" defaultValue={formDraft.client_name || ''} required className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-bold text-zinc-900 focus:ring-zinc-900/10" />
+                        <Input id="client_name" name="client_name" placeholder="ABC Corp" defaultValue={formDraft.client_name || ''} required className="h-11 bg-zinc-50 border-zinc-950 rounded-xl font-bold text-zinc-900 focus:ring-zinc-900/10" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="client_email" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Email</Label>
-                        <Input id="client_email" name="client_email" type="email" placeholder="contact@abc.com" defaultValue={formDraft.client_email || ''} required className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900 focus:ring-zinc-900/10" />
+                        <Input id="client_email" name="client_email" type="email" placeholder="contact@abc.com" defaultValue={formDraft.client_email || ''} required className="h-11 bg-zinc-50 border-zinc-950 rounded-xl font-medium text-zinc-900 focus:ring-zinc-900/10" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="client_phone" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Phone Number</Label>
-                        <Input id="client_phone" name="client_phone" placeholder="+91..." defaultValue={formDraft.client_phone || ''} className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900 focus:ring-zinc-900/10" />
+                        <Input id="client_phone" name="client_phone" placeholder="+91..." defaultValue={formDraft.client_phone || ''} className="h-11 bg-zinc-50 border-zinc-950 rounded-xl font-medium text-zinc-900 focus:ring-zinc-900/10" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="client_type" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Category</Label>
-                        <select id="client_type" name="client_type" defaultValue={formDraft.client_type || 'owner'} className="flex h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-bold appearance-none shadow-sm cursor-pointer outline-none focus:ring-2 focus:ring-zinc-900/5 transition-all">
+                        <select id="client_type" name="client_type" defaultValue={formDraft.client_type || 'owner'} className="flex h-11 w-full rounded-xl border border-zinc-950 bg-zinc-50 px-3 py-2 text-sm font-bold appearance-none shadow-sm cursor-pointer outline-none focus:ring-2 focus:ring-zinc-900/5 transition-all">
                           <option value="owner">Owner</option>
                           <option value="employee">Employee</option>
                           <option value="referral">Referral</option>
@@ -252,11 +252,11 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
                     <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
                         <Label htmlFor="deadline" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Target Deadline</Label>
-                        <Input id="deadline" name="deadline" type="date" defaultValue={formDraft.deadline || ''} className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900" />
+                        <Input id="deadline" name="deadline" type="date" defaultValue={formDraft.deadline || ''} className="h-11 bg-zinc-50 border-zinc-950 rounded-xl font-medium text-zinc-900" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="budget" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Total Budget (₹)</Label>
-                        <Input id="budget" name="budget" type="number" placeholder="50000" defaultValue={formDraft.budget || ''} className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-black text-zinc-900" />
+                        <Input id="budget" name="budget" type="number" placeholder="50000" defaultValue={formDraft.budget || ''} className="h-11 bg-zinc-50 border-zinc-950 rounded-xl font-black text-zinc-900" />
                       </div>
                     </CardContent>
                   </Card>

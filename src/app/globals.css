@@ -84,11 +84,14 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    font-size: 112.5%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 1rem;
+    line-height: 1.6;
   }
   .shadow-premium-xl {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
