@@ -3,7 +3,7 @@ import React from 'react';
 export const NAV_SOLID_BLACK = {
   name: 'Solid Black Navbar',
   type: 'layout',
-  preview: (config: any) => {
+  preview: (config: any, content: any, settings: any) => {
     const style = config.button_style || 'solid';
     const buttonClass = `px-5 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
       style === 'solid' ? 'bg-white text-zinc-950 shadow-xl' :
@@ -25,7 +25,7 @@ export const NAV_SOLID_BLACK = {
            <span>Services</span>
            <span>Contact</span>
         </div>
-        <button className={buttonClass}>Start</button>
+        <button className={buttonClass}>{settings?.cta_primary || content?.cta_primary || 'Explore'}</button>
       </nav>
     );
   },
@@ -72,7 +72,7 @@ export default function Navbar() {
         whileTap={{ scale: 0.95 }}
         className="btn-primary !h-10 !px-6 !text-[10px] !rounded-lg"
       >
-        {config.content.cta_primary || 'Get Started'}
+        {settings.cta_primary || config.content.cta_primary || 'Get Started'}
       </motion.button>
     </motion.nav>
   );

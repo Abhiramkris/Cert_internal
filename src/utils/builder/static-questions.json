@@ -1,0 +1,83 @@
+[
+  {
+    "key": "h1",
+    "label": "Bussiness Type/Domain",
+    "role": "Sales",
+    "required": true,
+    "type": "text",
+    "category": "content_overrides",
+    "placeholder": "e.g., Best Physiotherapy in Town"
+  },
+  {
+    "key": "description",
+    "label": "More About Bussiness",
+    "role": "Sales",
+    "required": true,
+    "type": "textarea",
+    "category": "content_overrides",
+    "placeholder": "A brief description of the primary service offering..."
+  },
+  {
+    "key": "primary_color",
+    "label": "Brand Primary Color (HEX)",
+    "role": "Sales",
+    "required": false,
+    "type": "text",
+    "category": "global_styles",
+    "placeholder": "#000000"
+  },
+  {
+    "key": "accent_color",
+    "label": "Brand Accent Color (HEX)",
+    "role": "Sales",
+    "required": false,
+    "type": "text",
+    "category": "global_styles",
+    "placeholder": "#3b82f6"
+  },
+  {
+    "key": "email",
+    "label": "Public Contact Email",
+    "role": "Sales",
+    "required": true,
+    "type": "text",
+    "category": "content_overrides",
+    "placeholder": "hello@brand.com"
+  },
+  {
+    "key": "phone",
+    "label": "Public Contact Phone",
+    "role": "Sales",
+    "required": true,
+    "type": "text",
+    "category": "content_overrides",
+    "placeholder": "+1 234 567 8900"
+  },
+  {
+    "key": "target_keywords",
+    "label": "Primary Target Keywords",
+    "role": "SEO",
+    "required": true,
+    "type": "textarea",
+    "category": "seo_metadata",
+    "placeholder": "comma separated keywords, e.g., physiotherapist near me, back pain relief"
+  },
+  {
+    "key": "meta_description",
+    "label": "SEO Meta Description",
+    "role": "SEO",
+    "required": true,
+    "type": "textarea",
+    "category": "seo_metadata",
+    "placeholder": "Optimized description for search engines..."
+  },
+  {
+    "key": "github_link",
+    "label": "GitHub Repository URL",
+    "role": "Developer",
+    "required": true,
+    "type": "text",
+    "category": "technical_metadata",
+    "placeholder": "https://github.com/organization/project"
+  }
+]

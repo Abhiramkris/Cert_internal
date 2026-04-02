@@ -33,7 +33,7 @@ export const NAV_CUSTOM = {
           style={{ 
             fontFamily: config.font_family_heading, 
             fontWeight: config.font_weight_heading,
-            fontSize: `${config.font_size_h2 * 0.6}px`
+            fontSize: `${config.font_size_h2}px`
           }}
         >
           {content.brand_name || 'Agency'}
@@ -44,7 +44,7 @@ export const NAV_CUSTOM = {
            <span>About</span>
         </div>
         <div className="flex items-center gap-4">
-          <button className={buttonClass}>Explore</button>
+          <button className={buttonClass}>{settings?.cta_primary || content?.cta_primary || 'Explore'}</button>
           <Menu className="w-4 h-4 md:hidden text-zinc-900" />
         </div>
       </nav>
@@ -115,7 +115,7 @@ export default function Navbar() {
             whileTap={{ scale: 0.95 }}
             className="btn-primary !h-10 md:!h-12 !px-6 md:!px-8 !text-[10px] md:!text-[11px] !font-black !uppercase !tracking-widest"
           >
-            {content.cta_primary || 'Get Started'}
+            {settings.cta_primary || content.cta_primary || 'Get Started'}
           </motion.button>
 
           {/* Mobile Toggle */}

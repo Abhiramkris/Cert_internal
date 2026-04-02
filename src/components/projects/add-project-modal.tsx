@@ -21,11 +21,14 @@ import { Button } from '@/components/ui/button'
 import { PendingButton } from '@/components/ui/pending-button'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Briefcase, PlusCircle, UserCircle, LayoutTemplate, Workflow, Link as LinkIcon, Loader2, Clock } from 'lucide-react'
+import { Briefcase, PlusCircle, UserCircle, LayoutTemplate, Workflow, Link as LinkIcon, Loader2, Globe, Palette, Sparkles, CheckCircle2 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/utils/supabase/client'
+import { Separator } from '@/components/ui/separator'
+import { WorkflowForm } from '@/components/workflow/workflow-form'
+import staticQuestions from '@/utils/builder/static-questions.json'
 
 interface AddProjectModalProps {
   staff?: any[]
@@ -39,6 +42,7 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [dynamicFields, setDynamicFields] = useState<any[]>([])
   const [stages, setStages] = useState<any[]>([])
+  const [formDraft, setFormDraft] = useState<any>({})
   const supabase = createClient()
   const router = useRouter()
 
@@ -48,31 +52,16 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
       
       // Restore from localStorage
       const draft = localStorage.getItem('add_project_form_draft')
-      const dynamicDraft = localStorage.getItem(`add_project_dyn_draft_${selectedTemplateId}`)
-      
-      if (draft || dynamicDraft) {
+      if (draft) {
         try {
-          const data = draft ? JSON.parse(draft) : {}
-          const dynData = dynamicDraft ? JSON.parse(dynamicDraft) : {}
-          const combined = { ...data, ...dynData }
-
-          setTimeout(() => {
-            const form = document.getElementById('add-project-form') as HTMLFormElement
-            if (form) {
-              Object.entries(combined).forEach(([key, value]) => {
-                const element = form.elements.namedItem(key) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-                if (element && value) {
-                  element.value = value as string
-                }
-              })
-            }
-          }, 200)
+          const data = JSON.parse(draft)
+          setFormDraft(data)
         } catch (e) {
           console.error('Failed to restore draft', e)
         }
       }
     }
-  }, [open, selectedTemplateId])
+  }, [open])
 
   useEffect(() => {
     if (selectedTemplateId) {
@@ -93,7 +82,7 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
 
     if (data && data.length > 0) {
       setTemplates(data)
-      if (!selectedTemplateId) {
+      if (!selectedTemplateId || data.length === 1) {
         setSelectedTemplateId(data[0].id)
       }
     }
@@ -121,7 +110,7 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
         <PlusCircle className="w-4 h-4 mr-2" />
         Add project
       </button>
-      <SheetContent side="right" className="w-[90vw] sm:max-w-3xl overflow-hidden flex flex-col p-0 border-l border-zinc-200">
+      <SheetContent side="right" className="!w-full sm:!min-w-[60vw] lg:!min-w-[50vw] overflow-hidden flex flex-col p-0 border-l border-zinc-200">
         <SheetHeader className="px-8 py-6 border-b border-zinc-100 bg-zinc-50/50 shrink-0">
           <SheetTitle className="text-2xl font-bold flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
@@ -130,7 +119,7 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
             New Client Project
           </SheetTitle>
           <SheetDescription className="text-zinc-500 font-medium">
-            Fill in the details below to initiate a new project workflow and assign the initial team.
+            Select a workflow and fill in the required details to initialize the project.
           </SheetDescription>
         </SheetHeader>
 
@@ -177,194 +166,111 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
                 isSubmittingRef.current = false
               }
             }} 
-            className="space-y-6 pb-20"
+            className="space-y-6 pb-24"
           >
-            {/* Client Section */}
-            <Card className="bg-white border-zinc-200 shadow-sm rounded-2xl overflow-hidden">
-              <CardUiHeader className="bg-zinc-50/50 border-b border-zinc-100 py-4 px-6 flex flex-row items-center gap-2">
-                <UserCircle className="w-4 h-4 text-zinc-400" />
-                <CardUiTitle className="text-sm font-bold text-zinc-900 tracking-tight">Client Contact</CardUiTitle>
-              </CardUiHeader>
-              <CardContent className="p-6 grid grid-cols-1 gap-5">
-                <div className="space-y-2">
-                  <Label htmlFor="client_name" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Name</Label>
-                  <Input id="client_name" name="client_name" placeholder="ABC Corp" required className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-bold text-zinc-900 focus:ring-zinc-200" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="client_email" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Email</Label>
-                  <Input id="client_email" name="client_email" type="email" placeholder="contact@abc.com" required className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900 focus:ring-zinc-200" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="client_phone" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Phone</Label>
-                  <Input id="client_phone" name="client_phone" placeholder="+91 00000 00000" className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900 focus:ring-zinc-200" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="client_type" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Type</Label>
-                  <select id="client_type" name="client_type" className="flex h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-zinc-200 appearance-none shadow-sm cursor-pointer">
-                    <option value="owner">Owner</option>
-                    <option value="employee">Employee</option>
-                    <option value="referral">Referral</option>
-                    <option value="external">External</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="preferred_comm_channel" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Comm Channel</Label>
-                  <Input id="preferred_comm_channel" name="preferred_comm_channel" placeholder="Email / WhatsApp / Telegram" className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900 focus:ring-zinc-200" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Scope & Budget */}
-            <Card className="bg-white border-zinc-200 shadow-sm rounded-2xl overflow-hidden">
-              <CardUiHeader className="bg-zinc-50/50 border-b border-zinc-100 py-4 px-6 flex flex-row items-center gap-2">
-                <LayoutTemplate className="w-4 h-4 text-zinc-400" />
-                <CardUiTitle className="text-sm font-bold text-zinc-900 tracking-tight">Scope & Budget</CardUiTitle>
-              </CardUiHeader>
-              <CardContent className="p-6 space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Project Brief</Label>
-                  <Textarea id="description" name="description" placeholder="Summarize the core goals..." className="min-h-[100px] bg-zinc-50 border-zinc-200 rounded-xl text-sm p-4 font-medium text-zinc-800" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="budget" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Budget (₹)</Label>
-                  <Input id="budget" name="budget" type="number" step="1" placeholder="50000" className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-bold text-zinc-900 text-lg" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Deadlines per State */}
-            <Card className="bg-white border-zinc-200 shadow-sm rounded-2xl overflow-hidden border-blue-100 bg-blue-50/10">
-              <CardUiHeader className="bg-blue-50/50 border-b border-blue-100 py-4 px-6 flex flex-row items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-500" />
-                <CardUiTitle className="text-sm font-bold text-zinc-900 tracking-tight">Phase Deadlines</CardUiTitle>
-              </CardUiHeader>
-              <CardContent className="p-6 grid grid-cols-1 gap-5">
-                <div className="space-y-2">
-                  <Label htmlFor="discovery_deadline" className="text-[11px] font-bold uppercase tracking-wider text-blue-400">Discovery Baseline</Label>
-                  <Input id="discovery_deadline" name="discovery_deadline" type="date" className="h-11 bg-white border-zinc-200 rounded-xl font-medium text-zinc-900" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="seo_deadline" className="text-[11px] font-bold uppercase tracking-wider text-purple-400">SEO Strategy Target</Label>
-                  <Input id="seo_deadline" name="seo_deadline" type="date" className="h-11 bg-white border-zinc-200 rounded-xl font-medium text-zinc-900" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dev_deadline" className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Dev Prototype Ready</Label>
-                  <Input id="dev_deadline" name="dev_deadline" type="date" className="h-11 bg-white border-zinc-200 rounded-xl font-medium text-zinc-900" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="qa_deadline" className="text-[11px] font-bold uppercase tracking-wider text-rose-400">Internal Review (QA)</Label>
-                  <Input id="qa_deadline" name="qa_deadline" type="date" className="h-11 bg-white border-zinc-200 rounded-xl font-medium text-zinc-900" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="deadline" className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">Final Client Delivery</Label>
-                  <Input id="deadline" name="deadline" type="date" className="h-11 bg-white border-zinc-200 rounded-xl font-medium text-zinc-900" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Workflow Control */}
-            <Card className="bg-white border-zinc-200 shadow-sm rounded-2xl overflow-hidden relative overflow-visible">
-              <CardUiHeader className="bg-rose-50/50 border-b border-rose-100 py-4 px-6 flex flex-row items-center gap-2">
-                <Workflow className="w-4 h-4 text-rose-400" />
-                <CardUiTitle className="text-sm font-bold text-zinc-900 tracking-tight">Workflow Strategy</CardUiTitle>
-              </CardUiHeader>
-              <CardContent className="p-6 grid grid-cols-1 gap-5 z-10 relative">
-                <div className="space-y-2">
-                  <Label htmlFor="workflow_template_id" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Workflow Blueprint</Label>
-                  <select 
-                    id="workflow_template_id" 
-                    name="workflow_template_id" 
-                    value={selectedTemplateId || ''}
-                    onChange={(e) => setSelectedTemplateId(e.target.value)}
-                    className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-900 appearance-none shadow-sm cursor-pointer outline-none focus:ring-2 focus:ring-zinc-900/10 transition-all"
-                  >
-                    {templates.map((t: any) => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="status" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Initial Phase</Label>
-                  <input type="hidden" name="status" value={stages.find(s => s.is_initial)?.status_key || (stages[0]?.status_key || '')} />
-                  <select 
-                    id="status_display" 
-                    name="status_display" 
-                    value={stages.find((s: any) => s.is_initial)?.status_key || (stages[0]?.status_key || '')} 
-                    className="flex h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3 py-2 text-sm font-bold text-zinc-400 appearance-none shadow-sm cursor-not-allowed outline-none"
-                    disabled
-                  >
-                    {stages.length > 0 ? (
-                      stages.map((s: any) => (
-                        <option key={s.status_key} value={s.status_key}>{s.display_name}</option>
-                      ))
-                    ) : (
-                      <option value="NEW_LEAD">Lead Discovery</option>
-                    )}
-                  </select>
-                </div>
-                
-                {/* Dynamic Fields for Initial Stage */}
-                {dynamicFields.map((field) => (
-                  <div key={field.id} className="space-y-2">
-                    <Label htmlFor={`dyn_${field.name}`} className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                      {field.label} {field.is_required && <span className="text-red-500">*</span>}
-                    </Label>
-                    {field.field_type === 'textarea' ? (
-                      <Textarea id={`dyn_${field.name}`} name={`dyn_${field.name}`} required={field.is_required} placeholder={field.placeholder} className="min-h-[80px] bg-zinc-50 border-zinc-200 rounded-xl text-sm p-4 font-medium" />
-                    ) : field.field_type === 'select' ? (
-                      <select id={`dyn_${field.name}`} name={`dyn_${field.name}`} required={field.is_required} className="flex h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium">
-                        {(field.options as string[] || []).map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                      </select>
-                    ) : (
-                      <Input id={`dyn_${field.name}`} name={`dyn_${field.name}`} type={field.field_type} required={field.is_required} placeholder={field.placeholder} className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium" />
-                    )}
-                  </div>
+            {/* Workflow Selection - Always Top */}
+            <div className="space-y-2 px-1">
+              <Label htmlFor="workflow_template_id" className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">Workflow Blueprint</Label>
+              <select 
+                id="workflow_template_id" 
+                name="workflow_template_id" 
+                value={selectedTemplateId || ''}
+                onChange={(e) => setSelectedTemplateId(e.target.value)}
+                required
+                className="flex h-14 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-base font-black text-zinc-900 appearance-none shadow-sm cursor-pointer outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all"
+              >
+                {templates.map((t: any) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
+              </select>
+            </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="current_assignee_id" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Initial Owner</Label>
-                  <select id="current_assignee_id" name="current_assignee_id" defaultValue="" className="flex h-11 w-full rounded-xl border border-rose-200 bg-rose-50/30 px-3 py-2 text-sm font-bold text-rose-900 appearance-none shadow-sm cursor-pointer outline-none focus:ring-2 focus:ring-rose-200 transition-all">
-                    <option value="">Unassigned</option>
-                    {staff.map((s: any) => (
-                      <option key={s.id} value={s.id}>{s.full_name} ({s.role})</option>
-                    ))}
-                  </select>
-                </div>
-              </CardContent>
-            </Card>
+            {selectedTemplateId && (() => {
+              return (
+                <div className="space-y-6">
+                  {/* Common Client Information - Always Top */}
+                  <Card className="bg-white border-zinc-200 shadow-sm rounded-3xl overflow-hidden border-2 border-zinc-900/5">
+                    <CardUiHeader className="bg-zinc-50 border-b border-zinc-100 py-4 px-6 flex flex-row items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <UserCircle className="w-4 h-4 text-zinc-900" />
+                        <CardUiTitle className="text-sm font-black text-zinc-900 tracking-tight uppercase">Client Core Data</CardUiTitle>
+                      </div>
+                      <span className="text-[10px] font-black bg-zinc-900 text-white px-3 py-1 rounded-full uppercase tracking-widest">Global</span>
+                    </CardUiHeader>
+                    <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="client_name" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Name</Label>
+                        <Input id="client_name" name="client_name" placeholder="ABC Corp" defaultValue={formDraft.client_name || ''} required className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-bold text-zinc-900 focus:ring-zinc-900/10" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="client_email" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Email</Label>
+                        <Input id="client_email" name="client_email" type="email" placeholder="contact@abc.com" defaultValue={formDraft.client_email || ''} required className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900 focus:ring-zinc-900/10" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="client_phone" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Phone Number</Label>
+                        <Input id="client_phone" name="client_phone" placeholder="+91..." defaultValue={formDraft.client_phone || ''} className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900 focus:ring-zinc-900/10" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="client_type" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Client Category</Label>
+                        <select id="client_type" name="client_type" defaultValue={formDraft.client_type || 'owner'} className="flex h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-bold appearance-none shadow-sm cursor-pointer outline-none focus:ring-2 focus:ring-zinc-900/5 transition-all">
+                          <option value="owner">Owner</option>
+                          <option value="employee">Employee</option>
+                          <option value="referral">Referral</option>
+                          <option value="external">External</option>
+                        </select>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-            {/* URL/DNS Configuration */}
-            <Card className="bg-white border-zinc-200 shadow-sm rounded-2xl overflow-hidden">
-              <CardUiHeader className="bg-zinc-50/50 border-b border-zinc-100 py-4 px-6 flex flex-row items-center gap-2">
-                <LinkIcon className="w-4 h-4 text-zinc-400" />
-                <CardUiTitle className="text-sm font-bold text-zinc-900 tracking-tight">Connections</CardUiTitle>
-              </CardUiHeader>
-              <CardContent className="p-6 space-y-5">
-                <div className="flex items-center space-x-3 p-3 bg-zinc-50 rounded-xl border border-zinc-100">
-                  <Checkbox id="domain_required" name="domain_required" className="h-5 w-5 rounded border-zinc-300 data-[state=checked]:bg-zinc-900 shadow-sm transition-all" />
-                  <Label htmlFor="domain_required" className="cursor-pointer text-sm font-bold text-zinc-700 tracking-tight">Requires Top-Level Domain (TLD) procurement?</Label>
-                </div>
-                <div className="grid grid-cols-1 gap-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="existing_domain" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Current Domain</Label>
-                    <Input id="existing_domain" name="existing_domain" placeholder="example.com" className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reference_websites" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Reference Links (Commma Separated)</Label>
-                    <Input id="reference_websites" name="reference_websites" placeholder="url1.com, url2.com" className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <WorkflowForm 
+                    workflowId={selectedTemplateId} 
+                    prefix="dyn_"
+                    initialData={(() => {
+                      const draft = localStorage.getItem('add_project_form_draft')
+                      const dynamicDraft = localStorage.getItem(`add_project_dyn_draft_${selectedTemplateId}`)
+                      try {
+                        const data = draft ? JSON.parse(draft) : {}
+                        const dynData = dynamicDraft ? JSON.parse(dynamicDraft) : {}
+                        const normalizedDyn: Record<string, any> = {}
+                        Object.entries(dynData).forEach(([k, v]) => {
+                          normalizedDyn[k.replace('dyn_', '')] = v
+                        })
+                        return { ...data, ...normalizedDyn }
+                      } catch(e) { return {} }
+                    })()}
+                  />
 
-            {/* Bottom Actions Pin */}
-            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-zinc-200 p-6 flex justify-end gap-3 z-20">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="rounded-xl h-12 px-6 font-bold shadow-sm border-zinc-200">
+                  {/* Financials & Handoff - Always Content Bottom */}
+                  <Card className="bg-white border-zinc-200 shadow-sm rounded-3xl overflow-hidden border-dashed">
+                    <CardUiHeader className="bg-zinc-50/50 border-b border-zinc-100 py-4 px-6 flex flex-row items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-zinc-400" />
+                        <CardUiTitle className="text-sm font-black text-zinc-900 tracking-tight uppercase">Project Handoff</CardUiTitle>
+                      </div>
+                      <span className="text-[10px] font-black bg-zinc-100 text-zinc-400 px-3 py-1 rounded-full uppercase tracking-widest">Final Step</span>
+                    </CardUiHeader>
+                    <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="deadline" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Target Deadline</Label>
+                        <Input id="deadline" name="deadline" type="date" defaultValue={formDraft.deadline || ''} className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-medium text-zinc-900" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="budget" className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Total Budget (₹)</Label>
+                        <Input id="budget" name="budget" type="number" placeholder="50000" defaultValue={formDraft.budget || ''} className="h-11 bg-zinc-50 border-zinc-200 rounded-xl font-black text-zinc-900" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })()}
+
+            {/* Floating Actions */}
+            <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-zinc-200 p-6 flex justify-end gap-5 z-20">
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="rounded-2xl h-12 px-6 font-bold text-zinc-500 hover:text-zinc-900 transition-all">
                 Cancel
               </Button>
-              <PendingButton loading={isPending} type="submit" className="rounded-xl h-12 px-8 font-bold text-white bg-zinc-900 hover:bg-zinc-800 shadow-lg shadow-zinc-900/10 flex items-center gap-2">
-                Initialize Project Database
+              <PendingButton loading={isPending} type="submit" className="rounded-2xl h-12 px-10 font-bold text-white bg-zinc-900 hover:bg-zinc-800 shadow-2xl shadow-zinc-900/20 flex items-center gap-2 transition-all scale-105 active:scale-95">
+                Initialize Project Build
               </PendingButton>
             </div>
           </form>

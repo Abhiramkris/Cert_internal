@@ -4,17 +4,16 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { PendingButton } from '@/components/ui/pending-button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Users, FileText, Code, CheckCircle, MessageSquare, Globe, Search, IndianRupee, Settings, Sparkles } from 'lucide-react'
+import { ArrowLeft, Users, FileText, Code, Code2, CheckCircle, MessageSquare, Globe, Search, Settings, Sparkles, TrendingUp, Clock, User, ArrowRight, Archive, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { AssignmentForm } from './assignment-form'
 import { PaymentForm } from './payment-form'
 import { RealtimeComments } from './realtime-comments'
-import { DeadlineEditor } from './deadline-editor'
 import { WebsiteBuilderConfigurator } from '@/components/projects/website-builder-configurator'
-import { DynamicStageForm } from '@/components/projects/dynamic-stage-form'
-import { AddSeoModal } from '@/components/projects/add-seo-modal'
-import { finalizeProject, selfAssignProject } from '../actions'
+import { WorkflowForm } from '@/components/workflow/workflow-form'
+import { HandoffOverride } from '@/components/projects/handoff-override'
+import { ProjectGeneratorActions } from '@/components/projects/project-generator-actions'
+import { finalizeProject, selfAssignProject, submitStageData, saveHandoffPreset, closeProject } from '../actions'
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
   const { id } = await params
@@ -25,9 +24,26 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
 
   if (!user || !project) return <div className="p-8 text-zinc-400">Project not found</div>
 
-  const { data: workflowStages } = await getWorkflowConfig(project.status, project.workflow_template_id)
-  const currentStage = workflowStages?.[0] || null
-  const currentStageData = project.project_stage_data?.find((d: any) => d.stage_id === currentStage?.id)?.data || {}
+  // Resilient status matching for legacy data (TEAM_ASSIGNED vs TEAM_ASSIGNMENT)
+  const isStatusEquivalent = (s1: string, s2: string) => {
+    if (!s1 || !s2) return false
+    const normalize = (s: string) => s.toLowerCase().replace(/_/g, '').replace('assigned', 'assignment')
+    return normalize(s1) === normalize(s2)
+  }
+
+  // Fetch ALL stages for this template to determine index mapping
+  const { data: templateStagesData } = await getWorkflowConfig(undefined, project.workflow_template_id)
+  const templateStages = templateStagesData || []
+  
+  const currentStage = project.current_stage_id 
+    ? templateStages.find((s: any) => s.id === project.current_stage_id)
+    : templateStages.find((s: any) => isStatusEquivalent(s.status_key, project.status)) || templateStages[0] || null
+    
+  const currentStageIndex = templateStages.findIndex((s: any) => s.id === currentStage?.id)
+  const currentStageData = project.stage_data?.[currentStage?.id]?.data || {}
+  
+  const stagesProgress = project.stage_data ? Object.keys(project.stage_data) : []
+  const progressPercentage = templateStages.length > 0 ? (Math.max(0, currentStageIndex + 1) / templateStages.length) * 100 : 0
 
   const isManager = user.profile.role === 'Manager'
   const isAdmin = user.profile.role === 'Admin'
@@ -40,15 +56,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
 
   const canAction = isManager || isAdmin || isAssigned || (isCorrectRole && (!project.current_assignee_id || isHeldByManager))
 
-  const stagesProgress = project.project_stage_data?.map((d: any) => d.workflow_stages?.status_key) || []
-  const templateStages = project.workflow_templates?.workflow_stages || []
-  const currentStageIndex = templateStages.findIndex((s: any) => s.status_key === project.status)
-  const progressPercentage = templateStages.length > 0 ? ((currentStageIndex + 1) / templateStages.length) * 100 : 0
-
   const { data: allProjects } = await getProjectsMinimal()
 
   const canAssign = user.profile.role === 'Manager' || user.profile.role === 'Admin'
-
   // Strict restrictions for managers/admin
   const canManagePayments = user.profile.role === 'Admin' || user.profile.role === 'Manager'
 
@@ -72,15 +82,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 {project.client_name}
               </h1>
               <Badge variant="outline" className={cn(
-                "rounded-lg font-bold text-[10px] px-2 py-0.5 border-none uppercase tracking-tight",
-                project.status === 'NEW_LEAD' ? "bg-orange-100 text-orange-700" :
-                  project.status === 'TEAM_ASSIGNED' ? "bg-blue-100 text-blue-700" :
-                    project.status === 'SEO_COMPLETED' ? "bg-purple-100 text-purple-700" :
-                      project.status === 'DEV_PREVIEW_READY' ? "bg-indigo-100 text-indigo-700" :
-                        project.status === 'MANAGER_APPROVED' ? "bg-emerald-100 text-emerald-700" :
-                          "bg-zinc-100 text-zinc-600"
+                "rounded-lg font-bold text-[10px] px-2 py-0.5 border-none uppercase tracking-tight bg-zinc-100 text-zinc-600"
               )}>
-                {project.status.replace(/_/g, ' ')}
+                {currentStage?.display_name || project.status.replace(/_/g, ' ')}
               </Badge>
               {project.current_assignee_id ? (
                 <div className="flex items-center gap-1.5 ml-2 border border-zinc-200 rounded-lg px-2 py-0.5 bg-white shadow-sm">
@@ -92,17 +96,10 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
               ) : (
                 <div className="flex items-center gap-1.5 ml-2 border border-amber-200 rounded-lg px-2 py-0.5 bg-amber-50 shadow-sm">
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
-                    Unassigned
-                  </span>
-                  {/* Quick Assign Stub - Allow for Admin, Manager, or the Specific Role needed for the stage */}
-                  {(user.profile.role === 'Admin' || user.profile.role === 'Manager' || isCorrectRole) && (
+                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Unassigned</span>
+                  {(isAdmin || isManager || isCorrectRole) && (
                     <form action={selfAssignProject.bind(null, project.id)} className="ml-2">
-                      <PendingButton
-                        type="submit"
-                        variant="outline"
-                        className="h-7 px-3 text-[9px] font-black uppercase tracking-tighter border-amber-200 text-amber-700 bg-white hover:bg-amber-100 rounded-lg transition-all"
-                      >
+                      <PendingButton type="submit" variant="outline" className="h-7 px-3 text-[9px] font-black uppercase tracking-tighter border-amber-200 text-amber-700 bg-white hover:bg-amber-100 rounded-lg transition-all">
                         Self-Assign
                       </PendingButton>
                     </form>
@@ -110,76 +107,94 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 </div>
               )}
             </div>
-            <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider">
-              {project.client_email} <span className="mx-2 text-zinc-300">•</span> {project.client_phone}
-            </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 h-9 px-4 text-xs font-bold uppercase tracking-wider">
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Messages
-          </Button>
-          <AddSeoModal projectId={project.id} existingConfig={project.seo_config?.[0]} />
-          <Link
-            href={`/review/${project.secure_token}`}
-            target="_blank"
-            className={cn(buttonVariants({ variant: "default", size: "sm" }), "bg-zinc-900 hover:bg-zinc-800 text-white h-9 px-6 text-xs font-bold uppercase tracking-wider shadow-sm transition-all")}
-          >
-            Live Preview
-          </Link>
         </div>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="bg-transparent border-b border-zinc-200 p-0 rounded-none h-auto mb-8 w-full justify-start gap-8 flex-wrap">
-          {['overview', 'workflow', 'team', 'finances', 'generator', 'comments'].map((tab) => {
+          {['overview', 'workflow', 'finances', 'comments'].map((tab) => {
             if (tab === 'finances' && !canManagePayments) return null
-            if (tab === 'team' && !(isAdmin || isManager)) return null
-            if (tab === 'generator' && !(isManager || isAdmin || user.profile.role === 'Developer')) return null
             return (
-              <TabsTrigger
-                key={tab}
-                value={tab}
-                className="rounded-none bg-transparent px-0 py-3 text-sm font-bold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-400 transition-all uppercase tracking-wider mb-2 lg:mb-0 flex items-center gap-2"
-              >
-                {tab === 'generator' && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
-                {tab === 'generator' ? 'Code Generator' : tab}
+              <TabsTrigger key={tab} value={tab} className="rounded-none bg-transparent px-0 py-3 text-sm font-bold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-400 transition-all uppercase tracking-wider mb-2 lg:mb-0">
+                {tab}
               </TabsTrigger>
             )
           })}
         </TabsList>
 
-        <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-2 duration-300 relative">
-          {!canAction && project.status !== 'NEW_LEAD' && (
-            <div className="absolute top-0 right-0 z-10 bg-amber-50 text-amber-600 border border-amber-200 font-bold text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl shadow-sm flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-500" /> Wait for your phase to take action
-            </div>
-          )}
+        <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl overflow-hidden shadow-sm">
-                <CardHeader className="py-4 px-6 border-b border-zinc-100 bg-zinc-50/50">
-                  <CardTitle className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Project Description</CardTitle>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <p className="text-zinc-800 leading-relaxed text-lg font-medium">
-                    {project.description || "No specific project details provided."}
-                  </p>
+              <Card className="border-zinc-200 shadow-sm rounded-[2rem] overflow-hidden">
+              
+                    <CardContent className="p-8">
+                  <form action={async (fd) => {
+                    'use server'
+                    const rawData = Object.fromEntries(fd.entries())
+                    const stageData: Record<string, any> = {}
+                    const dynPrefix = 'dyn_'
+                    
+                    Object.keys(rawData).forEach(key => {
+                      if (key.startsWith(dynPrefix)) {
+                        stageData[key.replace(dynPrefix, '')] = rawData[key]
+                      }
+                    })
+
+                    const nextStatus = fd.get('status') as string
+                    const nextAssignee = fd.get('current_assignee_id') as string
+                    const note = fd.get('handoff_note') as string
+
+                    await submitStageData(project.id, currentStage.id, stageData, nextStatus, nextAssignee, note)
+                  }} className="space-y-4">
+                    {canAction && ( 
+                      <div className="flex flex-col md:flex-row items-center gap-6 p-6 bg-zinc-50/50 rounded-2xl border border-zinc-100 shadow-inner">
+                        
+                        <HandoffOverride 
+                          project={project}
+                          templateStages={templateStages}
+                          currentStageIndex={currentStageIndex}
+                          staff={staff || []}
+                          isManager={isManager}
+                        />
+                      </div>
+                    )}
+
+                    <WorkflowForm 
+                      key={`${project.id}-active-${currentStage?.id || 'none'}`}
+                      workflowId={project.workflow_template_id} 
+                      stageId={currentStage?.id}
+                      initialData={{
+                        ...(currentStageData || {}),
+                        ...(project.config?.builder?.content_overrides || {}),
+                        ...(project.config?.builder?.global_styles || {}),
+                        ...(project.config?.seo || {})
+                      }}
+                      financials={{ totalPaid, balance }}
+                      userRole={user.profile.role}
+                      readOnly={!canAction}
+                      prefix="dyn_"
+                    />
+
+                    {user.profile.role === 'Developer' && (
+                      <ProjectGeneratorActions 
+                        project={project}
+                        websiteConfig={websiteConfig}
+                      />
+                    )}
+
+                    {canAction && (
+                        <div className="flex justify-end pt-6 border-t border-zinc-100">
+                          <PendingButton type="submit" className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest hover:bg-zinc-800 shadow-xl transition-all active:scale-95 text-[10px] md:text-sm">
+                            Approve & Handover
+                          </PendingButton>
+                        </div>
+                    )}
+                  </form>
                 </CardContent>
               </Card>
 
-              <DynamicStageForm
-                projectId={project.id}
-                stage={currentStage}
-                nextStage={templateStages[currentStageIndex + 1]}
-                staff={staff || []}
-                existingData={currentStageData?.data || {}}
-                userProfile={user.profile}
-                canAction={canAction}
-                showBuilder={isManager || isAdmin || user.profile.role === 'Developer'}
-              />
+              <hr className="border-zinc-200 my-8" />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl shadow-sm">
@@ -233,12 +248,8 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 <CardContent className="p-6 space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Stage</span>
-                      <span className="font-bold text-sm text-zinc-900">{project.status.replace(/_/g, ' ')}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Phase</span>
-                      <span className="text-xl font-bold text-zinc-900">{currentStageIndex + 1}<span className="text-xs text-zinc-300 ml-1">/ {templateStages.length}</span></span>
+                      <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Current Status</span>
+                      <span className="font-bold text-lg text-zinc-900 block">{currentStage?.display_name || project.status.replace(/_/g, ' ')}</span>
                     </div>
                   </div>
                   <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
@@ -260,7 +271,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-3 text-xs">
                     <span className="text-zinc-400 font-bold uppercase tracking-tighter">Settled Amount</span>
-                    <span className="font-bold text-zinc-900">₹{totalPaid.toLocaleString()} <span className="text-[10px] text-zinc-300 font-medium">/ ₹{project.budget.toLocaleString()}</span></span>
+                    <span className="font-bold text-zinc-900">₹{totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-[10px] text-zinc-300 font-medium">/ ₹{project.budget.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></span>
                   </div>
                   <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden mb-4">
                     <div
@@ -271,48 +282,13 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                   {balance > 0 && (
                     <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold bg-zinc-50 p-2.5 rounded-lg border border-zinc-100 uppercase tracking-tight">
                       <span>Outstanding</span>
-                      <span className="text-zinc-900">₹{balance.toLocaleString()}</span>
+                      <span className="text-zinc-900">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   )}
 
-                  {balance <= 0 && project.status !== 'CLIENT_APPROVED' && (isManager || isAdmin) && (
-                    <form action={finalizeProject.bind(null, project.id)} className="mt-4">
-                      <PendingButton
-                        type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-[0.2em] h-11 rounded-xl shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        Mark as Fully Completed
-                      </PendingButton>
-                    </form>
-                  )}
+
                 </CardContent>
               </Card>
-
-              {(isManager || isAdmin || (canAssign && project.status === 'NEW_LEAD')) && (
-                <AssignmentForm
-                  projectId={project.id}
-                  team={project.project_team?.[0]}
-                  staff={staff || []}
-                  currentStatus={project.status}
-                  currentAssigneeId={project.current_assignee_id}
-                  allStages={(templateStages as any[]).map(s => ({ status_key: s.status_key, display_name: s.display_name }))}
-                  isManager={isManager || isAdmin}
-                />
-              )}
-
-              {(isManager || isAdmin) && (
-                <DeadlineEditor
-                  projectId={project.id}
-                  deadlines={{
-                    discovery_deadline: project.discovery_deadline,
-                    seo_deadline: project.seo_deadline,
-                    dev_deadline: project.dev_deadline,
-                    qa_deadline: project.qa_deadline,
-                    deadline: project.deadline
-                  }}
-                />
-              )}
             </div>
           </div>
         </TabsContent>
@@ -321,9 +297,12 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl p-10 max-w-4xl mx-auto shadow-sm">
             <div className="space-y-10 relative before:absolute before:inset-0 before:ml-7 before:-translate-x-px before:h-full before:w-[2px] before:bg-zinc-100">
               {project.workflow_template?.workflow_stages?.map((step: any, i: number) => {
-                const isCompleted = stagesProgress.includes(step.status_key) || project.status === step.status_key
+                const isCompleted = (project.stage_data && project.stage_data[step.id]) || project.status === step.status_key
                 const isActive = project.status === step.status_key
                 const isPending = !isCompleted && !isActive
+                
+                const audit = project.stage_data?.[step.id]
+                const submitter = staff?.find(s => s.id === audit?.submitted_by)
 
                 return (
                   <div key={i} className="relative flex items-start group">
@@ -343,15 +322,93 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                             isActive ? "bg-zinc-900 border-zinc-900 text-white" : "bg-transparent border-zinc-100 text-zinc-300"
                         )}>{step.acting_role}</span>
                       </div>
+                      
+                      {isCompleted && audit && (
+                        <div className="space-y-4 mt-3">
+                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 w-fit px-3 py-1.5 rounded-lg border border-zinc-100">
+                             <User className="w-3 h-3 text-zinc-400" />
+                             <span className="text-zinc-600 font-bold">{submitter?.full_name || 'System'}</span>
+                             <span className="mx-1 opacity-20">•</span>
+                             <Clock className="w-3 h-3 text-zinc-400" />
+                             <span className="font-bold">{new Date(audit.submitted_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                          {audit.data && Object.keys(audit.data).length > 0 && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-white rounded-xl border border-zinc-100 shadow-sm relative overflow-hidden group/data">
+                              <div className="absolute top-0 right-0 p-2 opacity-10 group-hover/data:opacity-30 transition-opacity">
+                                <FileText className="w-8 h-8 text-zinc-900" />
+                              </div>
+                              {Object.entries(audit.data).map(([key, value]) => (
+                                <div key={key} className="space-y-1 relative z-10">
+                                  <span className="text-[9px] text-zinc-400 font-bold uppercase block tracking-tighter truncate">{key.replace(/_/g, ' ')}</span>
+                                  <span className="text-xs text-zinc-900 font-bold break-words">{String(value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <p className="text-xs text-zinc-500 font-medium leading-relaxed max-w-xl">
                         {isActive ? `Currently being handled by ${step.acting_role}.` :
-                          isCompleted ? `Phase completed.` : `Awaiting previous stages.`}
+                          isCompleted ? `Phase verified and handoff completed.` : `Awaiting previous stages.`}
                       </p>
                     </div>
                   </div>
                 )
               })}
             </div>
+
+            {/* Workflow History / Handoff Notes */}
+            {project.comments?.filter((c: any) => c.content.includes('Handoff Note:') || c.content.includes('Workflow Changed:')).length > 0 && (
+              <div className="mt-16 pt-10 border-t border-zinc-100">
+                <div className="flex items-center gap-3 mb-10">
+                  <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-900 flex items-center justify-center shadow-lg shadow-zinc-900/10">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-[0.15em] text-zinc-900 leading-none mb-1">Directional Logs</h3>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Recorded workflow changes</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-8 relative before:absolute before:inset-0 before:ml-2 before:w-[1px] before:bg-zinc-100">
+                  {project.comments
+                    .filter((c: any) => {
+                      const isSystem = c.content.includes('Handoff Note:') || c.content.includes('Workflow Changed:')
+                      if (!isSystem) return false
+                      const content = c.content.replace('Handoff Note: ', '').replace('Workflow Changed: ', '').trim()
+                      // Filter out legacy "Project X is ready for Y" dummy messages
+                      const isDummy = content.includes('is ready for') && content.split(' ').length < 15
+                      return content.length > 0 && !isDummy
+                    })
+                    .reverse()
+                    .map((comment: any) => (
+                      <div key={comment.id} className="relative pl-10 group">
+                        <div className="absolute left-0 top-2.5 w-4 h-4 bg-white border-2 border-zinc-100 rounded-full z-10 group-hover:border-zinc-900 transition-colors duration-300" />
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                              {new Date(comment.created_at).toLocaleDateString('en-GB')}
+                            </span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-200">•</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                              {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="bg-zinc-50/50 border-zinc-100 text-[8px] font-black text-zinc-400 uppercase tracking-widest rounded-lg py-0.5 px-2 h-5">
+                            System Event
+                          </Badge>
+                        </div>
+                        <div className="bg-white border border-zinc-100 p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300">
+                          <p className="text-xs font-bold text-zinc-800 leading-relaxed tracking-tight">
+                            {comment.content.replace('Handoff Note: ', '').replace('Workflow Changed: ', '')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
           </Card>
         </TabsContent>
 
@@ -380,33 +437,6 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
             staff={staff || []}
           />
         </TabsContent>
-
-        {(isManager || isAdmin) && (
-          <TabsContent value="team" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { role: 'Account Manager', id: project.project_team?.[0]?.manager_id, label: 'AM' },
-                { role: 'Creative Designer', id: project.project_team?.[0]?.designer_id, label: 'DSN' },
-                { role: 'SEO Specialist', id: project.project_team?.[0]?.seo_id, label: 'SEO' },
-                { role: 'Software Engineer', id: project.project_team?.[0]?.developer_id, label: 'SWE' },
-              ].map((member, i) => {
-                const staffMember = staff?.find(s => s.id === member.id)
-                return (
-                  <Card key={i} className="bg-white border-zinc-200 p-8 flex flex-col items-center text-center shadow-sm group hover:border-zinc-300 transition-all duration-300">
-                    <div className="w-20 h-20 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-xl font-bold text-zinc-900 mb-6 shadow-inner group-hover:bg-zinc-100 transition-colors">
-                      {staffMember?.full_name?.charAt(0) || '?'}
-                    </div>
-                    <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-2">{member.role}</div>
-                    <h4 className="text-sm font-bold text-zinc-900 mb-5">{staffMember?.full_name || 'Unassigned'}</h4>
-                    <div className="text-[9px] bg-zinc-50 text-zinc-500 px-4 py-1.5 rounded-lg border border-zinc-100 font-bold tracking-widest uppercase">
-                      Ref // {member.label}
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
-          </TabsContent>
-        )}
       </Tabs>
     </div>
   )

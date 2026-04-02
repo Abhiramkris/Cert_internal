@@ -1,13 +1,13 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, Dispatch, SetStateAction } from 'react'
 
 interface ChatContextType {
   openChats: string[] // List of receiverId strings
   openChat: (userId: string) => void
   closeChat: (userId: string) => void
   isMinimized: boolean
-  setIsMinimized: (val: boolean) => void
+  setIsMinimized: Dispatch<SetStateAction<boolean>>
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)

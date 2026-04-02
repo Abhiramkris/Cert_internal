@@ -36,18 +36,23 @@ export const HERO_CENTERED = {
     );
 
     const getFontSize = () => {
-      const base = hierarchy === 'h1' ? (config.font_size_h1 || 48) : 
-                   hierarchy === 'h2' ? (config.font_size_h2 || 32) : 24;
-      return `${base * 0.75}px`; // Preview scaling
+      const base = hierarchy === 'h1' ? parseInt(config.font_size_h1 || '48') : 
+                   hierarchy === 'h2' ? parseInt(config.font_size_h2 || '32') : parseInt(config.font_size_body || '16');
+      return `${base}px`; 
     };
 
+    const bgStyle = settings?.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings?.bg_color ? { backgroundColor: settings.bg_color } : {};
+
     return (
-      <section className={cn(
-        "py-16 md:py-24 px-8 bg-white border-b border-zinc-50 relative overflow-hidden",
-        alignmentClass,
-        variant === 'full-height' && "min-h-[400px] flex items-center justify-center",
-        variant === 'contained' && "max-w-4xl mx-auto rounded-[3rem] border border-zinc-100 my-10"
-      )}>
+      <section 
+        className={cn(
+          "py-16 md:py-24 px-8 bg-white border-b border-zinc-50 relative overflow-hidden",
+          alignmentClass,
+          variant === 'full-height' && "min-h-[400px] flex items-center justify-center",
+          variant === 'contained' && "max-w-4xl mx-auto rounded-[3rem] border border-zinc-100 my-10"
+        )}
+        style={bgStyle}
+      >
         <div className={`relative z-10 flex flex-col ${containerAlign}`}>
           <div className="inline-block px-3 py-1 bg-zinc-100 rounded-full text-[8px] font-black uppercase tracking-widest text-zinc-500 mb-6">Premium Agency</div>
           <HeadingTag 
@@ -67,16 +72,22 @@ export const HERO_CENTERED = {
             {content?.description || 'Tailored digital solutions for modern businesses.'}
           </p>
           <div className="flex flex-wrap gap-4">
-             <button className={buttonClass}>{content?.cta_primary || 'Explore'}</button>
+             <button className={buttonClass}>{settings?.cta_primary || content?.cta_primary || 'Explore'}</button>
              {(ctaCount > 1 && config.show_secondary_cta !== false) && (
-               <button className={cn(paddingClass, "text-[9px] font-black uppercase tracking-widest rounded-xl border border-zinc-200 text-zinc-400")}>Secondary</button>
+               <button className={cn(paddingClass, "text-[9px] font-black uppercase tracking-widest rounded-xl border border-zinc-200 text-zinc-400")}>
+                 {settings?.cta_secondary || 'Learn More'}
+               </button>
              )}
           </div>
         </div>
-        <div className="absolute inset-0 opacity-5">
-           <img src="/assets/hero-placeholder.png" alt="" className="w-full h-full object-cover" />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-white to-white -z-0" />
+        {!settings?.bg_gradient && !settings?.bg_color && (
+          <>
+            <div className="absolute inset-0 opacity-5">
+               <img src="/assets/hero-placeholder.png" alt="" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-white to-white -z-0" />
+          </>
+        )}
       </section>
     );
   },
@@ -126,76 +137,76 @@ export default function Hero() {
   const mx = align === 'center' ? 'mx-auto' : align === 'right' ? 'ml-auto' : 'mr-auto';
 
   const HeadingTag = hierarchy as any;
+  const bgStyle = settings.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings.bg_color ? { backgroundColor: settings.bg_color } : {};
 
   return (
-    <section className={cn(
-      "relative py-24 md:py-40 px-8 overflow-hidden bg-white",
-      variant === 'full-height' && "min-h-screen flex items-center",
-      variant === 'contained' && "max-w-7xl mx-auto rounded-[3rem] md:rounded-[5rem] border border-zinc-100 my-12 md:my-24 shadow-2xl"
-    )}>
+    <section 
+      className={cn(
+        "py-32 px-8 bg-white border-b border-zinc-50 relative overflow-hidden",
+        alignmentClass,
+        variant === 'full-height' && "min-h-screen flex items-center justify-center",
+        variant === 'contained' && "max-w-7xl mx-auto rounded-[4rem] border border-zinc-100 my-24 shadow-2xl"
+      )}
+      style={bgStyle}
+    >
       <motion.div 
         {...selected}
         viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className={cn("max-w-5xl relative z-10 flex flex-col", mx, alignmentClass, containerAlign)}
+        transition={{ duration: 1 }}
+        className={cn("max-w-6xl mx-auto relative z-10 flex flex-col", containerAlign)}
       >
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          className="inline-block px-4 py-1.5 bg-zinc-100 rounded-full text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-8 md:mb-12"
-        >
-          Crafting Digital Excellence
-        </motion.div>
-        
+        <div className="inline-block px-4 py-1.5 bg-zinc-100 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-10">Premium Agency</div>
         <HeadingTag 
-          className={cn(
-            "font-black text-zinc-900 tracking-tight leading-[1.05] mb-8 md:mb-12"
-          )}
+          className="text-6xl md:text-8xl font-black text-zinc-950 tracking-tight leading-[0.9] mb-8"
           style={{ 
             fontFamily: global.font_family_heading, 
             fontWeight: global.font_weight_heading,
-            fontSize: \`clamp(\${Math.min(parseInt(global.font_size_h1 || '48') * 0.6, 40)}px, 8vw, \${global.font_size_h1 || '48'}px)\`
+            fontSize: (hierarchy === 'h1' ? global.font_size_h1 : hierarchy === 'h2' ? global.font_size_h2 : global.font_size_body) + 'px'
           }}
         >
-          {config.content.h1 || 'Experience the Future of Digital Excellence'}
+          {config.content.h1 || 'Experience Excellence'}
         </HeadingTag>
-
         <p 
-          className={cn("text-lg md:text-2xl text-zinc-500 font-medium leading-relaxed mb-12 md:mb-16 max-w-3xl", mx)}
-          style={{ fontSize: \`clamp(16px, 2vw, \${global.font_size_body || '16'}px)\` }}
+          className={cn("text-lg md:text-xl text-zinc-500 font-medium mb-12 max-w-2xl leading-relaxed", mx)}
+          style={{ fontSize: global.font_size_body + 'px' }}
         >
-          {config.content.description || 'Our agency delivers premium solutions tailored to your unique business needs.'}
+          {config.content.description || 'Tailored digital solutions for modern businesses.'}
         </p>
-
-        <div className="flex flex-wrap items-center gap-6 md:gap-8">
+        <div className="flex flex-wrap gap-6">
           <motion.button 
-            {...selectedBtnAnim}
-            className="btn-primary"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={cn(
+              "px-10 py-5 text-xs font-black uppercase tracking-widest rounded-2xl shadow-2xl transition-all",
+              style === 'solid' ? "bg-zinc-950 text-white shadow-zinc-200" :
+              style === 'gradient' ? "bg-gradient-to-r from-zinc-950 to-zinc-600 text-white shadow-zinc-200" :
+              style === 'outline' ? "border-2 border-zinc-950 text-zinc-950 shadow-none bg-transparent" :
+              "bg-zinc-100/50 backdrop-blur-3xl border border-zinc-200 text-zinc-950 shadow-none"
+            )}
           >
-            {config.content.cta_primary || 'Launch Project'}
+            {settings.cta_primary || config.content.cta_primary || 'Explore Work'}
           </motion.button>
           
-          {(ctaCount > 1 && global.show_secondary_cta !== false) && (
+          {(ctaCount > 1) && (
             <motion.button 
-              {...selectedBtnAnim}
-              className="btn-secondary"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-10 py-5 text-xs font-black uppercase tracking-widest rounded-2xl border-2 border-zinc-100 text-zinc-400 hover:border-zinc-200 hover:text-zinc-600 transition-all font-sans"
             >
-              {config.content.cta_secondary || 'Learn More'}
+              {settings.cta_secondary || 'Learn More'}
             </motion.button>
           )}
         </div>
       </motion.div>
-
-      {/* Background Image Enhancement */}
-      <div className="absolute inset-0 -z-10 opacity-[0.03]">
-         <img 
-           src="/assets/hero-placeholder.png" 
-           alt="" 
-           className="w-full h-full object-cover"
-         />
-      </div>
       
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-50/50 via-white to-white -z-20" />
+      {!settings.bg_gradient && !settings.bg_color && (
+        <>
+          <div className="absolute inset-0 opacity-[0.03] grayscale">
+            <img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80" alt="" className="w-full h-full object-cover" />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white to-white -z-0" />
+        </>
+      )}
     </section>
   );
 }

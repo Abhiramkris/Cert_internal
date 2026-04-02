@@ -7,19 +7,55 @@ import fs from 'fs/promises'
 import path from 'path'
 import { COMPONENT_TEMPLATES } from '@/utils/builder/templates'
 
-export async function saveWebsiteConfig(projectId: string, config: any) {
+export async function saveSeoConfig(projectId: string, seo: any) {
   const supabase = await createClient()
   
+  const { data: project } = await supabase.from('projects').select('config').eq('id', projectId).single()
+  const config = project?.config || {}
+  
   const { error } = await supabase
-    .from('website_builder_config')
-    .upsert({
-      project_id: projectId,
-      global_styles: config.global_styles,
-      selected_components: config.selected_components,
-      content_overrides: config.content_overrides,
-      component_settings: config.component_settings,
-      updated_at: new Date().toISOString()
+    .from('projects')
+    .update({
+      config: {
+        ...config,
+        seo: {
+          website_title: seo.website_title,
+          meta_description: seo.meta_description,
+          target_keywords: seo.target_keywords
+        }
+      }
     })
+    .eq('id', projectId)
+
+  if (error) {
+    console.error('Failed to save SEO config:', error)
+    throw new Error('Failed to save SEO configuration')
+  }
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+  return { success: true }
+}
+
+export async function saveWebsiteConfig(projectId: string, builder: any) {
+  const supabase = await createClient()
+
+  const { data: project } = await supabase.from('projects').select('config').eq('id', projectId).single()
+  const config = project?.config || {}
+  
+  const { error } = await supabase
+    .from('projects')
+    .update({
+      config: {
+        ...config,
+        builder: {
+          global_styles: builder.global_styles,
+          selected_components: builder.selected_components,
+          content_overrides: builder.content_overrides,
+          component_settings: builder.component_settings
+        }
+      }
+    })
+    .eq('id', projectId)
 
   if (error) {
     console.error('Failed to save website config:', error)
@@ -33,20 +69,16 @@ export async function saveWebsiteConfig(projectId: string, config: any) {
 export async function generateProjectZip(projectId: string) {
   const supabase = await createClient()
   
-  // 1. Fetch Config & Project Details
-  const { data: config } = await supabase
-    .from('website_builder_config')
-    .select('*')
-    .eq('project_id', projectId)
-    .single()
-
+  // 1. Fetch Project Details (Config is now embedded)
   const { data: project } = await supabase
     .from('projects')
     .select('*')
     .eq('id', projectId)
     .single()
 
-  if (!config || !project) throw new Error('Configuration not found')
+  if (!project) throw new Error('Project not found')
+  const config = project.config?.builder
+  if (!config) throw new Error('Builder configuration not found')
 
   const zip = new JSZip()
   const styles = config.global_styles
@@ -183,7 +215,10 @@ export default function TermsPage() {
 
   // 3. Generate Components
   const componentsFolder = zip.folder('components')
-  const selectedKeys = config.selected_components || []
+  const rawSelectedKeys = config.selected_components || []
+  
+  // Filter only keys that actually have templates
+  const selectedKeys = rawSelectedKeys.filter((key: string) => (COMPONENT_TEMPLATES as any)[key])
   
   selectedKeys.forEach((key: string) => {
     const template = (COMPONENT_TEMPLATES as any)[key]

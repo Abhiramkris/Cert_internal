@@ -20,10 +20,13 @@ import {
   List,
   CheckSquare,
   Hash,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Sparkles
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { clearWorkflowConfig } from '@/app/dashboard/admin/actions'
+import staticQuestions from '@/utils/builder/static-questions.json'
 
 interface WorkflowTemplate {
   id: string
@@ -39,6 +42,8 @@ interface WorkflowStage {
   acting_role: string
   next_status_key: string | null
   is_initial: boolean
+  created_at: string
+  workflow_fields?: WorkflowField[]
 }
 
 interface WorkflowField {
@@ -49,6 +54,7 @@ interface WorkflowField {
   field_type: string
   is_required: boolean
   order_index: number
+  placeholder?: string
 }
 
 const ROLES = ['Sales', 'Manager', 'SEO', 'Developer', 'Designer', 'HR', 'Admin']
@@ -104,17 +110,38 @@ export function WorkflowManager() {
     setLoading(false)
   }
 
+  const sortWorkflowStages = (stages: WorkflowStage[]) => {
+    if (stages.length === 0) return []
+    const sorted: WorkflowStage[] = []
+    const remaining = [...stages]
+    
+    // Find initial stage
+    let current: WorkflowStage | undefined = remaining.find(s => s.is_initial) || 
+      [...remaining].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0]
+    
+    while (current) {
+      sorted.push(current)
+      const idx = remaining.findIndex(s => s.id === current?.id)
+      if (idx > -1) remaining.splice(idx, 1)
+      
+      const nextKey: string | null = current.next_status_key
+      current = nextKey ? remaining.find(s => s.status_key === nextKey) : undefined
+    }
+    
+    return [...sorted, ...remaining]
+  }
+
   async function fetchStages(templateId: string) {
     const { data, error } = await supabase
       .from('workflow_stages')
-      .select('*')
+      .select('*, workflow_fields(*)')
       .eq('template_id', templateId)
       .order('created_at', { ascending: true })
     
     if (error) {
       toast.error('Failed to fetch stages')
     } else {
-      setStages(data || [])
+      setStages(sortWorkflowStages(data || []))
       if (data && data.length > 0) {
         setSelectedStageId(data[0].id)
       } else {
@@ -137,6 +164,31 @@ export function WorkflowManager() {
     }
   }
 
+  async function addTemplate() {
+    if (isActionPending) return
+    setIsActionPending(true)
+
+    const newTemplate = {
+      name: `New Template ${templates.length + 1}`,
+      description: 'A new workflow template'
+    }
+
+    const { data, error } = await supabase
+      .from('workflow_templates')
+      .insert(newTemplate)
+      .select()
+      .single()
+
+    if (error) {
+      toast.error('Failed to add template')
+    } else {
+      setTemplates([...templates, data])
+      setSelectedTemplateId(data.id)
+      toast.success('Template added')
+    }
+    setIsActionPending(false)
+  }
+
   async function addStage() {
     if (!selectedTemplateId) return
 
@@ -157,7 +209,7 @@ export function WorkflowManager() {
     if (error) {
       toast.error('Failed to add stage')
     } else {
-      setStages([...stages, data])
+      setStages(sortWorkflowStages([...stages, data]))
       setSelectedStageId(data.id)
       toast.success('Stage added to template')
     }
@@ -174,7 +226,8 @@ export function WorkflowManager() {
       name: `field_${Date.now()}`,
       field_type: 'text',
       is_required: false,
-      order_index: fields.length
+      order_index: fields.length,
+      placeholder: ''
     }
 
     const { data, error } = await supabase
@@ -210,7 +263,7 @@ export function WorkflowManager() {
     if (error) {
       toast.error('Failed to deploy stage changes')
     } else {
-      setStages(stages.map(s => s.id === selectedStage.id ? selectedStage : s))
+      setStages(sortWorkflowStages(stages.map(s => s.id === selectedStage.id ? selectedStage : s)))
       toast.success('Stage configuration deployed')
     }
     setLoading(false)
@@ -219,6 +272,48 @@ export function WorkflowManager() {
   function handleStageUpdate(updates: Partial<WorkflowStage>) {
     if (!selectedStage) return
     setStages(stages.map(s => s.id === selectedStage.id ? { ...s, ...updates } : s))
+  }
+
+  const getParsedPlaceholder = (placeholder?: string) => {
+    try {
+      if (placeholder?.startsWith('{')) {
+        const p = JSON.parse(placeholder)
+        if (p.builder) return p.text || ''
+      }
+    } catch(e) {}
+    return placeholder || ''
+  }
+
+  const getBuilderConfig = (placeholder?: string) => {
+    try {
+      if (placeholder?.startsWith('{')) {
+        const p = JSON.parse(placeholder)
+        if (p.builder) return p.builder
+      }
+    } catch(e) {}
+    return null
+  }
+
+  const updatePlaceholderFields = (fieldId: string, updates: { text?: string, category?: string, key?: string }) => {
+    const field = fields.find(f => f.id === fieldId)
+    if (!field) return
+
+    let text = getParsedPlaceholder(field.placeholder)
+    const config = getBuilderConfig(field.placeholder)
+    let category = config?.category || ''
+    let key = config?.key || ''
+
+    if (updates.text !== undefined) text = updates.text
+    if (updates.category !== undefined) category = updates.category
+    if (updates.key !== undefined) key = updates.key
+
+    let val = text
+    if (category) {
+      val = JSON.stringify({ text, builder: { category, key } })
+    }
+
+    handleFieldLocalUpdate(fieldId, { placeholder: val })
+    updateField(fieldId, { placeholder: val })
   }
 
   async function deleteField(id: string) {
@@ -274,7 +369,7 @@ export function WorkflowManager() {
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
-            <PendingButton variant="outline" loading={isActionPending} className="rounded-2xl border-zinc-200 font-bold text-xs uppercase px-6 h-12 hover:bg-zinc-50 transition-all">
+            <PendingButton onClick={addTemplate} variant="outline" loading={isActionPending} className="rounded-2xl border-zinc-200 font-bold text-xs uppercase px-6 h-12 hover:bg-zinc-50 transition-all">
               <Plus className="w-4 h-4 mr-2" />
               New Template
             </PendingButton>
@@ -348,6 +443,15 @@ export function WorkflowManager() {
                     <Input 
                       value={selectedStage.display_name} 
                       onChange={(e) => handleStageUpdate({ display_name: e.target.value })}
+                      onBlur={(e) => {
+                        supabase
+                          .from('workflow_stages')
+                          .update({ display_name: e.target.value })
+                          .eq('id', selectedStage.id)
+                          .then(({ error }) => {
+                            if (error) toast.error('Failed to sync name to database')
+                          })
+                      }}
                       className="rounded-2xl border-zinc-100 font-bold text-lg h-12 focus:ring-4 focus:ring-zinc-900/5"
                     />
                   </div>
@@ -355,7 +459,17 @@ export function WorkflowManager() {
                     <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Acting Role</label>
                     <select 
                       value={selectedStage.acting_role}
-                      onChange={(e) => handleStageUpdate({ acting_role: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        handleStageUpdate({ acting_role: val })
+                        supabase
+                          .from('workflow_stages')
+                          .update({ acting_role: val })
+                          .eq('id', selectedStage.id)
+                          .then(({ error }) => {
+                             if (error) toast.error('Failed to sync role')
+                          })
+                      }}
                       className="w-full rounded-2xl border border-zinc-100 font-bold text-sm h-12 px-4 focus:ring-4 focus:ring-zinc-900/5 bg-white outline-none"
                     >
                       {ROLES.map(role => <option key={role} value={role}>{role}</option>)}
@@ -367,7 +481,17 @@ export function WorkflowManager() {
                       <input 
                         type="checkbox" 
                         checked={selectedStage.is_initial}
-                        onChange={(e) => handleStageUpdate({ is_initial: e.target.checked })}
+                        onChange={(e) => {
+                          const val = e.target.checked
+                          handleStageUpdate({ is_initial: val })
+                          supabase
+                            .from('workflow_stages')
+                            .update({ is_initial: val })
+                            .eq('id', selectedStage.id)
+                            .then(({ error }) => {
+                               if (error) toast.error('Failed to sync entry status')
+                            })
+                        }}
                         className="w-4 h-4 accent-zinc-900 rounded-lg cursor-pointer"
                       />
                     </div>
@@ -376,6 +500,59 @@ export function WorkflowManager() {
               </CardHeader>
 
               <CardContent className="p-8">
+                {/* Previous Stages Fields (Read-Only) */}
+                {(() => {
+                  const currentIndex = stages.findIndex(s => s.id === selectedStageId);
+                  const previousStages = stages.slice(0, currentIndex).filter(s => s.workflow_fields && s.workflow_fields.length > 0);
+                  
+                  if (previousStages.length === 0) return null;
+
+                  return (
+                    <div className="mb-12">
+                      <div className="mb-6">
+                        <h3 className="text-sm font-black text-zinc-900 tracking-tight">Inherited Context</h3>
+                        <p className="text-[11px] text-zinc-400 font-medium">Fields collected in previous stages (Reference only).</p>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        {previousStages.map(pastStage => {
+                          const pastStaticQs = staticQuestions.filter(q => q.role === pastStage.acting_role);
+                          return (
+                          <div key={pastStage.id} className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-500">
+                                {pastStage.acting_role} Phase
+                              </span>
+                              <span className="text-xs font-bold text-zinc-700">{pastStage.display_name}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 opacity-60 pointer-events-none">
+                              {pastStaticQs.map(sq => (
+                                <div key={sq.key} className="flex items-center justify-between gap-3 p-3 text-xs font-bold bg-amber-50/50 rounded-xl border border-amber-100/50">
+                                  <div className="flex items-center gap-2">
+                                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                    <span className="text-amber-900 truncate">{sq.label}</span>
+                                  </div>
+                                  <span className="text-[9px] font-black tracking-widest text-amber-600/60 uppercase">System</span>
+                                </div>
+                              ))}
+                              {pastStage.workflow_fields?.sort((a,b)=>a.order_index-b.order_index).map(field => (
+                                <div key={field.id} className="flex items-center gap-3 p-3 text-xs font-bold bg-zinc-50 rounded-xl border border-zinc-100">
+                                  {React.createElement(FIELD_TYPES.find(t => t.value === field.field_type)?.icon || Type, { className: "w-3.5 h-3.5 text-zinc-400" })}
+                                  <span className="text-zinc-600 truncate">{field.label}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          )
+                        })}
+                      </div>
+                      <hr className="border-zinc-100 my-8" />
+                    </div>
+                  );
+                })()}
+
+
+
                 <div className="flex items-center justify-between mb-8">
                   <div>
                     <h3 className="text-lg font-black text-zinc-900 tracking-tight">Custom Form Fields</h3>
@@ -394,24 +571,72 @@ export function WorkflowManager() {
                         {React.createElement(FIELD_TYPES.find(t => t.value === field.field_type)?.icon || Type, { className: "w-5 h-5 text-zinc-400" })}
                       </div>
                       
-                      <div className="flex-1 grid grid-cols-2 gap-4">
-                        <Input 
-                          placeholder="Field Label"
-                          value={field.label}
-                          onChange={(e) => handleFieldLocalUpdate(field.id, { label: e.target.value })}
-                          onBlur={(e) => updateField(field.id, { label: e.target.value })}
-                          className="bg-transparent border-none font-bold text-sm focus:ring-0 px-0 h-auto"
-                        />
-                        <select 
-                          value={field.field_type}
-                          onChange={(e) => {
-                            handleFieldLocalUpdate(field.id, { field_type: e.target.value })
-                            updateField(field.id, { field_type: e.target.value })
-                          }}
-                          className="bg-transparent border-none font-bold text-[10px] uppercase tracking-wider text-zinc-400 h-auto outline-none"
-                        >
-                          {FIELD_TYPES.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}
-                        </select>
+                      <div className="flex-1 space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <Input 
+                            placeholder="Field Label"
+                            value={field.label}
+                            onChange={(e) => handleFieldLocalUpdate(field.id, { label: e.target.value })}
+                            onBlur={(e) => updateField(field.id, { label: e.target.value })}
+                            className="bg-transparent border-none font-bold text-sm focus:ring-0 px-0 h-auto"
+                          />
+                          <select 
+                            value={field.field_type}
+                            onChange={(e) => {
+                              handleFieldLocalUpdate(field.id, { field_type: e.target.value })
+                              updateField(field.id, { field_type: e.target.value })
+                            }}
+                            className="bg-transparent border-none font-bold text-[10px] uppercase tracking-wider text-zinc-400 h-auto outline-none"
+                          >
+                            {FIELD_TYPES.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}
+                          </select>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-zinc-100/50 rounded-xl border border-zinc-100">
+                          <Input 
+                            placeholder="Placeholder text..." 
+                            value={getParsedPlaceholder(field.placeholder)} 
+                            onChange={(e) => handleFieldLocalUpdate(field.id, { placeholder: getBuilderConfig(field.placeholder) ? JSON.stringify({ text: e.target.value, builder: getBuilderConfig(field.placeholder) }) : e.target.value })}
+                            onBlur={(e) => updatePlaceholderFields(field.id, { text: e.target.value })}
+                            className="h-9 text-xs font-medium bg-white"
+                          />
+                          <select 
+                            value={getBuilderConfig(field.placeholder)?.category || ''}
+                            onChange={(e) => updatePlaceholderFields(field.id, { category: e.target.value })}
+                            className="h-9 text-xs font-bold text-zinc-600 bg-white border border-zinc-200 rounded-md px-3 outline-none"
+                          >
+                            <option value="">No System Binding</option>
+                            <option value="content_overrides">Content Overrides</option>
+                            <option value="global_styles">Global Styles</option>
+                            <option value="seo_metadata">SEO Metadata</option>
+                            <option value="payments">Project Payments</option>
+                          </select>
+                          {getBuilderConfig(field.placeholder)?.category === 'payments' ? (
+                            <select
+                              value={getBuilderConfig(field.placeholder)?.key || ''}
+                              onChange={(e) => updatePlaceholderFields(field.id, { key: e.target.value })}
+                              className="h-9 text-xs font-bold text-zinc-600 bg-white border border-zinc-200 rounded-md px-3 outline-none"
+                            >
+                              <option value="">Select Key</option>
+                              <option value="amount">Amount (Float)</option>
+                              <option value="payment_type">Method (STRIPE/CASH/etc)</option>
+                              <option value="date">Date (ISO/String)</option>
+                              <option value="notes">Description/Notes</option>
+                            </select>
+                          ) : (
+                            <Input 
+                              placeholder="Binding Key (e.g. h1)" 
+                              value={getBuilderConfig(field.placeholder)?.key || ''}
+                              onChange={(e) => {
+                                const v = e.target.value
+                                handleFieldLocalUpdate(field.id, { placeholder: JSON.stringify({ text: getParsedPlaceholder(field.placeholder), builder: { category: getBuilderConfig(field.placeholder)?.category, key: v } }) })
+                              }}
+                              onBlur={(e) => updatePlaceholderFields(field.id, { key: e.target.value })}
+                              disabled={!getBuilderConfig(field.placeholder)?.category}
+                              className="h-9 text-xs font-medium bg-white"
+                            />
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-3">
@@ -455,7 +680,21 @@ export function WorkflowManager() {
                   <div className="flex items-center gap-4">
                     <select 
                       value={selectedStage.next_status_key || ''}
-                      onChange={(e) => handleStageUpdate({ next_status_key: e.target.value || null })}
+                      onChange={(e) => {
+                        const val = e.target.value || null
+                        handleStageUpdate({ next_status_key: val })
+                        supabase
+                          .from('workflow_stages')
+                          .update({ next_status_key: val })
+                          .eq('id', selectedStage.id)
+                          .then(({ error }) => {
+                             if (error) toast.error('Failed to sync next destination')
+                             else {
+                               // Recalculate stages list for order
+                               fetchStages(selectedStage.template_id)
+                             }
+                          })
+                      }}
                       className="bg-white/10 border border-white/10 rounded-2xl font-bold px-6 py-3 text-sm outline-none w-64"
                     >
                       <option value="">End of Pipeline</option>
@@ -484,6 +723,86 @@ export function WorkflowManager() {
         )}
       </div>
     </div>
-  </div>
+      {/* Global Pre-configured Builder Fields */}
+      <div className="mt-12 space-y-6">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-zinc-900 tracking-tight">System Website Builder Fields</h2>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Global hardcoded configuration questions automatically injected into stages</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from(new Set(staticQuestions.map(q => q.role))).map(role => (
+            <Card key={role as React.Key} className="rounded-[2.5rem] border-zinc-100 bg-white p-8 shadow-sm">
+              <h3 className="text-sm font-black text-zinc-900 tracking-tight mb-6 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                {role as React.ReactNode} Configuration
+              </h3>
+              <div className="space-y-4">
+                {staticQuestions.filter(q => q.role === role).map(sq => (
+                  <div key={sq.key} className="flex items-center justify-between p-4 bg-zinc-50/50 rounded-2xl border border-zinc-100">
+                    <div className="flex flex-col gap-1 overflow-hidden pr-2">
+                      <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest truncate">{sq.category.replace('_', ' ')}</span>
+                      <span className="text-[12px] font-black text-zinc-700 truncate">{sq.label}</span>
+                    </div>
+                    {sq.required && <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-red-50 text-red-500 border border-red-100 shrink-0">Req</span>}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Danger Zone */}
+      <Card className="rounded-[2.5rem] border-zinc-100 bg-red-50/30 p-8 mt-12 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-red-100/20 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+              <Shield className="w-4 h-4 text-red-600" />
+            </div>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-red-600">Danger Zone</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-8">            <div className="bg-white p-6 rounded-[2rem] border border-red-100 shadow-sm">
+              <h3 className="font-black text-zinc-900 mb-1">Reset Workflow Engine</h3>
+              <p className="text-xs text-zinc-400 font-medium mb-6">
+                Deletes all templates, stages, and fields. WARNING: This will break project creation until you re-seed the engine.
+              </p>
+              <PendingButton 
+                variant="outline"
+                className="w-full rounded-2xl h-12 font-bold border-red-100 text-red-600 hover:bg-red-50 transition-all hover:scale-[0.98]"
+                onClick={async () => {
+                  if (confirm('DANGER: This will delete ALL workflow templates and stages. Full system reset. Proceed?')) {
+                    setIsActionPending(true)
+                    try {
+                      const res = await clearWorkflowConfig()
+                      if (res.success) {
+                        toast.success('Workflow engine reset to zero')
+                        window.location.reload()
+                      }
+                    } catch (e: any) {
+                      toast.error(`Reset failed: ${e.message}`)
+                    } finally {
+                      setIsActionPending(false)
+                    }
+                  }
+                }}
+                loading={isActionPending}
+              >
+                Wipe Workflow Config
+              </PendingButton>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
   )
 }

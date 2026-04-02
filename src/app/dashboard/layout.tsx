@@ -6,6 +6,8 @@ import { NotificationsHandler } from '@/components/layout/notifications-handler'
 import { RefreshHandler } from '@/components/layout/refresh-handler'
 import { ChatProvider } from '@/components/chat/chat-context'
 import { FloatingChat } from '@/components/chat/floating-chat'
+import { ProjectProvider } from '@/context/ProjectContext'
+import { MobileFloatingControls } from '@/components/dashboard/mobile-floating-controls'
 
 export default async function DashboardLayout({
   children,
@@ -19,21 +21,24 @@ export default async function DashboardLayout({
   }
 
   return (
-    <ChatProvider>
-      <div className="flex h-screen overflow-hidden bg-white text-zinc-950">
-        <NotificationsHandler userId={user.profile.id} />
-        <Sidebar user={user.profile} />
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <TopBar user={user.profile} />
-          <main className="flex-1 overflow-y-auto p-8 bg-[#F3F4F6]/50">
-            <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {children}
-            </div>
-          </main>
+    <ProjectProvider>
+      <ChatProvider>
+        <div className="flex h-screen overflow-hidden bg-white text-zinc-950">
+          <NotificationsHandler userId={user.profile.id} />
+          <Sidebar user={user.profile} />
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <TopBar user={user.profile} />
+            <main className="flex-1 overflow-y-auto p-8 bg-[#F3F4F6]/50">
+              <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {children}
+              </div>
+            </main>
+          </div>
+          <FloatingChat />
+          <MobileFloatingControls />
+          <RefreshHandler />
         </div>
-        <FloatingChat />
-        <RefreshHandler />
-      </div>
-    </ChatProvider>
+      </ChatProvider>
+    </ProjectProvider>
   )
 }

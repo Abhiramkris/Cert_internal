@@ -1,13 +1,14 @@
 import { getUserProfile, getProjects, getStaff } from '@/utils/supabase/queries'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Phone, Mail, Calendar, LayoutDashboard, ArrowRight } from 'lucide-react'
+import { Phone, Mail, Calendar, Settings, ArrowRight } from 'lucide-react'
 import { AddProjectModal } from '@/components/projects/add-project-modal'
-import { ActivityFeed } from '@/components/dashboard/activity-feed'
-import { TeamChatCard } from '@/components/dashboard/team-chat-card'
-import { WeeklyTimeline } from '@/components/dashboard/weekly-timeline'
+import { MobileActivityTimeline } from '@/components/dashboard/mobile-activity-timeline'
 import { ProjectPipelineTracker } from '@/components/dashboard/project-pipeline-tracker'
-import { AdminStats } from '@/components/dashboard/admin-stats'
+import { ActivityFeed } from '@/components/dashboard/activity-feed'
+import { WeeklyTimeline } from '@/components/dashboard/weekly-timeline'
+import { TeamChatCard } from '@/components/dashboard/team-chat-card'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
   const user = await getUserProfile()
@@ -17,22 +18,18 @@ export default async function DashboardPage() {
   const { data: staff } = await getStaff()
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-8 pb-20 font-sans">
+    <div className="max-w-[1600px] mx-auto space-y-6 md:space-y-8 px-4 md:px-10 pb-20 font-sans">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
         <div>
-          <p className="text-[12px] font-bold text-zinc-400 capitalize tracking-wide mb-1 flex items-center gap-2">
+          <p className="text-[10px] md:text-[12px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
             Portal <ArrowRight className="w-3 h-3 text-zinc-300" /> Dashboard
           </p>
-          <h1 className="text-[32px] font-bold tracking-tight text-zinc-900">Good morning {user.profile.full_name?.split(' ')[0]}</h1>
+          <h1 className="text-2xl md:text-[32px] font-black tracking-tighter text-zinc-900 uppercase">Good morning {user.profile.full_name?.split(' ')[0]}</h1>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Button variant="outline" className="rounded-2xl border-zinc-200 font-semibold px-4 py-6 text-zinc-600 h-auto text-[13px] bg-white shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:bg-zinc-50 border-none">
-            <LayoutDashboard className="w-4 h-4 mr-2" />
-            Add widget
-          </Button>
-          <Button variant="outline" className="rounded-2xl border-zinc-200 font-semibold px-4 py-6 text-zinc-600 h-auto text-[13px] bg-white shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:bg-zinc-50 border-none">
+        <div className="flex flex-wrap items-center gap-3 md:gap-4">
+          <Button variant="outline" className="rounded-none border border-zinc-200 font-black px-4 py-2 md:py-6 h-auto text-[11px] md:text-[13px] bg-white hover:bg-zinc-50 transition-all uppercase tracking-widest shadow-none">
             <Calendar className="w-4 h-4 mr-2" />
             {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </Button>
@@ -42,18 +39,19 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {user.profile.role === 'Admin' && (
-        <AdminStats projects={projects || []} staff={staff || []} />
-      )}
 
       <ProjectPipelineTracker
         initialProjects={projects || []}
         staff={staff || []}
         currentUserId={user.id}
+        currentUserRole={user.profile.role}
       />
 
-      {/* Secondary Widgets Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Mobile Activity Timeline */}
+      <MobileActivityTimeline userId={user.id} />
+
+      {/* Secondary Widgets Grid (Desktop Only) */}
+      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* Left Column (Span 3): Profile */}
         <div className="lg:col-span-3">

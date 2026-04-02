@@ -13,15 +13,25 @@ export const SERVICES_BENTO = {
 
     const HeadingTag = (hierarchy || 'h2') as any;
 
+    const cardStyle = settings?.card_style || 'standard';
+    const bgStyle = settings?.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings?.bg_color ? { backgroundColor: settings.bg_color } : {};
+
+    const cardClass = cardStyle === 'minimal' ? 'bg-transparent border-none shadow-none p-4' :
+                     cardStyle === 'glass' ? 'bg-white/40 backdrop-blur-md border border-white shadow-xl rounded-3xl p-6' :
+                     'bg-white rounded-3xl p-6 border border-zinc-200';
+
     return (
-      <section className="py-16 px-8 bg-zinc-50 border-b border-zinc-100 relative overflow-hidden">
+      <section 
+        className="py-16 px-8 bg-zinc-50 border-b border-zinc-100 relative overflow-hidden"
+        style={bgStyle}
+      >
         <div className={cn("max-w-4xl mx-auto flex flex-col", alignmentClass)}>
           <HeadingTag 
             className="font-black text-zinc-900 tracking-tight leading-none mb-10"
             style={{ 
               fontFamily: config.font_family_heading, 
               fontWeight: config.font_weight_heading,
-              fontSize: `${config.font_size_h2 * 0.75}px`
+              fontSize: `${hierarchy === 'h1' ? parseInt(config.font_size_h1 || '48') : hierarchy === 'h2' ? parseInt(config.font_size_h2 || '32') : parseInt(config.font_size_body || '16')}px`
             }}
           >
             Core Capabilities
@@ -33,7 +43,7 @@ export const SERVICES_BENTO = {
                <Zap className="w-5 h-5 mb-3" />
                <span className="text-[10px] font-black uppercase">Technical Architecture</span>
             </div>
-            <div className="col-span-2 bg-white rounded-3xl p-6 border border-zinc-200 flex flex-col justify-center">
+            <div className={cn(cardClass, "col-span-2 flex flex-col justify-center")}>
                <Shield className="w-4 h-4 text-zinc-400 mb-2" />
                <span className="text-[9px] font-bold text-zinc-900 uppercase">Security Engineering</span>
             </div>
@@ -44,6 +54,13 @@ export const SERVICES_BENTO = {
                <Layers className="w-4 h-4 text-zinc-600" />
             </div>
           </div>
+          {settings?.cta_primary && (
+            <div className={cn("mt-12 flex", alignmentClass.includes('items-start') ? 'justify-start' : alignmentClass.includes('items-end') ? 'justify-end' : 'justify-center')}>
+              <button className="px-8 py-3 bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200">
+                {settings?.cta_primary}
+              </button>
+            </div>
+          )}
         </div>
       </section>
     );
@@ -71,8 +88,18 @@ export default function Services() {
   
   const alignmentClass = align === 'left' ? 'text-left items-start' : align === 'right' ? 'text-right items-end' : 'text-center items-center';
 
+  const cardStyle = settings.card_style || 'standard';
+  const cardClass = cardStyle === 'minimal' ? 'bg-transparent border-none shadow-none p-0' :
+                   cardStyle === 'glass' ? 'bg-white/10 backdrop-blur-3xl border border-white/10 shadow-2xl rounded-[3rem] md:rounded-[4rem] p-12 md:p-16' :
+                   'bg-white rounded-[3rem] md:rounded-[4rem] p-12 md:p-16 border border-zinc-100 shadow-xl shadow-zinc-200/20';
+
+  const bgStyle = settings.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings.bg_color ? { backgroundColor: settings.bg_color } : {};
+
   return (
-    <section className="py-32 md:py-48 px-8 bg-zinc-50 border-b border-zinc-100 overflow-hidden">
+    <section 
+      className="py-32 md:py-48 px-8 bg-zinc-50 border-b border-zinc-100 overflow-hidden"
+      style={bgStyle}
+    >
       <div className={cn("max-w-7xl mx-auto flex flex-col", alignmentClass)}>
         <motion.span 
           initial={{ opacity: 0 }}
@@ -122,17 +149,17 @@ export default function Services() {
           {/* Medium Card */}
           <motion.div 
             whileHover={{ scale: 1.02 }}
-            className="md:col-span-2 bg-white rounded-[3rem] md:rounded-[4rem] p-12 md:p-16 border border-zinc-100 flex flex-col justify-center gap-8 shadow-xl shadow-zinc-200/20"
+            className={cn("md:col-span-2 flex flex-col justify-center gap-8", cardClass)}
           >
              <div className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center">
                 <Shield className="w-6 h-6 text-zinc-900" />
              </div>
              <div className="space-y-4">
                 <h3 className="text-2xl md:text-3xl font-black text-zinc-950 uppercase italic tracking-tighter" style={{ fontFamily: global.font_family_heading }}>
-                  Security Operations
+                   Security Operations
                 </h3>
                 <p className="text-sm md:text-base text-zinc-500 font-medium max-w-md leading-relaxed">
-                  Military-grade protection and continuous audit monitoring for your critical assets.
+                   Military-grade protection and continuous audit monitoring for your critical assets.
                 </p>
              </div>
           </motion.div>
@@ -153,6 +180,18 @@ export default function Services() {
              <span className="text-[11px] font-black uppercase tracking-widest text-zinc-100">Interface Rigor</span>
           </motion.div>
         </div>
+        {settings?.cta_primary && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={cn("mt-20 flex", alignmentClass.includes('items-start') ? 'justify-start' : alignmentClass.includes('items-end') ? 'justify-end' : 'justify-center')}
+          >
+            <button className="px-12 py-5 bg-zinc-950 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-zinc-200 hover:scale-105 active:scale-95 transition-all">
+              {settings?.cta_primary}
+            </button>
+          </motion.div>
+        )}
       </div>
     </section>
   );

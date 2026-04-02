@@ -3,17 +3,23 @@ import React from 'react';
 export const FOOTER_MINIMAL = {
   name: 'Minimal Clean Footer',
   type: 'layout',
-  preview: (config: any) => (
-    <footer className="py-8 px-8 bg-white border-t border-zinc-100 flex justify-between items-center whitespace-nowrap overflow-hidden">
-      <div 
-        className="text-xs font-bold text-zinc-900" 
-        style={{ fontFamily: config.font_family_heading, fontWeight: config.font_weight_heading }}
+  preview: (config: any, content: any, settings: any) => {
+    const bgStyle = settings?.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings?.bg_color ? { backgroundColor: settings.bg_color } : {};
+    return (
+      <footer 
+        className="py-8 px-8 bg-white border-t border-zinc-100 flex justify-between items-center whitespace-nowrap overflow-hidden"
+        style={bgStyle}
       >
-        {config.brand_name || 'Agency Name'}
-      </div>
-      <div className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">© 2026. ALL RIGHTS RESERVED.</div>
-    </footer>
-  ),
+        <div 
+          className="text-xs font-bold text-zinc-900" 
+          style={{ fontFamily: config.font_family_heading, fontWeight: config.font_weight_heading }}
+        >
+          {config.brand_name || 'Agency Name'}
+        </div>
+        <div className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">© 2026. ALL RIGHTS RESERVED.</div>
+      </footer>
+    );
+  },
   code: (config: any) => `
 'use client'
 import React from 'react';
@@ -32,8 +38,14 @@ export default function Footer() {
 
   const selected = variants[settings.animation as keyof typeof variants] || variants.fade;
 
+  const bgStyle = settings.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings.bg_color ? { backgroundColor: settings.bg_color } : {};
+  const global = config.styles || {};
+
   return (
-    <footer className="py-12 px-8 bg-white border-t border-zinc-100 font-sans">
+    <footer 
+      className="py-12 px-8 bg-white border-t border-zinc-100 font-sans"
+      style={bgStyle}
+    >
       <motion.div 
         {...selected}
         viewport={{ once: true }}

@@ -49,7 +49,7 @@ export async function approveProject(projectId: string, token: string) {
 
   const { error } = await supabase
     .from('projects')
-    .update({ status: 'CLIENT_APPROVED' })
+    .update({ status: 'COMPLETED' })
     .eq('id', projectId)
 
   if (error) {

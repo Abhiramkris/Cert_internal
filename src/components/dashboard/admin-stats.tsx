@@ -33,8 +33,9 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
       const projectPayments = p.payments?.reduce((pSum: number, pay: any) => pSum + (pay.amount || 0), 0) || 0
       return sum + projectPayments
     }, 0)
-    const completedProjects = projects.filter(p => p.status === 'CLIENT_APPROVED').length
-    const activeProjects = projects.filter(p => p.status !== 'CLIENT_APPROVED' && p.status !== 'LOST').length
+    const isFinalStatus = (status: string) => ['COMPLETED', 'CLIENT_APPROVED', 'SUCCESS'].includes(status?.toUpperCase())
+    const completedProjects = projects.filter(p => isFinalStatus(p.status)).length
+    const activeProjects = projects.filter(p => !isFinalStatus(p.status) && p.status !== 'LOST').length
     
     const leadGrowth = projectsLastMonth.length === 0 
       ? 100 
@@ -42,7 +43,7 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
 
     const totalBudget = projects.reduce((sum, p) => sum + (p.budget || 0), 0)
     const outstanding = totalBudget - totalRevenue
-    const closedSalesCount = projects.filter(p => p.status === 'CLIENT_APPROVED').length
+    const closedSalesCount = completedProjects
 
     return {
       totalRevenue,
@@ -61,7 +62,7 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
   const metrics = [
     {
       title: 'Total Collected',
-      value: `₹${stats.totalRevenue.toLocaleString()}`,
+      value: `₹${stats.totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       description: 'Settled Revenue',
       icon: IndianRupee,
       trend: stats.leadGrowth > 0 ? 'up' : 'down',
@@ -81,7 +82,7 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
     },
     {
       title: 'Outstanding',
-      value: `₹${stats.outstanding.toLocaleString()}`,
+      value: `₹${stats.outstanding.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       description: 'Pending Collection',
       icon: TrendingUp,
       trend: 'none',
@@ -102,19 +103,17 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4">
       {metrics.map((m, i) => (
-        <Card key={i} className="rounded-[2.5rem] border-none bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all group overflow-hidden relative">
-          <div className={cn("absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 rounded-full opacity-[0.03] transition-transform group-hover:scale-110", m.bg)} />
-          
-          <div className="flex justify-between items-start mb-4 relative z-10">
-            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", m.bg, m.color)}>
-              <m.icon className="w-6 h-6" />
+        <Card key={i} className="rounded-none border border-zinc-200 bg-white p-3 md:p-5 hover:bg-zinc-50 transition-all group overflow-hidden relative shadow-none">
+          <div className="flex justify-between items-start mb-3 md:mb-4 relative z-10">
+            <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-none border border-zinc-200 flex items-center justify-center", m.bg, m.color)}>
+              <m.icon className="w-4 h-4 md:w-5 md:h-5" />
             </div>
             {m.trend !== 'none' && (
               <div className={cn(
-                "flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full",
-                m.trend === 'up' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                "hidden sm:flex items-center gap-1 text-[8px] md:text-[9px] font-black px-2 py-1 rounded-none border border-zinc-200",
+                m.trend === 'up' ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"
               )}>
                 {m.trend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {m.trendValue}
@@ -122,13 +121,13 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
             )}
           </div>
 
-          <div className="space-y-1 relative z-10">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">{m.title}</p>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-black text-zinc-900 tracking-tighter">{m.value}</h3>
-              <ArrowUpRight className="w-4 h-4 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
+          <div className="space-y-0.5 md:space-y-1 relative z-10">
+            <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 truncate">{m.title}</p>
+            <div className="flex items-baseline gap-1 md:gap-2">
+              <h3 className="text-lg md:text-2xl font-black text-zinc-900 tracking-tighter leading-none">{m.value}</h3>
+              <ArrowUpRight className="hidden sm:block w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
             </div>
-            <p className="text-[10px] font-bold text-zinc-400 capitalize">{m.description}</p>
+            <p className="text-[8px] md:text-[9px] font-black text-zinc-300 uppercase tracking-widest leading-none mt-1 truncate">{m.description}</p>
           </div>
         </Card>
       ))}

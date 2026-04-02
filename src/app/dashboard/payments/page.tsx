@@ -67,7 +67,7 @@ export default async function PaymentsDashboard() {
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">{s.label}</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black text-zinc-900 tracking-tighter">₹{s.value.toLocaleString()}</h3>
+                  <h3 className="text-3xl font-black text-zinc-900 tracking-tighter">₹{s.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
                   <ArrowUpRight className="w-4 h-4 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
                 </div>
               </div>
@@ -104,10 +104,20 @@ export default async function PaymentsDashboard() {
                 {allPayments.length > 0 ? allPayments.map((p, i) => (
                   <tr key={i} className="group hover:bg-zinc-50/30 transition-all">
                     <td className="px-8 py-6">
-                      <div className="flex flex-col">
-                        <span className="font-black text-zinc-900">{new Date(p.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">{new Date(p.created_at).getFullYear()}</span>
-                      </div>
+                      {(() => {
+                        const date = new Date(p.paid_at || p.created_at);
+                        const isValid = !isNaN(date.getTime());
+                        return (
+                          <div className="flex flex-col">
+                            <span className="font-black text-zinc-900">
+                              {isValid ? date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Invalid Date'}
+                            </span>
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">
+                              {isValid ? date.getFullYear() : '—'}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col">
@@ -117,14 +127,16 @@ export default async function PaymentsDashboard() {
                     </td>
                     <td className="px-8 py-6">
                       <Badge variant="outline" className="bg-zinc-50 text-zinc-600 border-none font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-lg">
-                        {p.payment_type.replace(/_/g, ' ')}
+                        {(p.payment_method || '-').replace(/_/g, ' ')}
                       </Badge>
                     </td>
                     <td className="px-8 py-6 max-w-[200px]">
-                      <span className="text-zinc-500 font-medium text-xs truncate block">{p.notes || 'Standard Project Milestone'}</span>
+                      <span className="text-zinc-500 font-medium text-xs truncate block">{p.notes || '-'}</span>
                     </td>
                     <td className="px-8 py-6 text-right">
-                      <span className="text-lg font-black text-zinc-900 tracking-tighter">₹{p.amount.toLocaleString()}</span>
+                      <span className="text-lg font-black text-zinc-900 tracking-tighter">
+                        ₹{(p.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
                     </td>
                   </tr>
                 )) : (

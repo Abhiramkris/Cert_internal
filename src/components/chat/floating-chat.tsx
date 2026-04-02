@@ -113,8 +113,8 @@ function ChatWindow({ receiverId, senderId, onClose, staff, projects }: { receiv
 
   return (
     <Card className={cn(
-      "w-72 bg-white shadow-2xl border border-zinc-200 transition-all flex flex-col pointer-events-auto rounded-t-xl overflow-hidden",
-      isMinimized ? "h-12" : "h-96"
+      "w-72 md:w-80 bg-white shadow-2xl border border-zinc-200 transition-all flex flex-col pointer-events-auto rounded-t-xl overflow-hidden max-w-[90vw]",
+      isMinimized ? "h-12" : "h-[450px] md:h-96"
     )}>
       {/* Header */}
       <div 
@@ -218,6 +218,12 @@ export function FloatingChat() {
       if (projectsData) setProjects(projectsData)
     }
     loadData()
+
+    const handleToggle = () => {
+      setIsMinimized(prev => !prev)
+    }
+    window.addEventListener('toggle-floating-chat', handleToggle)
+    return () => window.removeEventListener('toggle-floating-chat', handleToggle)
   }, [])
 
   if (!currentUser) return null
@@ -238,8 +244,9 @@ export function FloatingChat() {
 
       {/* Messaging Bar (LinkedIn style) */}
       <div className={cn(
-        "w-72 bg-white shadow-2xl border border-zinc-200 rounded-t-xl flex flex-col pointer-events-auto transition-all duration-300",
-        isMinimized ? "h-12" : "h-[450px]"
+        "w-72 md:w-80 bg-white shadow-2xl border border-zinc-200 rounded-t-xl flex flex-col pointer-events-auto transition-all duration-300",
+        "fixed md:relative bottom-0 right-4 md:right-0",
+        isMinimized ? "h-12 translate-y-full md:translate-y-0 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "h-[80vh] md:h-[450px] translate-y-0 opacity-100"
       )}>
         <div 
           className="px-4 py-3 bg-zinc-900 border-zinc-800 text-white flex items-center justify-between cursor-pointer rounded-t-xl"

@@ -167,31 +167,36 @@ export function RealtimeComments({ projectId, initialComments, userId, projects 
   }
 
   return (
-    <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl flex flex-col h-[700px] overflow-hidden shadow-sm">
-      <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 py-4 px-6 flex flex-row items-center justify-between shrink-0">
-        <CardTitle className="text-xs font-bold text-zinc-900 flex items-center gap-2.5">
-          <MessageSquare className="w-4 h-4 text-zinc-400" />
-          Project Activity
-        </CardTitle>
-        <div className="flex bg-zinc-100 p-1.5 rounded-xl border border-zinc-200 shadow-inner">
+    <Card className="bg-white border-2 border-zinc-200 text-zinc-900 rounded-none flex flex-col h-[700px] overflow-hidden shadow-none">
+      <CardHeader className="bg-white border-b border-zinc-100 py-6 px-8 flex flex-row items-center justify-between shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 border border-zinc-100 bg-zinc-50 flex items-center justify-center rounded-none shadow-sm">
+            <MessageSquare className="w-5 h-5 text-zinc-400" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Communication Hub</span>
+            <CardTitle className="text-lg font-black text-zinc-900 uppercase tracking-[0.1em] italic">Project Activity</CardTitle>
+          </div>
+        </div>
+        <div className="flex bg-zinc-50 p-1 border border-zinc-100 rounded-none">
           <button 
             onClick={() => setIsInternal(true)}
             className={cn(
-              "px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2",
-              isInternal ? "bg-white text-zinc-900 shadow-sm border border-zinc-200" : "text-zinc-500 hover:text-zinc-700"
+              "px-6 py-2.5 rounded-none text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2",
+              isInternal ? "bg-zinc-950 text-white shadow-md" : "text-zinc-400 hover:text-zinc-600"
             )}
           >
-            <Lock className="w-3 h-3" />
+            <Lock className="w-3.5 h-3.5" />
             Internal
           </button>
           <button 
             onClick={() => setIsInternal(false)}
             className={cn(
-              "px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2",
-              !isInternal ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-700"
+              "px-6 py-2.5 rounded-none text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2",
+              !isInternal ? "bg-blue-600 text-white shadow-md" : "text-zinc-400 hover:text-zinc-600"
             )}
           >
-            <Globe className="w-3 h-3" />
+            <Globe className="w-3.5 h-3.5" />
             Client
           </button>
         </div>
@@ -204,45 +209,45 @@ export function RealtimeComments({ projectId, initialComments, userId, projects 
         {comments?.length > 0 ? (
           comments.map((comment, i) => (
             <div key={i} className={cn(
-              "flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-500",
-              comment.user_id === userId ? "flex-row-reverse" : ""
+               "flex gap-6 group animate-in fade-in slide-in-from-bottom-4 duration-500",
+               comment.user_id === userId ? "flex-row-reverse" : ""
             )}>
-              <div className={cn(
-                "w-11 h-11 rounded-xl flex items-center justify-center text-[10px] font-bold shrink-0 shadow-sm border border-zinc-200 transition-transform group-hover:scale-105",
-                comment.user_id ? "bg-white text-zinc-500" : "bg-blue-50 text-blue-600"
-              )}>
-                {comment.user_id ? (comment.user_id === userId ? 'YOU' : 'TEAM') : 'CLNT'}
-              </div>
-              <div className={cn("space-y-2 max-w-[80%]", comment.user_id === userId ? "items-end flex flex-col" : "")}>
-                <div className={cn("flex items-center gap-3", comment.user_id === userId ? "flex-row-reverse" : "")}>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                    {comment.user_id === userId ? 'You' : comment.user_id ? 'Team Member' : 'Client Representative'}
-                  </span>
-                  <span className="text-[9px] text-zinc-300 font-bold uppercase tracking-tighter">{new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  {comment.is_internal ? (
-                    <Badge variant="outline" className="text-[8px] h-4 border-zinc-200 text-zinc-400 font-bold bg-white rounded-lg px-2 tracking-widest">INTERNAL</Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-[8px] h-4 border-blue-500/20 text-blue-500 font-bold bg-blue-50 rounded-lg px-2 tracking-widest">CLIENT VISIBLE</Badge>
-                  )}
-                </div>
-                <div className={cn(
-                  "p-5 rounded-2xl border transition-all text-xs leading-relaxed font-bold shadow-sm whitespace-pre-wrap",
-                  comment.user_id === userId 
-                    ? "bg-zinc-900 border-zinc-800 text-white rounded-tr-none" 
-                    : "bg-white border-zinc-200 text-zinc-900 rounded-tl-none"
-                )}>
-                  {/* Highlight @mentions and #mentions in UI visually */}
-                  {(comment.content || '').split(/((?:@|#)\w+)/g).map((chunk, chunkIdx) => {
-                    if (chunk.startsWith('@')) {
-                      return <span key={chunkIdx} className="text-blue-400 bg-blue-900/10 px-1 py-0.5 rounded-md border border-blue-500/20">{chunk}</span>
-                    }
-                    if (chunk.startsWith('#')) {
-                      return <span key={chunkIdx} className="text-emerald-400 bg-emerald-900/10 px-1 py-0.5 rounded-md border border-emerald-500/20">{chunk}</span>
-                    }
-                    return chunk
-                  })}
-                </div>
-              </div>
+               <div className={cn(
+                 "w-12 h-12 border flex items-center justify-center text-[10px] font-black uppercase tracking-widest shrink-0 rounded-none transition-all group-hover:bg-zinc-950 group-hover:text-white",
+                 comment.user_id ? "bg-white text-zinc-400 border-zinc-100" : "bg-blue-50 text-blue-600 border-blue-100"
+               )}>
+                 {comment.user_id ? (comment.user_id === userId ? 'AUTH' : 'TM') : 'CLNT'}
+               </div>
+               <div className={cn("space-y-3 max-w-[75%]", comment.user_id === userId ? "items-end flex flex-col" : "")}>
+                 <div className={cn("flex items-center gap-4", comment.user_id === userId ? "flex-row-reverse" : "")}>
+                   <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.3em]">
+                     {comment.user_id === userId ? 'Authorizing Agent' : comment.user_id ? 'Team Proxy' : 'Client Terminal'}
+                   </span>
+                   <span className="text-[8px] text-zinc-300 font-black uppercase tracking-widest tabular-nums">{new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                   {comment.is_internal ? (
+                     <Badge variant="outline" className="text-[8px] h-5 border-zinc-100 text-zinc-300 font-black bg-zinc-50 rounded-none px-3 tracking-[0.2em]">INTERNAL</Badge>
+                   ) : (
+                     <Badge variant="outline" className="text-[8px] h-5 border-blue-100 text-blue-400 font-black bg-blue-50 rounded-none px-3 tracking-[0.2em]">EXTERNAL</Badge>
+                   )}
+                 </div>
+                 <div className={cn(
+                   "p-6 border transition-all text-[11px] font-black tracking-widest uppercase leading-relaxed rounded-none shadow-sm whitespace-pre-wrap",
+                   comment.user_id === userId 
+                     ? "bg-zinc-950 border-zinc-900 text-white" 
+                     : "bg-white border-zinc-100 text-zinc-900"
+                 )}>
+                   {/* Highlight @mentions and #mentions in UI visually */}
+                   {(comment.content || '').split(/((?:@|#)\w+)/g).map((chunk, chunkIdx) => {
+                     if (chunk.startsWith('@')) {
+                       return <span key={chunkIdx} className="text-blue-400 font-black">{chunk}</span>
+                     }
+                     if (chunk.startsWith('#')) {
+                       return <span key={chunkIdx} className="text-emerald-400 font-black">{chunk}</span>
+                     }
+                     return chunk
+                   })}
+                 </div>
+               </div>
             </div>
           ))
         ) : (
@@ -250,8 +255,8 @@ export function RealtimeComments({ projectId, initialComments, userId, projects 
             <div className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-6">
               <MessageSquare className="w-8 h-8 opacity-20" />
             </div>
-            <p className="text-sm font-bold uppercase tracking-widest opacity-40">No activity logged</p>
-            <p className="text-[10px] font-bold mt-2 opacity-30 uppercase tracking-tight">Post a message to initiate collaboration</p>
+            <p className="text-sm font-black uppercase tracking-widest opacity-40">No activity logged</p>
+            <p className="text-[10px] font-black mt-2 opacity-30 uppercase tracking-tight">Post a message to initiate collaboration</p>
           </div>
         )}
       </CardContent>
@@ -293,39 +298,32 @@ export function RealtimeComments({ projectId, initialComments, userId, projects 
           <Textarea 
             value={newComment}
             onChange={handleInputChange}
-            placeholder={isInternal ? "Post a private team note... (Type @ for staff, # for projects)" : "Send a secure message to the client..."}
-            className={cn(
-              "min-h-[110px] bg-zinc-50 border-zinc-200 rounded-2xl pr-16 pl-6 py-5 focus:ring-4 focus:ring-zinc-950/5 text-xs font-bold transition-all resize-none shadow-inner placeholder:text-zinc-300 text-zinc-900",
-              isInternal ? "focus:border-zinc-300" : "focus:border-zinc-400"
-            )}
+            placeholder={isInternal ? "POST OPERATIONAL NOTE... (@ STAFF, # PROJECTS)" : "TRANSMIT MESSAGE TO CLIENT TERMINAL..."}
+            className="min-h-[120px] bg-[#fafafa] border-zinc-200 rounded-none pr-16 pl-8 py-6 focus:ring-0 focus:border-zinc-950 text-[11px] font-black uppercase tracking-widest transition-all resize-none placeholder:text-zinc-200 text-zinc-900 leading-relaxed shadow-none"
             onKeyDown={handleKeyDown}
           />
           <PendingButton 
             loading={isSubmitting} 
             type="submit" 
             size="sm" 
-            className="absolute bottom-5 right-5 rounded-xl h-9 px-4 bg-zinc-900 border-none font-bold text-[10px] uppercase tracking-widest text-white shadow-lg active:scale-95 transition-all"
+            className="absolute bottom-6 right-6 rounded-none h-11 px-6 bg-zinc-950 border border-zinc-800 font-black text-[10px] uppercase tracking-[0.2em] text-white shadow-xl hover:bg-black active:scale-95 transition-all"
             disabled={!newComment.trim()}
           >
-            Post Comment
+            Transmit <Send className="w-3.5 h-3.5 ml-2" />
           </PendingButton>
         </form>
-        <div className="flex items-center justify-between mt-5 px-1">
-          <div className="flex items-center gap-4">
-            <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest">
-              ENTER to send / select
+        <div className="flex items-center justify-between mt-6 px-1">
+          <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
+            <p className="text-[8px] text-zinc-300 font-black uppercase tracking-[0.2em] whitespace-nowrap">
+              COMMAND + ENTER to Transmit
             </p>
-            <div className="h-1 w-1 rounded-full bg-zinc-200" />
-            <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest">
-              SHIFT + ENTER for new line
+            <div className="h-1.5 w-1.5 bg-zinc-100 rounded-none" />
+            <p className="text-[8px] text-zinc-300 font-black uppercase tracking-[0.2em] whitespace-nowrap">
+              @ staff trigger
             </p>
-            <div className="h-1 w-1 rounded-full bg-zinc-200" />
-            <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest">
-              @ to mention staff
-            </p>
-            <div className="h-1 w-1 rounded-full bg-zinc-200" />
-            <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest">
-              # to mention project
+            <div className="h-1.5 w-1.5 bg-zinc-100 rounded-none" />
+            <p className="text-[8px] text-zinc-300 font-black uppercase tracking-[0.2em] whitespace-nowrap">
+              # project trigger
             </p>
           </div>
         </div>

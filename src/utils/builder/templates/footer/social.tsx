@@ -4,8 +4,13 @@ import { Instagram, Twitter, Linkedin, Github as GithubIcon } from 'lucide-react
 export const FOOTER_SOCIAL = {
   name: 'High-Fidelity Social Footer',
   type: 'layout',
-  preview: (config: any) => (
-    <footer className="py-16 px-10 bg-zinc-950 text-white border-t border-zinc-900">
+  preview: (config: any, content: any, settings: any) => {
+    const bgStyle = settings?.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings?.bg_color ? { backgroundColor: settings.bg_color } : {};
+    return (
+      <footer 
+        className="py-16 px-10 bg-zinc-950 text-white border-t border-zinc-900"
+        style={bgStyle}
+      >
       <div className="grid grid-cols-2 gap-10">
         <div className="space-y-4">
           <div 
@@ -26,9 +31,10 @@ export const FOOTER_SOCIAL = {
               <div className="text-[8px] text-zinc-400 space-y-1"><div>Privacy</div><div>Terms</div></div>
            </div>
         </div>
-      </div>
-    </footer>
-  ),
+        </div>
+      </footer>
+    );
+  },
   code: (config: any) => `
 'use client'
 import React from 'react';
@@ -49,8 +55,13 @@ export default function Footer() {
 
   const selected = variants[settings.animation as keyof typeof variants] || variants.fade;
 
+  const bgStyle = settings.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings.bg_color ? { backgroundColor: settings.bg_color } : {};
+
   return (
-    <footer className="py-24 px-10 bg-zinc-950 text-white border-t border-zinc-900 font-sans">
+    <footer 
+      className="py-24 px-10 bg-zinc-950 text-white border-t border-zinc-900 font-sans"
+      style={bgStyle}
+    >
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
         <motion.div 
           {...selected}

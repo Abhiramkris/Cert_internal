@@ -13,22 +13,32 @@ export const TESTIMONIALS_GRID = {
 
     const HeadingTag = (hierarchy || 'h2') as any;
 
+    const cardStyle = settings?.card_style || 'standard';
+    const bgStyle = settings?.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings?.bg_color ? { backgroundColor: settings.bg_color } : {};
+
+    const cardClass = cardStyle === 'minimal' ? 'bg-transparent border-none shadow-none p-4' :
+                     cardStyle === 'glass' ? 'bg-white/40 backdrop-blur-md border border-white shadow-xl rounded-[2rem] p-6' :
+                     'bg-zinc-50 rounded-[2rem] border border-zinc-100 p-6';
+
     return (
-      <section className="py-16 px-8 bg-white border-b border-zinc-50 relative">
+      <section 
+        className="py-16 px-8 bg-white border-b border-zinc-50 relative"
+        style={bgStyle}
+      >
         <div className={cn("max-w-4xl mx-auto flex flex-col", alignmentClass)}>
           <HeadingTag 
             className="font-black text-zinc-900 tracking-tight leading-none mb-4"
             style={{ 
               fontFamily: config.font_family_heading, 
               fontWeight: config.font_weight_heading,
-              fontSize: `${config.font_size_h2 * 0.75}px`
+              fontSize: `${hierarchy === 'h1' ? parseInt(config.font_size_h1 || '48') : hierarchy === 'h2' ? parseInt(config.font_size_h2 || '32') : parseInt(config.font_size_body || '16')}px`
             }}
           >
             What Experts Say
           </HeadingTag>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 w-full">
             {[1, 2].map(i => (
-              <div key={i} className="p-6 bg-zinc-50 rounded-[2rem] border border-zinc-100 flex flex-col gap-4">
+              <div key={i} className={cn(cardClass, "flex flex-col gap-4")}>
                 <div className="flex gap-1">
                   {[1,2,3,4,5].map(s => <Star key={s} className="w-2 h-2 fill-zinc-900 text-zinc-900" />)}
                 </div>
@@ -45,6 +55,13 @@ export const TESTIMONIALS_GRID = {
               </div>
             ))}
           </div>
+          {settings?.cta_primary && (
+            <div className={cn("mt-12 flex", alignmentClass.includes('items-start') ? 'justify-start' : alignmentClass.includes('items-end') ? 'justify-end' : 'justify-center')}>
+              <button className="px-8 py-3 bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200">
+                {settings.cta_primary}
+              </button>
+            </div>
+          )}
         </div>
       </section>
     );
@@ -87,8 +104,18 @@ export default function Testimonials() {
   const alignmentClass = align === 'left' ? 'text-left items-start' : align === 'right' ? 'text-right items-end' : 'text-center items-center';
   const mx = align === 'center' ? 'mx-auto' : align === 'right' ? 'ml-auto' : 'mr-auto';
 
+  const cardStyle = settings.card_style || 'standard';
+  const cardClass = cardStyle === 'minimal' ? 'bg-transparent border-none shadow-none p-0' :
+                   cardStyle === 'glass' ? 'bg-white/10 backdrop-blur-3xl border border-white/10 shadow-2xl rounded-[4rem] p-10 md:p-14' :
+                   'bg-zinc-50 rounded-[4rem] border border-zinc-100 p-10 md:p-14 shadow-xl shadow-zinc-100/50 hover:shadow-2xl';
+
+  const bgStyle = settings.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings.bg_color ? { backgroundColor: settings.bg_color } : {};
+
   return (
-    <section className="py-24 md:py-40 px-8 bg-white border-b border-zinc-100 overflow-hidden">
+    <section 
+      className="py-24 md:py-40 px-8 bg-white border-b border-zinc-100 overflow-hidden"
+      style={bgStyle}
+    >
       <div className={cn("max-w-7xl mx-auto flex flex-col", alignmentClass)}>
         <motion.span 
           initial={{ opacity: 0, y: 10 }}
@@ -119,7 +146,7 @@ export default function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1, duration: 0.8 }}
               whileHover={{ y: -10 }}
-              className="p-10 md:p-14 bg-zinc-50 rounded-[4rem] border border-zinc-100 flex flex-col gap-10 shadow-xl shadow-zinc-100/50 hover:shadow-2xl transition-all duration-500"
+              className={cn("flex flex-col gap-10 transition-all duration-500", cardClass)}
             >
               <div className="flex gap-1.5">
                 {[...Array(t.rating)].map((_, s) => (
@@ -146,6 +173,19 @@ export default function Testimonials() {
             </motion.div>
           ))}
         </div>
+        
+        {settings.cta_primary && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={cn("mt-20 flex", alignmentClass.includes('items-start') ? 'justify-start' : alignmentClass.includes('items-end') ? 'justify-end' : 'justify-center')}
+          >
+            <button className="px-12 py-5 bg-zinc-950 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-zinc-200 hover:scale-105 active:scale-95 transition-all">
+              {settings.cta_primary}
+            </button>
+          </motion.div>
+        )}
       </div>
     </section>
   );

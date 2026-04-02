@@ -18,12 +18,17 @@ export const FEATURES_GRID = {
 
     const HeadingTag = (hierarchy || 'h3') as any;
 
+    const bgStyle = settings?.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings?.bg_color ? { backgroundColor: settings.bg_color } : {};
+
     return (
-      <section className={cn(
-        "py-16 px-8 bg-zinc-50 border-b border-zinc-100",
-        alignmentClass,
-        variant === 'contained' && "max-w-6xl mx-auto rounded-[3.5rem] my-12"
-      )}>
+      <section 
+        className={cn(
+          "py-16 px-8 bg-zinc-50 border-b border-zinc-100",
+          alignmentClass,
+          variant === 'contained' && "max-w-6xl mx-auto rounded-[3.5rem] my-12"
+        )}
+        style={bgStyle}
+      >
         <div className={cn(
           "grid gap-4",
           variant === 'split-reversed' ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2 lg:grid-cols-4"
@@ -38,7 +43,7 @@ export const FEATURES_GRID = {
                 style={{ 
                   fontFamily: config.font_family_heading, 
                   fontWeight: config.font_weight_heading,
-                  fontSize: `${hierarchy === 'h1' ? config.font_size_h1 * 0.4 : hierarchy === 'h2' ? config.font_size_h2 * 0.5 : config.font_size_body}px`
+                  fontSize: `${hierarchy === 'h1' ? parseInt(config.font_size_h1 || '48') : hierarchy === 'h2' ? parseInt(config.font_size_h2 || '32') : parseInt(config.font_size_body || '16')}px`
                 }}
               >
                 Feature {i}
@@ -47,6 +52,13 @@ export const FEATURES_GRID = {
             </div>
           ))}
         </div>
+        {settings?.cta_primary && (
+          <div className={cn("mt-12 flex", containerAlign === 'items-start' ? 'justify-start' : containerAlign === 'items-end' ? 'justify-end' : 'justify-center')}>
+            <button className="px-8 py-3 bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200">
+              {settings.cta_primary}
+            </button>
+          </div>
+        )}
       </section>
     );
   },
@@ -93,12 +105,17 @@ export default function Features() {
 
   const HeadingTag = hierarchy as any;
 
+  const bgStyle = settings.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings.bg_color ? { backgroundColor: settings.bg_color } : {};
+
   return (
-    <section className={cn(
-      "py-32 px-8 bg-zinc-50",
-      alignmentClass,
-      variant === 'contained' && "max-w-7xl mx-auto rounded-[4rem] my-24 border border-zinc-100 shadow-2xl"
-    )}>
+    <section 
+      className={cn(
+        "py-32 px-8 bg-zinc-50",
+        alignmentClass,
+        variant === 'contained' && "max-w-7xl mx-auto rounded-[4rem] my-24 border border-zinc-100 shadow-2xl"
+      )}
+      style={bgStyle}
+    >
       <div className="max-w-7xl mx-auto">
         <div className={cn(
           "grid gap-8",
@@ -123,7 +140,7 @@ export default function Features() {
                 style={{ 
                   fontFamily: global.font_family_heading, 
                   fontWeight: global.font_weight_heading,
-                  fontSize: (hierarchy === 'h1' ? global.font_size_h1 * 0.6 : hierarchy === 'h2' ? global.font_size_h2 * 0.7 : global.font_size_body * 1.2) + 'px'
+                  fontSize: (hierarchy === 'h1' ? parseInt(global.font_size_h1 || '48') * 0.6 : hierarchy === 'h2' ? parseInt(global.font_size_h2 || '32') * 0.7 : parseInt(global.font_size_body || '16') * 1.2) + 'px'
                 }}
               >
                 {f.title}
@@ -134,6 +151,18 @@ export default function Features() {
             </motion.div>
           ))}
         </div>
+        {settings.cta_primary && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={cn("mt-20 flex", containerAlign === 'items-start' ? 'justify-start' : containerAlign === 'items-end' ? 'justify-end' : 'justify-center')}
+          >
+            <button className="px-12 py-5 bg-zinc-950 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-zinc-200 hover:scale-105 active:scale-95 transition-all">
+              {settings.cta_primary}
+            </button>
+          </motion.div>
+        )}
       </div>
     </section>
   );

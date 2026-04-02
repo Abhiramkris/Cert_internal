@@ -29,7 +29,7 @@ export async function getProjects(role?: string, userId?: string) {
   const supabase = await createClient()
   let query = supabase
     .from('projects')
-    .select('*, project_team(*), payments(amount)')
+    .select('*, project_team(*), comments(*), payments(amount), workflow_templates(*, workflow_stages(*, workflow_fields(*)))')
 
   if (role && userId && role !== 'Admin' && role !== 'Manager') {
     query = query.eq('current_assignee_id', userId)
@@ -44,7 +44,7 @@ export async function getProjectDetail(id: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('projects')
-    .select('*, project_team(*), seo_config(*), dev_config(*), comments(*), payments(*), workflow_templates(*, workflow_stages(*, workflow_fields(*))), project_stage_data(*, workflow_stages(*))')
+    .select('*, project_team(*), comments(*), payments(*), workflow_templates(*, workflow_stages(*, workflow_fields(*)))')
     .eq('id', id)
     .single()
 
@@ -84,18 +84,26 @@ export async function getWorkflowConfig(statusKey?: string, templateId?: string)
 export async function getProjectStageData(projectId: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('project_stage_data')
-    .select('*, workflow_stages(*)')
-    .eq('project_id', projectId)
-  return { data, error }
+    .from('projects')
+    .select('stage_data')
+    .eq('id', projectId)
+    .single()
+  
+  // Format stage_data object into an array for compatibility with older UI components if needed
+  const formatted = data?.stage_data ? Object.entries(data.stage_data).map(([id, val]: [string, any]) => ({
+    stage_id: id,
+    ...val
+  })) : []
+
+  return { data: formatted, error }
 }
 
 export async function getWebsiteConfig(projectId: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('website_builder_config')
-    .select('*')
-    .eq('project_id', projectId)
+    .from('projects')
+    .select('config')
+    .eq('id', projectId)
     .single()
-  return { data, error }
+  return { data: data?.config?.builder, error }
 }

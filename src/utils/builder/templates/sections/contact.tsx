@@ -22,12 +22,17 @@ export const CONTACT_SIMPLE = {
     const isSplit = variant === 'split-reversed';
     const HeadingTag = (hierarchy || 'h2') as any;
 
+    const bgStyle = settings?.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings?.bg_color ? { backgroundColor: settings.bg_color } : {};
+
     return (
-      <section className={cn(
-        "py-20 px-8 bg-zinc-50 border-b border-zinc-100",
-        alignmentClass,
-        variant === 'contained' && "max-w-5xl mx-auto rounded-[3.5rem] my-10 border border-zinc-200"
-      )}>
+      <section 
+        className={cn(
+          "py-20 px-8 bg-zinc-50 border-b border-zinc-100",
+          alignmentClass,
+          variant === 'contained' && "max-w-5xl mx-auto rounded-[3.5rem] my-10 border border-zinc-200"
+        )}
+        style={bgStyle}
+      >
         <div className={cn(
           "max-w-4xl mx-auto grid gap-12 items-center",
           isSplit ? "grid-cols-1 md:grid-cols-2" : "flex flex-col"
@@ -35,10 +40,13 @@ export const CONTACT_SIMPLE = {
           <div className={cn("flex flex-col", containerAlign, isSplit && "order-2")}>
             <HeadingTag 
               className={cn(
-                "font-black text-zinc-900 tracking-tight mb-2",
-                hierarchy === 'h1' ? "text-4xl" : hierarchy === 'h2' ? "text-2xl" : "text-xl"
+                "font-black text-zinc-900 tracking-tight mb-2"
               )}
-              style={{ fontFamily: config.font_family_heading, fontWeight: config.font_weight_heading }}
+              style={{ 
+                fontFamily: config.font_family_heading, 
+                fontWeight: config.font_weight_heading,
+                fontSize: `${hierarchy === 'h1' ? parseInt(config.font_size_h1 || '48') : hierarchy === 'h2' ? parseInt(config.font_size_h2 || '32') : parseInt(config.font_size_body || '16')}px`
+              }}
             >
               Get in Touch
             </HeadingTag>
@@ -48,8 +56,8 @@ export const CONTACT_SIMPLE = {
             <div className="h-10 bg-white rounded-xl border border-zinc-200" />
             <div className="h-10 bg-white rounded-xl border border-zinc-200" />
             <div className="h-32 bg-white rounded-xl border border-zinc-200" />
-            <div className={`${buttonClass} flex items-center justify-center`}>
-              <div className="w-4 h-1 bg-zinc-400/20 rounded-full" />
+            <div className={cn(buttonClass, "flex items-center justify-center text-white text-[9px] font-black uppercase tracking-widest")}>
+              {settings?.cta_primary || 'Send Brief'}
             </div>
           </div>
         </div>
@@ -88,12 +96,17 @@ export default function Contact() {
   const isSplit = variant === 'split-reversed';
   const HeadingTag = hierarchy as any;
 
+  const bgStyle = settings.bg_gradient ? { backgroundImage: settings.bg_gradient } : settings.bg_color ? { backgroundColor: settings.bg_color } : {};
+
   return (
-    <section className={cn(
-      "py-32 px-8 bg-zinc-50 overflow-hidden",
-      alignmentClass,
-      variant === 'contained' && "max-w-7xl mx-auto rounded-[4rem] my-24 border border-zinc-100 shadow-2xl"
-    )}>
+    <section 
+      className={cn(
+        "py-32 px-8 bg-zinc-50 overflow-hidden",
+        alignmentClass,
+        variant === 'contained' && "max-w-7xl mx-auto rounded-[4rem] my-24 border border-zinc-100 shadow-2xl"
+      )}
+      style={bgStyle}
+    >
       <div className={cn(
         "max-w-7xl mx-auto grid gap-24 items-center",
         isSplit ? "grid-cols-1 lg:grid-cols-2" : "flex flex-col"
@@ -107,10 +120,13 @@ export default function Contact() {
           <div className={cn("flex flex-col space-y-6", alignmentClass)}>
             <HeadingTag 
               className={cn(
-                "font-black text-zinc-900 tracking-tight leading-none italic",
-                hierarchy === 'h1' ? "text-7xl" : hierarchy === 'h2' ? "text-5xl" : "text-3xl"
+                "font-black text-zinc-900 tracking-tight leading-none italic"
               )}
-              style={{ fontFamily: global.font_family_heading, fontWeight: global.font_weight_heading }}
+              style={{ 
+                fontFamily: global.font_family_heading, 
+                fontWeight: global.font_weight_heading,
+                fontSize: (hierarchy === 'h1' ? global.font_size_h1 : hierarchy === 'h2' ? global.font_size_h2 : global.font_size_body) + 'px'
+              }}
             >
               Let's build <br/> something great.
             </HeadingTag>
@@ -160,11 +176,11 @@ export default function Contact() {
             <motion.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="btn-primary w-full h-16 !shadow-xl !rounded-3xl"
+              className="btn-primary w-full h-16 !shadow-xl !rounded-3xl !flex items-center justify-center gap-3"
               type="button"
             >
               <Send className="w-4 h-4" />
-              Send Brief
+              {settings.cta_primary || 'Send Brief'}
             </motion.button>
           </form>
         </motion.div>
