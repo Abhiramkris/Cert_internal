@@ -146,9 +146,6 @@ function HandoffTerminalContent({
     >
       <div className="px-6 md:px-8 py-4 md:py-6 border-b border-zinc-200 flex-shrink-0 flex items-center justify-between bg-[#fafafa]/80 backdrop-blur-md sticky top-0 z-20">
         <div className="flex items-center gap-3 md:gap-4">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-none border border-zinc-200 bg-zinc-950 flex items-center justify-center">
-            <Briefcase className="w-4 h-4 md:w-5 md:h-5 text-white" />
-          </div>
           <div className="space-y-0">
             <DialogTitle className="text-lg md:text-xl font-black text-zinc-900 tracking-tighter italic leading-none">{project.client_name}</DialogTitle>
             <p className="text-[12px] md:text-[14px] font-black text-emerald-500 tracking-[0.05em] mt-1">Handoff Protocol</p>
@@ -239,7 +236,7 @@ function HandoffTerminalContent({
                 setStudioProjectId(project.id)
                 setActiveProjectId(null)
               }}
-              className="h-10 md:h-12 px-4 md:px-6 bg-white text-zinc-900 border border-zinc-200 rounded-none font-black text-[13px] md:text-[12px] tracking-tight hover:bg-zinc-50 transition-all flex items-center gap-2"
+              className="h-10 md:h-12 px-4 md:px-6 bg-[#1ada91] text-zinc-950 border border-zinc-950 rounded-none font-black text-[13px] md:text-[12px] tracking-tight hover:bg-[#15b87a] transition-all flex items-center gap-2"
             >
               <Code2 className="w-3.5 h-3.5 text-zinc-400" />
               Launch Studio Architect
@@ -607,11 +604,19 @@ export function ProjectPipelineTracker({
                         </div>
                       </Link>
                     </div>
-                    <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-none">
-                      <p className="text-[12px] font-black text-zinc-900 uppercase tracking-[0.1em]">
-                        Under Development
-                      </p>
-                    </div>
+                    {(() => {
+                      const latestComment = project.comments?.sort((a: any, b: any) => 
+                        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                      )[0];
+                      if (!latestComment) return null;
+                      return (
+                        <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-none">
+                          <p className="text-[12px] font-bold text-zinc-900 line-clamp-2 leading-relaxed tracking-tight uppercase">
+                            {latestComment.content}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )
