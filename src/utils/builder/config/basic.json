@@ -1,0 +1,18 @@
+{
+  "product_name": "InterCert Studio Architect",
+  "mission": "High-fidelity, industrial-grade website orchestration for mission-critical projects.",
+  "architectural_logic": {
+    "content_schema": {
+      "definition": "User-facing textual and visual data.",
+      "goal": "Explain the specialized project mission through precise headlines and descriptions.",
+      "rule": "Never use generic 'Lorem Ipsum' or 'Standard Company' boilerplate."
+    },
+    "settings_schema": {
+      "definition": "Technical tuning controls for animations, structural spacing, and modular feature visibility.",
+      "goal": "Optimize the architectural pacing and motion strategy to match the product's premium aesthetic.",
+      "rule": "Selected values must logically match the intensity of the project."
+    }
+  },
+  "brand_voice": "Professional, authoritative, and tactically precise. Prioritizes data over fluff.",
+  "builder_context": "V3.0 High-Contrast Orchestron."
+}

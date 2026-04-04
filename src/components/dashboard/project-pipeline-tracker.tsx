@@ -47,6 +47,7 @@ import { useRouter } from 'next/navigation'
 import { WorkflowForm } from '@/components/workflow/workflow-form'
 import { PaymentForm } from '@/app/dashboard/projects/[id]/payment-form'
 import { RealtimeComments } from '@/app/dashboard/projects/[id]/realtime-comments'
+import { StudioArchitectButton } from '@/components/projects/studio-architect-button'
 
 
 interface Project {
@@ -231,16 +232,11 @@ function HandoffTerminalContent({
           </Button>
 
           {(currentUserRole === 'Admin' || currentUserRole === 'Manager' || currentUserRole === 'Developer') && (
-            <Button
-              onClick={() => {
-                setStudioProjectId(project.id)
-                setActiveProjectId(null)
-              }}
-              className="h-10 md:h-12 px-4 md:px-6 bg-[#1ada91] text-zinc-950 border border-zinc-950 rounded-none font-black text-[13px] md:text-[12px] tracking-tight hover:bg-[#15b87a] transition-all flex items-center gap-2"
-            >
-              <Code2 className="w-3.5 h-3.5 text-zinc-400" />
-              Launch Studio Architect
-            </Button>
+            <StudioArchitectButton
+              project={project}
+              initialConfig={project.config?.builder}
+              onOpen={() => setActiveProjectId(null)}
+            />
           )}
         </div>
         <PendingButton
@@ -255,7 +251,7 @@ function HandoffTerminalContent({
               formData.forEach((value, key) => key.startsWith('dyn_') && (stageDataValues[key.replace('dyn_', '')] = value))
 
               if (currentUserRole === 'Developer') {
-                const githubLink = formData.get('dyn_github_link')
+                const githubLink = formData.get('dyn_github_link') || formData.get('github_link')
                 if (!githubLink) {
                   toast.error("Requirements Missing", { description: "Github Repository URL is mandatory for developers." })
                   setIsSubmitting(false)
@@ -282,7 +278,7 @@ function HandoffTerminalContent({
               }
             }
           }}
-          className="h-10 md:h-12 px-6 md:px-10 bg-white text-zinc-900 rounded-none border border-zinc-200 font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] hover:bg-zinc-50 transition-all flex items-center justify-center gap-3 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)]"
+          className="h-10 md:h-12 px-6 md:px-10 bg-zinc-950 text-white rounded-none border border-zinc-950 font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] hover:bg-black transition-all flex items-center justify-center gap-3"
         >
           Authorize Transition <ArrowRight className="w-3.5 h-3.5" />
         </PendingButton>
@@ -317,7 +313,6 @@ export function ProjectPipelineTracker({
   const [missingDataValues, setMissingDataValues] = useState<Record<string, string>>({})
   const [selectedAudit, setSelectedAudit] = useState<any>(null)
   const [handoffStatusOverrides, setHandoffStatusOverrides] = useState<Record<string, string>>({})
-  const [studioProjectId, setStudioProjectId] = useState<string | null>(null)
 
   const isStatusEquivalent = (a: string, b: string) =>
     a?.toLowerCase().replace(/_/g, '') === b?.toLowerCase().replace(/_/g, '')
@@ -625,27 +620,6 @@ export function ProjectPipelineTracker({
         )}
       </div>
 
-      {/* Studio Architect Overlay */}
-      <Dialog open={!!studioProjectId} onOpenChange={(open) => !open && setStudioProjectId(null)}>
-        <DialogContent className="!max-w-none !w-[100vw] !h-[100vh] !fixed !inset-0 !m-0 !p-0 bg-white rounded-none overflow-hidden shadow-2xl flex flex-col border-none outline-none z-[1000] !translate-x-0 !translate-y-0 !left-0 !top-0">
-          {studioProjectId && (
-            <div className="flex-1 overflow-hidden">
-              <WebsiteBuilderConfigurator
-                projectId={studioProjectId}
-                project={initialProjects.find(p => p.id === studioProjectId)}
-                initialConfig={initialProjects.find(p => p.id === studioProjectId)?.config?.builder}
-              />
-              <Button
-                onClick={() => setStudioProjectId(null)}
-                className="fixed top-8 right-8 z-[1100] h-10 w-10 p-0 rounded-full bg-zinc-950 text-white border border-zinc-800 hover:bg-black"
-                variant="ghost"
-              >
-                <ArrowRight className="w-4 h-4 rotate-180" />
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Handoff Modal */}
       <Dialog open={!!activeProjectId} onOpenChange={(open) => !open && setActiveProjectId(null)}>
@@ -660,7 +634,6 @@ export function ProjectPipelineTracker({
               setHandoffStatusOverrides={setHandoffStatusOverrides}
               setActiveProjectId={setActiveProjectId}
               allProjects={initialProjects}
-              setStudioProjectId={setStudioProjectId}
             />
           )}
         </DialogContent>

@@ -6,71 +6,17 @@ import { RefreshCw, Bell, AtSign, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/utils/supabase/client'
 
+import { useNotifications } from '@/context/NotificationContext'
+
 type TabType = 'Activity' | 'Mentions' | 'Notifications'
 
 interface ActivityFeedProps {
   userId: string
 }
 
-interface Notification {
-  id: string;
-  type: string;
-  message: string;
-  created_at: string;
-  project_id?: string;
-  is_read?: boolean;
-}
-
 export function ActivityFeed({ userId }: ActivityFeedProps) {
   const [activeTab, setActiveTab] = useState<TabType>('Activity')
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const supabase = createClient()
-
-  useEffect(() => {
-    async function fetchNotifications() {
-      if (!userId) return
-      
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      if (data && !error) {
-        setNotifications(data)
-      }
-      setLoading(false)
-    }
-
-    fetchNotifications()
-
-    // Realtime Subscription
-    if (userId) {
-      const channel = supabase
-        .channel(`activity-feed-${userId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${userId}`
-          },
-          (payload: any) => {
-            const newNotif = payload.new as Notification
-            setNotifications(prev => [newNotif, ...prev])
-          }
-        )
-        .subscribe()
-
-      return () => {
-        supabase.removeChannel(channel)
-      }
-    }
-  }, [userId, supabase])
+  const { notifications, loading, refresh: fetchNotifications } = useNotifications()
 
   const activityCount = notifications.length
   const mentionsCount = notifications.filter(n => n.type.includes('MENTION')).length
@@ -95,12 +41,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-xl font-bold tracking-tight text-zinc-900">Activity & notifications</h3>
         <button 
-          onClick={async () => {
-            setLoading(true)
-            const { data } = await supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(20)
-            if (data) setNotifications(data)
-            setLoading(false)
-          }}
+          onClick={() => fetchNotifications()}
           className="flex items-center gap-2 text-[12px] font-bold text-zinc-400 hover:text-zinc-600 transition-colors"
         >
           <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />

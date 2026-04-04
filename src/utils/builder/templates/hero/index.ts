@@ -1,7 +1,5 @@
-import { HERO_CENTERED } from './centered';
-import { HERO_SPLIT } from './split';
+import { HERO_FULL_IMAGE_STATS } from './industrial-hero';
 
 export const HERO_COMPONENTS = {
-  HERO_CENTERED,
-  HERO_SPLIT
+  HERO_FULL_IMAGE_STATS
 };

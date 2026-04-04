@@ -1,45 +1,36 @@
 [
   {
     "key": "h1",
-    "label": "Bussiness Type/Domain",
+    "label": "Business Type/Domain",
     "role": "Sales",
-    "required": true,
+    "required": false,
     "type": "text",
     "category": "content_overrides",
     "placeholder": "e.g., Best Physiotherapy in Town"
   },
   {
     "key": "description",
-    "label": "More About Bussiness",
+    "label": "More About Business",
     "role": "Sales",
-    "required": true,
+    "required": false,
     "type": "textarea",
     "category": "content_overrides",
     "placeholder": "A brief description of the primary service offering..."
   },
   {
-    "key": "primary_color",
-    "label": "Brand Primary Color (HEX)",
+    "key": "brand_name",
+    "label": "Brand Name",
     "role": "Sales",
     "required": false,
     "type": "text",
-    "category": "global_styles",
-    "placeholder": "#000000"
-  },
-  {
-    "key": "accent_color",
-    "label": "Brand Accent Color (HEX)",
-    "role": "Sales",
-    "required": false,
-    "type": "text",
-    "category": "global_styles",
-    "placeholder": "#3b82f6"
+    "category": "content_overrides",
+    "placeholder": "e.g., InterCert"
   },
   {
     "key": "email",
     "label": "Public Contact Email",
     "role": "Sales",
-    "required": true,
+    "required": false,
     "type": "text",
     "category": "content_overrides",
     "placeholder": "hello@brand.com"
@@ -48,16 +39,70 @@
     "key": "phone",
     "label": "Public Contact Phone",
     "role": "Sales",
-    "required": true,
+    "required": false,
     "type": "text",
     "category": "content_overrides",
     "placeholder": "+1 234 567 8900"
   },
   {
+    "key": "founding_year",
+    "label": "Founding Year",
+    "role": "Sales",
+    "required": false,
+    "type": "number",
+    "category": "content_overrides",
+    "placeholder": "e.g., 2010"
+  },
+  {
+    "key": "trust_badges",
+    "label": "Certifications & Partners",
+    "role": "Sales",
+    "required": false,
+    "type": "image_list",
+    "category": "content_overrides",
+    "description": "Logos of awards or partners"
+  },
+  {
+    "key": "testimonials",
+    "label": "Client Reviews",
+    "role": "Marketing",
+    "required": false,
+    "type": "json_list",
+    "category": "content_overrides",
+    "description": "List of objects: { name, review, rating }"
+  },
+  {
+    "key": "primary_cta_text",
+    "label": "Primary CTA Label",
+    "role": "Marketing",
+    "required": false,
+    "type": "text",
+    "category": "content_overrides",
+    "placeholder": "e.g., Book Appointment"
+  },
+  {
+    "key": "primary_cta_link",
+    "label": "Primary CTA Destination",
+    "role": "Marketing",
+    "required": false,
+    "type": "text",
+    "category": "content_overrides",
+    "placeholder": "e.g., /contact or https://calendly.com"
+  },
+  {
+    "key": "social_links",
+    "label": "Social Ecosystem",
+    "role": "Marketing",
+    "required": false,
+    "type": "json",
+    "category": "content_overrides",
+    "placeholder": "{ \"facebook\": \"...\", \"instagram\": \"...\" }"
+  },
+  {
     "key": "target_keywords",
     "label": "Primary Target Keywords",
     "role": "SEO",
-    "required": true,
+    "required": false,
     "type": "textarea",
     "category": "seo_metadata",
     "placeholder": "comma separated keywords, e.g., physiotherapist near me, back pain relief"
@@ -66,18 +111,126 @@
     "key": "meta_description",
     "label": "SEO Meta Description",
     "role": "SEO",
-    "required": true,
+    "required": false,
     "type": "textarea",
     "category": "seo_metadata",
     "placeholder": "Optimized description for search engines..."
   },
   {
+    "key": "maps_embed",
+    "label": "Google Maps Embed/Iframe",
+    "role": "Operations",
+    "required": false,
+    "type": "textarea",
+    "category": "content_overrides",
+    "placeholder": "<iframe src='...'></iframe>"
+  },
+  {
+    "key": "opening_hours",
+    "label": "Operational Hours",
+    "role": "Operations",
+    "required": false,
+    "type": "json",
+    "category": "content_overrides",
+    "placeholder": "{ \"Mon-Fri\": \"9am-6pm\" }"
+  },
+  {
+    "key": "service_list",
+    "label": "Service Inventory",
+    "role": "Operations",
+    "required": false,
+    "type": "json_list",
+    "category": "content_overrides",
+    "description": "List of objects: { title, price, duration }"
+  },
+  {
+    "key": "appointment_type",
+    "label": "Appointment Protocol",
+    "role": "Operations",
+    "required": false,
+    "type": "select",
+    "options": ["Calendly", "WhatsApp", "Custom Form", "Direct Call"],
+    "category": "content_overrides"
+  },
+  {
+    "key": "logo_main",
+    "label": "Main Logo (URL/Path)",
+    "role": "Branding",
+    "required": false,
+    "type": "text",
+    "category": "global_styles",
+    "placeholder": "/logos/main.svg"
+  },
+  {
+    "key": "logo_favicon",
+    "label": "Favicon (URL/Path)",
+    "role": "Branding",
+    "required": false,
+    "type": "text",
+    "category": "global_styles",
+    "placeholder": "/favicon.ico"
+  },
+  {
+    "key": "brand_voice",
+    "label": "Architectural Brand Voice",
+    "role": "Branding",
+    "required": false,
+    "type": "select",
+    "options": ["Formal", "Playful", "Techy", "Luxurious"],
+    "category": "content_overrides"
+  },
+  {
+    "key": "primary_color",
+    "label": "Brand Primary Color (HEX)",
+    "role": "Branding",
+    "required": false,
+    "type": "text",
+    "category": "global_styles",
+    "placeholder": "#000000"
+  },
+  {
+    "key": "accent_color",
+    "label": "Brand Accent Color (HEX)",
+    "role": "Branding",
+    "required": false,
+    "type": "text",
+    "category": "global_styles",
+    "placeholder": "#3b82f6"
+  },
+  {
+    "key": "google_analytics_id",
+    "label": "Google Analytics ID",
+    "role": "Technical",
+    "required": false,
+    "type": "text",
+    "category": "technical_metadata",
+    "placeholder": "G-XXXXXXXXXX"
+  },
+  {
+    "key": "privacy_policy_url",
+    "label": "Privacy Policy URL",
+    "role": "Technical",
+    "required": false,
+    "type": "text",
+    "category": "technical_metadata",
+    "placeholder": "/privacy"
+  },
+  {
     "key": "github_link",
     "label": "GitHub Repository URL",
-    "role": "Developer",
-    "required": true,
+    "role": "Technical",
+    "required": false,
     "type": "text",
     "category": "technical_metadata",
     "placeholder": "https://github.com/organization/project"
+  },
+  {
+    "key": "footer_copy",
+    "label": "Custom Footer Copyright",
+    "role": "Technical",
+    "required": false,
+    "type": "text",
+    "category": "content_overrides",
+    "placeholder": "© 2026 InterCert Inc."
   }
 ]

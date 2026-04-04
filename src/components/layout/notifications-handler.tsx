@@ -25,6 +25,22 @@ export function NotificationsHandler({ userId }: NotificationsHandlerProps) {
   useEffect(() => {
     if (!userId) return
 
+    // Request browser notification permission
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission()
+      }
+    }
+
+    const showBrowserNotification = (title: string, options: NotificationOptions) => {
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+          icon: '/file.svg', // Fallback icon from public
+          ...options
+        })
+      }
+    }
+
     // 1. Listen for general notifications
     const notificationChannel = supabase
       .channel(`user-notifications-${userId}`)
@@ -39,6 +55,12 @@ export function NotificationsHandler({ userId }: NotificationsHandlerProps) {
         (payload: any) => {
           const notification = payload.new
           playNotificationSound()
+          
+          showBrowserNotification('Mission Intelligence Alert', {
+            body: notification.message,
+            tag: notification.id
+          })
+
           toast(notification.message, {
             description: new Date().toLocaleTimeString(),
             action: {
@@ -75,6 +97,12 @@ export function NotificationsHandler({ userId }: NotificationsHandlerProps) {
             .single()
 
           playNotificationSound()
+          
+          showBrowserNotification(`Message from ${sender?.full_name || 'Team Member'}`, {
+            body: message.content.substring(0, 50),
+            tag: message.id
+          })
+
           toast.message(`New message from ${sender?.full_name || 'Someone'}`, {
             description: message.content.substring(0, 50) + (message.content.length > 50 ? '...' : ''),
             icon: <MessageSquare className="w-4 h-4 text-emerald-500" />,

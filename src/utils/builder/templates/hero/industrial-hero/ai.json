@@ -1,0 +1,51 @@
+{
+  "name": "Project Hero",
+  "prompt_context": "A premium, large-scale layout that uses full-screen imagery to convey the core mission of the project. Includes a key metrics HUD at the bottom. The tone must be perfectly aligned with the project's description provided in the system prompt.",
+  "content_schema": {
+    "h1": "string (The project's main value proposition, max 10 words)",
+    "description": "string (Impactful mission summary, max 25 words)",
+    "image_url": "string (High-quality Unsplash image contextually relevant to the project description)",
+    "cta_primary": "string (Strong action text, max 3 words)",
+    "cta_secondary": "string (Optional secondary text, max 3 words)",
+    "stats": [
+      {
+        "label": "string (Metric label derived from project goals, e.g. 'Customer Satisfaction', 'Experience', 'Global Reach')",
+        "value": "string (Relevant metric value, e.g. '99%', '15Y+', '5k+')"
+      }
+    ]
+  },
+  "settings_schema": [
+    {
+      "id": "animation",
+      "label": "Entrance Strategy",
+      "type": "select",
+      "options": ["fade", "scale-up", "zoom", "slide-up"],
+      "default": "fade"
+    },
+    {
+      "id": "overlay_opacity",
+      "label": "Backdrop Intensity",
+      "type": "range",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 50
+    },
+    {
+       "id": "show_stats",
+       "label": "Metrics HUD",
+       "type": "boolean",
+       "default": true
+    },
+    {
+       "id": "spacing_top",
+       "label": "Top Clearance",
+       "type": "range",
+       "min": 0,
+       "max": 160,
+       "step": 8,
+       "default": 80
+    }
+  ],
+  "image_hints": "Select an image that perfectly visualizes the core business or organization described in the project context. Use cinematic lighting and high-contrast aesthetics."
+}

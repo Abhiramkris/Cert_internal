@@ -56,6 +56,7 @@ export function WorkflowForm({
 }: WorkflowFormProps) {
   const [dbFields, setDbFields] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [allStages, setAllStages] = useState<any[]>([])
   const supabase = createClient()
 
   useEffect(() => {
@@ -64,21 +65,19 @@ export function WorkflowForm({
       setLoading(true)
       
       try {
-        let query = supabase
+        const { data: stages, error } = await supabase
           .from('workflow_stages')
           .select('*, workflow_fields(*)')
           .eq('template_id', workflowId)
+          .order('created_at', { ascending: true })
         
-        if (stageId) {
-          query = query.eq('id', stageId)
-        }
-        
-        const { data: stages, error } = await query
         if (error) throw error
 
+        setAllStages(stages || [])
         const allFields = stages?.flatMap(s => (s.workflow_fields || []).map((f: any) => ({
           ...f,
-          role: s.acting_role // Inherit role from stage if not set
+          role: s.acting_role,
+          stage_id: s.id
         }))) || []
 
         setDbFields(allFields)
@@ -96,14 +95,12 @@ export function WorkflowForm({
   const groupedByRole = useMemo(() => {
     const groups: Record<string, any[]> = {}
     
-    // 1. Add Static Fields (if flagship)
-    if (workflowId === FLAGSHIP_WEB_DEV_ID) {
-      staticQuestions.forEach(q => {
-        const role = q.role || 'Sales'
-        if (!groups[role]) groups[role] = []
-        groups[role].push({ ...q, isStatic: true })
-      })
-    }
+    // 1. Add Static Fields (Global Strategic Registry)
+    staticQuestions.forEach(q => {
+      const role = q.role || 'Sales'
+      if (!groups[role]) groups[role] = []
+      groups[role].push({ ...q, isStatic: true })
+    })
     
     // 2. Add Database Fields (regardless of ID)
     dbFields.forEach(f => {
@@ -131,30 +128,33 @@ export function WorkflowForm({
       {Object.entries(groupedByRole)
         .filter(([role]) => {
           if (!userRole) return true
-          if (userRole === 'Admin' || userRole === 'Manager') return true
-          return role.toLowerCase() === userRole.toLowerCase()
+          const uRole = userRole.toLowerCase()
+          const fRole = role.toLowerCase()
+          if (uRole === 'admin' || uRole === 'manager') return true
+          if (uRole === 'developer' && fRole === 'technical') return true
+          if (uRole === 'sales' && (fRole === 'marketing' || fRole === 'branding')) return true
+          return fRole === uRole
         })
         .map(([role, roleFields]) => (
         <div key={role} className={cn(
-          "bg-white border-b border-zinc-200 last:border-0 pb-2 mb-2",
-          readOnly && "opacity-60"
+          "bg-white border-b border-zinc-100 last:border-0 pb-6 mb-6",
         )}>
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-4 mb-12 translate-x-1">
             <div className={cn(
-               "w-10 h-10 border flex items-center justify-center rounded-none shadow-sm",
-               role.toLowerCase() === 'sales' ? 'bg-amber-50 border-amber-100 text-amber-600' :
-               role.toLowerCase() === 'seo' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' :
-               role.toLowerCase() === 'design' || role.toLowerCase() === 'designer' ? 'bg-blue-50 border-blue-100 text-blue-600' :
-               'bg-zinc-50 border-zinc-100 text-zinc-600'
+               "w-12 h-12 border-2 flex items-center justify-center rounded-2xl shadow-sm",
+               role.toLowerCase() === 'sales' ? 'bg-amber-50 border-zinc-950 text-zinc-900' :
+               role.toLowerCase() === 'seo' ? 'bg-emerald-50 border-zinc-950 text-zinc-900' :
+               role.toLowerCase() === 'design' || role.toLowerCase() === 'designer' ? 'bg-blue-50 border-zinc-950 text-zinc-900' :
+               'bg-zinc-50 border-zinc-950 text-zinc-900'
             )}>
-               {role.toLowerCase() === 'sales' ? <Sparkles className="w-5 h-5" /> :
-                role.toLowerCase() === 'seo' ? <Globe className="w-5 h-5" /> :
-                role.toLowerCase() === 'design' || role.toLowerCase() === 'designer' ? <Palette className="w-5 h-5" /> :
-                <LayoutTemplate className="w-5 h-5" />}
+               {role.toLowerCase() === 'sales' ? <Sparkles className="w-6 h-6" /> :
+                role.toLowerCase() === 'seo' ? <Globe className="w-6 h-6" /> :
+                role.toLowerCase() === 'design' || role.toLowerCase() === 'designer' ? <Palette className="w-6 h-6" /> :
+                <LayoutTemplate className="w-6 h-6" />}
             </div>
             <div className="flex flex-col">
-               <span className="text-[11px] font-bold text-zinc-400 tracking-tight">Operational Unit</span>
-               <h3 className="text-base font-black text-zinc-900 tracking-tight">{role} Requirements</h3>
+               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1">Operational Unit</span>
+               <h3 className="text-xl font-black text-zinc-950 tracking-tight leading-none">{role} Requirements</h3>
             </div>
           </div>
 
@@ -172,7 +172,7 @@ export function WorkflowForm({
                </div>
              )}
             
-            <div className="space-y-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
               {roleFields.map((f: any) => {
                 const fieldName = f.isStatic ? f.key : `${prefix}${f.name}`
                 const fieldType = (f.isStatic ? f.type : f.field_type) || 'text'
@@ -182,44 +182,52 @@ export function WorkflowForm({
                   displayLabel = f.placeholder
                 }
 
+                const isPastField = !f.isStatic && stageId && allStages.findIndex(s => s.id === stageId) > allStages.findIndex(s => s.id === f.stage_id)
+                const isCurrentField = f.isStatic || f.stage_id === stageId
+                const fieldReadOnly = readOnly || (!isCurrentField && !f.isStatic)
+
                 return (
-                   <div key={f.isStatic ? f.key : f.id} className="grid grid-cols-1 md:grid-cols-3 gap-8 py-6 border-b border-zinc-50 last:border-0 items-center group/field">
-                    <Label htmlFor={fieldName} className="text-[11px] font-black tracking-tight text-zinc-500 group-hover/field:text-zinc-900 transition-colors">
+                   <div key={f.isStatic ? f.key : f.id} className={cn(
+                     "flex flex-col gap-3 py-6 group/field transition-all",
+                     fieldReadOnly && "opacity-60 grayscale-[0.5]",
+                     fieldType === 'textarea' && "md:col-span-2"
+                   )}>
+                    <Label htmlFor={fieldName} className="text-[11px] font-black uppercase tracking-[0.15em] text-zinc-400 group-hover/field:text-zinc-950 transition-colors ml-1">
                       {displayLabel}
                     </Label>
-                                        <div className="md:col-span-2">
-                      {fieldType === 'textarea' ? (
-                        <Textarea 
-                          id={fieldName} 
-                          name={fieldName} 
-                          placeholder={f.placeholder} 
-                          defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
-                          readOnly={readOnly}
-                          className="min-h-[120px] w-full bg-[#fafafa] border border-zinc-950 p-4 text-[13px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all outline-none resize-none placeholder:text-zinc-300 leading-relaxed rounded-none shadow-sm" 
-                        />
-                      ) : fieldType === 'select' || (f.options && f.options.length > 0) ? (
-                        <select 
-                          id={fieldName} 
-                          name={fieldName} 
-                          defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
-                          disabled={readOnly}
-                          className="w-full h-11 bg-[#fafafa] border border-zinc-950 px-4 text-[13px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all appearance-none cursor-pointer outline-none rounded-none shadow-sm"
-                        >
-                          <option value="">Select option</option>
-                          {f.options?.map((o: string) => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                      ) : (
-                        <Input 
-                          id={fieldName} 
-                          name={fieldName} 
-                          type={fieldType} 
-                          placeholder={f.placeholder || "Enter details..."} 
-                          defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
-                          readOnly={readOnly}
-                          className="h-11 w-full bg-[#fafafa] border border-zinc-950 px-4 text-[13px] font-black tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all placeholder:text-zinc-300 rounded-none shadow-sm" 
-                        />
-                      )}
-                    </div>
+                    <div className="w-full">
+                       {fieldType === 'textarea' ? (
+                         <Textarea 
+                           id={fieldName} 
+                           name={fieldName} 
+                           placeholder={f.placeholder} 
+                           defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
+                           readOnly={fieldReadOnly}
+                           className="min-h-[140px] w-full bg-white border border-zinc-200 p-6 text-[14px] font-bold tracking-tight text-zinc-950 focus:ring-4 focus:ring-zinc-950/5 transition-all outline-none resize-none placeholder:text-zinc-300 leading-relaxed rounded-none shadow-none" 
+                         />
+                       ) : fieldType === 'select' || (f.options && f.options.length > 0) ? (
+                         <select 
+                           id={fieldName} 
+                           name={fieldName} 
+                           defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
+                           disabled={fieldReadOnly}
+                           className="w-full h-14 bg-white border border-zinc-200 px-6 text-[14px] font-bold tracking-tight text-zinc-950 focus:ring-4 focus:ring-zinc-950/5 transition-all appearance-none cursor-pointer outline-none rounded-none shadow-none"
+                         >
+                           <option value="">Select option</option>
+                           {f.options?.map((o: string) => <option key={o} value={o}>{o}</option>)}
+                         </select>
+                       ) : (
+                         <Input 
+                           id={fieldName} 
+                           name={fieldName} 
+                           type={fieldType} 
+                           placeholder={f.placeholder || "Enter details..."} 
+                           defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
+                           readOnly={fieldReadOnly}
+                           className="h-14 w-full bg-white border border-zinc-200 px-6 text-[14px] font-bold tracking-tight text-zinc-950 focus:ring-4 focus:ring-zinc-950/5 transition-all placeholder:text-zinc-300 rounded-none shadow-none" 
+                         />
+                       )}
+                     </div>
                   </div>
                 )
               })}

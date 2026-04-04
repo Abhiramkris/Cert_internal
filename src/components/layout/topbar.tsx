@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { signOut } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
 import { LogOut, Bell, Search, User, Menu, Archive, LayoutList, Table as TableIcon } from 'lucide-react'
@@ -23,8 +24,14 @@ import { Sidebar } from './sidebar'
 import { AGENCY_CONFIG } from '@/utils/agency-config'
 import { useProject } from '@/context/ProjectContext'
 
+import { NotificationsCenter } from './notifications-center'
+import { createClient } from '@/utils/supabase/client'
+
+import { useNotifications } from '@/context/NotificationContext'
+
 interface TopBarProps {
   user: {
+    id: string
     full_name: string | null
     email: string | null
     role: string | null
@@ -39,8 +46,12 @@ export function TopBar({ user }: TopBarProps) {
     viewMode, setViewMode 
   } = useProject()
 
+  const [notifsOpen, setNotifsOpen] = useState(false)
+  const { unreadCount } = useNotifications()
+
   return (
     <header className="h-16 md:h-20 border-b border-zinc-100 bg-white/50 backdrop-blur-xl flex items-center justify-between px-4 md:px-10 shrink-0 sticky top-0 z-30 font-sans">
+      <NotificationsCenter open={notifsOpen} onOpenChange={setNotifsOpen} userId={user.id} />
       <div className="flex items-center gap-4 md:gap-6 flex-1">
         <div className="md:hidden">
           <Sheet>
@@ -117,9 +128,18 @@ export function TopBar({ user }: TopBarProps) {
       </div>
       
       <div className="flex items-center gap-2 md:gap-5 ml-4">
-        <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-900 hover:bg-[#F3F4F6] relative rounded-none md:rounded-2xl h-10 w-10 md:h-11 md:w-11 transition-all border border-zinc-100 md:border-none">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setNotifsOpen(true)}
+          className="text-zinc-400 hover:text-zinc-900 hover:bg-[#F3F4F6] relative rounded-none md:rounded-2xl h-10 w-10 md:h-11 md:w-11 transition-all border border-zinc-100 md:border-none"
+        >
           <Bell className="w-4 h-4 md:w-5 md:h-5" />
-          <span className="absolute top-2.5 right-2.5 md:top-3.5 md:right-3.5 w-1.5 h-1.5 md:w-2 md:h-2 bg-zinc-950 rounded-none border border-white"></span>
+          {unreadCount > 0 && (
+            <span className="absolute top-2.5 right-2.5 md:top-3.5 md:right-3.5 w-1.5 h-1.5 md:w-2 md:h-2 bg-zinc-950 rounded-none border border-white flex items-center justify-center overflow-visible">
+               <span className="absolute inset-0 bg-zinc-950 animate-ping opacity-75 rounded-none" />
+            </span>
+          )}
         </Button>
 
         <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-900 hover:bg-[#F3F4F6] relative rounded-2xl h-11 w-11 transition-all hidden md:flex">

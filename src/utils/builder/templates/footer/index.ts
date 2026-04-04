@@ -1,7 +1,5 @@
-import { FOOTER_SOCIAL } from './social';
-import { FOOTER_MINIMAL } from './minimal';
+import { FOOTER_INDUSTRIAL } from './industrial-footer';
 
 export const FOOTER_COMPONENTS = {
-  FOOTER_SOCIAL,
-  FOOTER_MINIMAL
+  FOOTER_INDUSTRIAL
 };

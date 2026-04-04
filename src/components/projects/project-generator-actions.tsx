@@ -13,6 +13,7 @@ import { Code2, Sparkles, Zap, Download } from 'lucide-react'
 import { WebsiteBuilderConfigurator } from './website-builder-configurator'
 import { generateProjectZip } from '@/app/dashboard/projects/builder-actions'
 import { toast } from 'sonner'
+import { StudioArchitectButton } from './studio-architect-button'
 
 interface ProjectGeneratorActionsProps {
   project: any
@@ -20,7 +21,6 @@ interface ProjectGeneratorActionsProps {
 }
 
 export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGeneratorActionsProps) {
-  const [showModal, setShowModal] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
 
   const handleGenerateZip = async () => {
@@ -58,41 +58,26 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
   }
 
   return (
-    <div className="flex flex-col gap-4 mt-4 pt-4 border-t border-zinc-100">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap gap-4 mt-2">
-          <Button
-            onClick={() => setShowModal(true)}
-            variant="outline"
-            className="h-10 md:h-11 px-4 md:px-6 rounded-none border-2 border-zinc-200 bg-emerald-500 text-white font-black uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center gap-2 text-[9px] md:text-[10px]"
-          >
-            <Sparkles className="w-4 h-4 text-white fill-white/20" />
-            Launch Studio Architect
-          </Button>
+        <div className="flex flex-col gap-4">
+          <StudioArchitectButton
+            project={project}
+            initialConfig={websiteConfig}
+            className="h-14 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] border-2"
+          />
 
           <Button
             onClick={handleGenerateZip}
             disabled={isGenerating}
             variant="outline"
-            className="h-10 md:h-11 px-4 md:px-6 rounded-none border-2 border-zinc-200 bg-white text-zinc-950 font-black uppercase tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2 text-[9px] md:text-[10px]"
+            className="h-14 px-8 rounded-2xl border-2 border-zinc-950 bg-white text-zinc-950 font-black uppercase tracking-[0.2em] hover:bg-zinc-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all flex items-center justify-center gap-3 text-[11px] group/eject"
           >
-            <Code2 className="w-4 h-4 text-blue-500" />
-            {isGenerating ? 'Generating...' : 'Eject Production Build'}
+            <Download className="w-5 h-5 text-zinc-400 group-hover/eject:text-zinc-950 transition-colors" />
+            {isGenerating ? 'Building Production...' : 'Eject Production Build'}
           </Button>
         </div>
       </div>
-
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="!max-w-none !w-[100vw] !h-[100vh] !fixed !inset-0 !m-0 !p-0 bg-white rounded-none overflow-hidden shadow-2xl flex flex-col border-none outline-none z-[1000] !translate-x-0 !translate-y-0 !left-0 !top-0">
-          <div className="flex-1 overflow-hidden">
-            <WebsiteBuilderConfigurator 
-              projectId={project.id}
-              initialConfig={websiteConfig}
-              project={project}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

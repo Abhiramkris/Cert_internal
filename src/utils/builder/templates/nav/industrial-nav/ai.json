@@ -1,0 +1,12 @@
+{
+  "name": "Command Navigation",
+  "prompt_context": "A sleek, floating navigation bar with a glassmorphism effect. Includes a live status indicator. Tone should matches the brand name and project intent.",
+  "content_schema": {
+    "brand_name": "string (Official brand or client name, max 2 words)",
+    "cta_primary": "string (Primary action text, max 2 words)"
+  },
+  "component_settings": {
+    "animation": "fade | slide-up"
+  },
+  "image_hints": "N/A"
+}

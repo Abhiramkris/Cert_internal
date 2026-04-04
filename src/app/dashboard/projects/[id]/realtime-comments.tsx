@@ -86,20 +86,16 @@ export function RealtimeComments({ projectId, initialComments, userId, projects 
     if (!newComment.trim() || isSubmitting) return
 
     setIsSubmitting(true)
-    const { error } = await supabase.from('comments').insert({
-      project_id: projectId,
-      user_id: userId,
-      content: newComment,
-      is_internal: isInternal
-    })
-
-    if (error) {
-      toast.error('Failed to post comment')
-    } else {
+    try {
+      const { postComment } = await import('@/app/dashboard/projects/actions')
+      await postComment(projectId, userId, newComment, isInternal)
       setNewComment('')
       setMentionQuery(null)
+    } catch (error) {
+      toast.error('Failed to post comment')
+    } finally {
+      setIsSubmitting(false)
     }
-    setIsSubmitting(false)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

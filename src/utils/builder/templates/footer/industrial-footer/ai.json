@@ -1,0 +1,11 @@
+{
+  "name": "Project Footer",
+  "prompt_context": "A premium, professional footer with social references and official brand text. The legal and operational text should reflect the project's authority.",
+  "content_schema": {
+    "brand_name": "string (Official company or client name)"
+  },
+  "component_settings": {
+    "animation": "fade"
+  },
+  "image_hints": "N/A"
+}

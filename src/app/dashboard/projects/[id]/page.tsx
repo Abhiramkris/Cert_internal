@@ -68,7 +68,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-20">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 pb-8">
+      <div className="flex flex-col gap-6 border-b border-zinc-200 pb-8">
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
@@ -124,11 +124,10 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
         </TabsList>
 
         <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <Card className="border-zinc-200 shadow-sm rounded-[2rem] overflow-hidden">
-              
-                    <CardContent className="p-8">
+          <div className="flex flex-col gap-8 max-w-5xl">
+            <div className="space-y-8">
+              <Card className="border border-zinc-200 shadow-sm rounded-[2.5rem] overflow-hidden bg-white">
+                <CardContent className="p-10">
                   <form action={async (fd) => {
                     'use server'
                     const rawData = Object.fromEntries(fd.entries())
@@ -146,17 +145,53 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     const note = fd.get('handoff_note') as string
 
                     await submitStageData(project.id, currentStage.id, stageData, nextStatus, nextAssignee, note)
-                  }} className="space-y-4">
+                  }} className="space-y-6">
                     {canAction && ( 
-                      <div className="flex flex-col md:flex-row items-center gap-6 p-6 bg-zinc-50/50 rounded-2xl border border-zinc-100 shadow-inner">
-                        
-                        <HandoffOverride 
-                          project={project}
-                          templateStages={templateStages}
-                          currentStageIndex={currentStageIndex}
-                          staff={staff || []}
-                          isManager={isManager}
-                        />
+                      <div className="flex flex-col gap-8 mb-10 overflow-hidden">
+                        {/* Section 1: Workflow Logistics */}
+                        <div className="w-full space-y-6 bg-white rounded-[2rem] p-10 border border-zinc-100 shadow-sm">
+                          <div className="flex items-center justify-between mb-2">
+                             <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center text-white shadow-sm">
+                                   <Users className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-900">Workflow Logistics</h3>
+                             </div>
+                             <Badge variant="outline" className="bg-zinc-950 text-white border-zinc-950 font-black px-4 py-1.5 rounded-xl text-[10px] uppercase tracking-widest">
+                                Active: {currentStage?.display_name || project.status}
+                             </Badge>
+                          </div>
+                          <HandoffOverride 
+                            project={project}
+                            templateStages={templateStages}
+                            currentStageIndex={currentStageIndex}
+                            staff={staff || []}
+                            isManager={isManager}
+                          />
+                        </div>
+
+                        {/* Section 2: Studio & Production Tools */}
+                        <div className="w-full space-y-6 bg-white border border-zinc-100 rounded-[2rem] p-10 shadow-sm relative flex flex-col justify-center overflow-hidden group/hub">
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(16,185,129,0.05),transparent)] pointer-events-none" />
+                          <div className="flex items-center gap-3 mb-2 relative z-10">
+                             <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-sm">
+                                <Sparkles className="w-5 h-5" />
+                             </div>
+                             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-900 leading-none relative top-0.5">Production Hub</h3>
+                          </div>
+                          <div className="p-1.5 border border-dashed border-zinc-100 rounded-2xl bg-zinc-50/30 relative z-10">
+                            {user.profile.role?.toLowerCase() === 'developer' || isManager || isAdmin ? (
+                              <ProjectGeneratorActions 
+                                project={project}
+                                websiteConfig={websiteConfig}
+                              />
+                            ) : (
+                              <div className="py-8 text-center">
+                                <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] leading-relaxed px-4">Architect clearance required.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -176,13 +211,6 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                       prefix="dyn_"
                     />
 
-                    {user.profile.role === 'Developer' && (
-                      <ProjectGeneratorActions 
-                        project={project}
-                        websiteConfig={websiteConfig}
-                      />
-                    )}
-
                     {canAction && (
                         <div className="flex justify-end pt-6 border-t border-zinc-100">
                           <PendingButton type="submit" className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest hover:bg-zinc-800 shadow-xl transition-all active:scale-95 text-[10px] md:text-sm">
@@ -194,108 +222,16 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 </CardContent>
               </Card>
 
-              <hr className="border-zinc-200 my-8" />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl shadow-sm">
-                  <CardHeader className="py-4 px-6 border-b border-zinc-100">
-                    <CardTitle className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Specifications</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-5">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">Budget</span>
-                      <span className="font-bold text-lg text-zinc-900">₹{project.budget.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-baseline pt-2 border-t border-zinc-50">
-                      <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">Domain Scope</span>
-                      <span className="font-bold text-zinc-700 text-xs tracking-tight">{project.domain_required ? "Full Fulfillment" : "Proxy/Client Link"}</span>
-                    </div>
-                    {project.existing_domain && (
-                      <div className="flex flex-col gap-1.5 pt-3 border-t border-zinc-50">
-                        <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest">Target Domain</span>
-                        <span className="text-zinc-900 font-bold text-xs break-all">{project.existing_domain}</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl shadow-sm">
-                  <CardHeader className="py-4 px-6 border-b border-zinc-100">
-                    <CardTitle className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Aesthetic Direction</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-5">
-                    <div className="space-y-1.5">
-                      <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">Client Brief</span>
-                      <p className="text-xs font-bold text-zinc-800 leading-snug tracking-tight">{project.design_preferences || "No specific brief provided."}</p>
-                    </div>
-                    <div className="flex items-center justify-between pt-4 border-t border-zinc-50">
-                      <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">Primary Tone</span>
-                      <Badge variant="outline" className="border-none text-blue-700 font-bold px-3 py-1 rounded-lg text-[10px] bg-blue-50 uppercase tracking-tight">
-                        {project.color_scheme || "Neutral"}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              
             </div>
 
-            {/* Sidebar Stats */}
-            <div className="space-y-6">
-              <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl overflow-hidden shadow-sm">
-                <CardHeader className="py-4 px-6 bg-zinc-50/50 border-b border-zinc-100">
-                  <CardTitle className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Lifecycle Progress</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Current Status</span>
-                      <span className="font-bold text-lg text-zinc-900 block">{currentStage?.display_name || project.status.replace(/_/g, ' ')}</span>
-                    </div>
-                  </div>
-                  <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-zinc-900 transition-all duration-700 ease-in-out"
-                      style={{ width: `${progressPercentage}%` }}
-                    />
-                  </div>
-                  <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">
-                    {currentStage?.display_name ? `Currently in ${currentStage.display_name} phase. Assigned to ${currentStage.acting_role}.` : "Project status pending."}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl overflow-hidden shadow-sm">
-                <CardHeader className="py-4 px-6 bg-zinc-50/50 border-b border-zinc-100">
-                  <CardTitle className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Financial Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3 text-xs">
-                    <span className="text-zinc-400 font-bold uppercase tracking-tighter">Settled Amount</span>
-                    <span className="font-bold text-zinc-900">₹{totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-[10px] text-zinc-300 font-medium">/ ₹{project.budget.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></span>
-                  </div>
-                  <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden mb-4">
-                    <div
-                      className="h-full bg-emerald-500 transition-all duration-700"
-                      style={{ width: `${(totalPaid / project.budget) * 100}%` }}
-                    />
-                  </div>
-                  {balance > 0 && (
-                    <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold bg-zinc-50 p-2.5 rounded-lg border border-zinc-100 uppercase tracking-tight">
-                      <span>Outstanding</span>
-                      <span className="text-zinc-900">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
-                  )}
-
-
-                </CardContent>
-              </Card>
-            </div>
+  
           </div>
         </TabsContent>
 
         <TabsContent value="workflow" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <Card className="bg-white border-zinc-200 text-zinc-900 rounded-xl p-10 max-w-4xl mx-auto shadow-sm">
-            <div className="space-y-10 relative before:absolute before:inset-0 before:ml-7 before:-translate-x-px before:h-full before:w-[2px] before:bg-zinc-100">
+          <Card className="bg-white border-2 border-zinc-950 text-zinc-900 rounded-2xl p-10 max-w-4xl mx-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)]">
+            <div className="space-y-12 relative before:absolute before:inset-0 before:ml-7 before:-translate-x-px before:h-full before:w-[2px] before:bg-zinc-100">
               {project.workflow_template?.workflow_stages?.map((step: any, i: number) => {
                 const isCompleted = (project.stage_data && project.stage_data[step.id]) || project.status === step.status_key
                 const isActive = project.status === step.status_key
@@ -305,42 +241,42 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 const submitter = staff?.find(s => s.id === audit?.submitted_by)
 
                 return (
-                  <div key={i} className="relative flex items-start group">
+                   <div key={i} className="relative flex items-start group">
                     <div className={cn(
-                      "flex items-center justify-center w-14 h-14 rounded-full border shrink-0 transition-all duration-300 z-10",
-                      isActive ? "bg-zinc-900 border-zinc-900 text-white shadow-lg scale-110" :
-                        isCompleted ? "bg-white border-zinc-200 text-zinc-900 shadow-sm" :
+                      "flex items-center justify-center w-14 h-14 rounded-full border-2 shrink-0 transition-all duration-300 z-10",
+                      isActive ? "bg-zinc-950 border-zinc-950 text-white shadow-lg scale-110" :
+                        isCompleted ? "bg-white border-zinc-950 text-zinc-950 shadow-sm" :
                           "bg-white border-zinc-100 text-zinc-300"
                     )}>
                       {isCompleted && !isActive ? <CheckCircle className="w-6 h-6 text-emerald-500" /> : <Settings className="w-6 h-6" />}
                     </div>
                     <div className="ml-10 pt-2 flex-1">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <h4 className={cn("text-sm font-bold tracking-tight transition-colors", isPending ? "text-zinc-400" : "text-zinc-900")}>{step.display_name}</h4>
-                        <span className={cn("text-[9px] font-bold px-2.5 py-1 rounded-lg border tracking-widest uppercase",
-                          isCompleted && !isActive ? "bg-zinc-50 border-zinc-100 text-zinc-500" :
-                            isActive ? "bg-zinc-900 border-zinc-900 text-white" : "bg-transparent border-zinc-100 text-zinc-300"
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className={cn("text-sm font-black uppercase tracking-widest transition-colors", isPending ? "text-zinc-400" : "text-zinc-950")}>{step.display_name}</h4>
+                        <span className={cn("text-[9px] font-black px-3 py-1 rounded-xl border-2 tracking-widest uppercase",
+                          isCompleted && !isActive ? "bg-zinc-50 border-zinc-100 text-zinc-400" :
+                            isActive ? "bg-zinc-950 border-zinc-950 text-white" : "bg-transparent border-zinc-100 text-zinc-300"
                         )}>{step.acting_role}</span>
                       </div>
                       
                       {isCompleted && audit && (
-                        <div className="space-y-4 mt-3">
-                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 w-fit px-3 py-1.5 rounded-lg border border-zinc-100">
+                        <div className="space-y-6 mt-4">
+                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 w-fit px-4 py-2 rounded-xl border-2 border-zinc-950/5">
                              <User className="w-3 h-3 text-zinc-400" />
-                             <span className="text-zinc-600 font-bold">{submitter?.full_name || 'System'}</span>
-                             <span className="mx-1 opacity-20">•</span>
+                             <span className="text-zinc-600 font-black">{submitter?.full_name || 'System'}</span>
+                             <span className="mx-2 opacity-20">•</span>
                              <Clock className="w-3 h-3 text-zinc-400" />
-                             <span className="font-bold">{new Date(audit.submitted_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                             <span className="font-black text-zinc-500">{new Date(audit.submitted_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                           {audit.data && Object.keys(audit.data).length > 0 && (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-white rounded-xl border border-zinc-100 shadow-sm relative overflow-hidden group/data">
-                              <div className="absolute top-0 right-0 p-2 opacity-10 group-hover/data:opacity-30 transition-opacity">
-                                <FileText className="w-8 h-8 text-zinc-900" />
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 p-6 bg-white rounded-2xl border-2 border-zinc-950 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] relative overflow-hidden group/data">
+                              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/data:opacity-30 transition-opacity">
+                                <FileText className="w-10 h-10 text-zinc-950" />
                               </div>
                               {Object.entries(audit.data).map(([key, value]) => (
-                                <div key={key} className="space-y-1 relative z-10">
-                                  <span className="text-[9px] text-zinc-400 font-bold uppercase block tracking-tighter truncate">{key.replace(/_/g, ' ')}</span>
-                                  <span className="text-xs text-zinc-900 font-bold break-words">{String(value)}</span>
+                                <div key={key} className="space-y-2 relative z-10">
+                                  <span className="text-[9px] text-zinc-400 font-black uppercase block tracking-widest truncate">{key.replace(/_/g, ' ')}</span>
+                                  <span className="text-xs text-zinc-950 font-black break-words leading-tight">{String(value)}</span>
                                 </div>
                               ))}
                             </div>
@@ -348,7 +284,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                         </div>
                       )}
 
-                      <p className="text-xs text-zinc-500 font-medium leading-relaxed max-w-xl">
+                      <p className="text-[11px] text-zinc-500 font-bold leading-relaxed max-w-xl mt-3 tracking-tight">
                         {isActive ? `Currently being handled by ${step.acting_role}.` :
                           isCompleted ? `Phase verified and handoff completed.` : `Awaiting previous stages.`}
                       </p>

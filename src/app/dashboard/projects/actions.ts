@@ -208,6 +208,16 @@ export async function submitStageData(
     .eq('id', projectId)
 
   if (updateError) throw updateError
+
+  // 5. Notify new assignee
+  if (nextAssigneeId && nextAssigneeId !== user.id) {
+    await supabase.from('notifications').insert({
+      user_id: nextAssigneeId,
+      project_id: projectId,
+      type: 'HANDOFF_RECEIVED',
+      message: `Strategic Transfer: A project phase has been authorized and assigned to your unit.`
+    })
+  }
   
   if (note && note.trim()) {
     await supabase.from('comments').insert({
@@ -275,6 +285,16 @@ export async function handoffProject(projectId: string, assigneeId: string, stat
     throw new Error('Failed to handoff project')
   }
 
+  // 2. Notify new assignee
+  if (assigneeId && assigneeId !== user.id) {
+    await supabase.from('notifications').insert({
+      user_id: assigneeId,
+      project_id: projectId,
+      type: 'HANDOFF_RECEIVED',
+      message: `Mission Assignment: You have been designated as the successor unit for a project transition.`
+    })
+  }
+
   if (note && note.trim()) {
     await supabase.from('comments').insert({
       project_id: projectId,
@@ -322,7 +342,7 @@ export async function createProject(formData: FormData) {
     existing_domain: formData.get('existing_domain') as string,
     budget: parseFloat(formData.get('budget') as string) || 0,
     reference_websites: (formData.get('reference_websites') as string)?.split(',').map(s => s.trim()),
-    description: (formData.get('description') || formData.get('More About Bussiness')) as string,
+    description: (formData.get('description') || formData.get('More About Business')) as string,
     status: initialStatus,
     workflow_template_id: templateId,
     current_assignee_id: assigneeId,
@@ -829,4 +849,56 @@ export async function closeProject(projectId: string) {
 
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
+export async function postComment(projectId: string, userId: string, content: string, isInternal: boolean = true) {
+  const supabase = await createClient()
+  
+  // 1. Insert the comment
+  const { data: comment, error: commentError } = await supabase
+    .from('comments')
+    .insert({
+      project_id: projectId,
+      user_id: userId,
+      content: content,
+      is_internal: isInternal
+    })
+    .select()
+    .single()
+
+  if (commentError) throw commentError
+
+  // 2. Parse Mentions (@Name)
+  const mentions = content.match(/@(\w+)/g) || []
+  if (mentions.length > 0) {
+    const { data: staff } = await supabase.from('profiles').select('id, full_name')
+    
+    const notifications: any[] = []
+    mentions.forEach(mention => {
+      const name = mention.slice(1).toLowerCase()
+      // Match if the mention name is the start of any word in the full name
+      const matchedUser = staff?.find(s => {
+        if (!s.full_name) return false
+        const parts = s.full_name.toLowerCase().split(/\s+/)
+        return parts.some(part => part.startsWith(name)) || s.full_name.replace(/\s+/g, '').toLowerCase().startsWith(name)
+      })
+      
+      if (matchedUser && matchedUser.id !== userId) {
+        console.log(`MISSION CONTROL: Triggering notification for ${matchedUser.full_name} (${matchedUser.id})`)
+        notifications.push({
+          user_id: matchedUser.id,
+          project_id: projectId,
+          type: 'MENTION',
+          message: `Intelligence Report: You were tagged in a project note by a team proxy.`
+        })
+      }
+    })
+
+    if (notifications.length > 0) {
+      await supabase.from('notifications').insert(notifications)
+    }
+  }
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+  return { success: true }
 }

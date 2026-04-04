@@ -19,53 +19,10 @@ interface MobileActivityTimelineProps {
   userId: string;
 }
 
+import { useNotifications } from '@/context/NotificationContext'
+
 export function MobileActivityTimeline({ userId }: MobileActivityTimelineProps) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
-
-  useEffect(() => {
-    async function fetchNotifications() {
-      if (!userId) return
-      
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(15)
-
-      if (data && !error) {
-        setNotifications(data)
-      }
-      setLoading(false)
-    }
-
-    fetchNotifications()
-
-    if (userId) {
-      const channel = supabase
-        .channel(`mobile-timeline-${userId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${userId}`
-          },
-          (payload: any) => {
-            const newNotif = payload.new as Notification
-            setNotifications(prev => [newNotif, ...prev.slice(0, 14)])
-          }
-        )
-        .subscribe()
-
-      return () => {
-        supabase.removeChannel(channel)
-      }
-    }
-  }, [userId, supabase])
+  const { notifications, loading } = useNotifications()
 
   if (loading) {
     return (
