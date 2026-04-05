@@ -880,7 +880,7 @@ export async function postComment(projectId: string, userId: string, content: st
       const matchedUser = staff?.find(s => {
         if (!s.full_name) return false
         const parts = s.full_name.toLowerCase().split(/\s+/)
-        return parts.some(part => part.startsWith(name)) || s.full_name.replace(/\s+/g, '').toLowerCase().startsWith(name)
+        return parts.some((part: string) => part.startsWith(name)) || s.full_name.replace(/\s+/g, '').toLowerCase().startsWith(name)
       })
       
       if (matchedUser && matchedUser.id !== userId) {
