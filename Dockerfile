@@ -26,6 +26,8 @@ RUN rm -rf tmp .next && npm run build
 
 # Stage 2: Minimal Runner
 FROM node:22-alpine AS runner
+# Install npm and git so the platform can spawn preview servers
+RUN apk add --no-cache npm git bash libc6-compat
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -33,6 +35,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
+
+# Create tmp directory with correct permissions for dynamic builds
+RUN mkdir -p /app/tmp && chown -R nextjs:nodejs /app/tmp
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

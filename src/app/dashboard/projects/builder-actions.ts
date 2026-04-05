@@ -245,7 +245,7 @@ Return a SINGLE JSON object:
 }
 
 import { assembleProjectFiles } from '@/utils/builder/project-assembly'
-import { exec } from 'child_process'
+import { exec, spawn } from 'child_process'
 import { promisify } from 'util'
 import treeKill from 'tree-kill'
 
@@ -377,7 +377,21 @@ export async function previewProject(projectId: string) {
      }
 
      console.log(`[Preview ${projectId}]: Launching Live Preview Node...`)
-     const child = exec('npm run dev -- -p 3001', { cwd: previewDir })
+     
+     // Spawn the server and pipe logs for Docker observability
+     const child = spawn('npm', ['run', 'dev', '--', '-p', '3001'], { 
+       cwd: previewDir,
+       env: { ...process.env, NODE_ENV: 'development' }
+     })
+
+     child.stdout?.on('data', (data) => {
+       console.log(`[Preview ${projectId}]: ${data.toString().trim()}`)
+     })
+
+     child.stderr?.on('data', (data) => {
+       console.error(`[Preview ${projectId} ERR]: ${data.toString().trim()}`)
+     })
+
      activePreviews[projectId] = child
 
      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:6565'
