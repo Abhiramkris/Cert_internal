@@ -131,7 +131,7 @@ export function StudioShell() {
                             <div className="flex flex-col">
                                <div className="flex items-center gap-2">
                                   <span className="text-[11px] font-black tracking-tighter uppercase italic">{ (COMPONENT_TEMPLATES as any)[key]?.name || key }</span>
-                               </div>
+                                </div>
                                <span className={cn("text-[8px] font-bold uppercase tracking-[0.2em] italic", activeComponentId === key ? "text-white/30" : "text-zinc-400")}>
                                   Architectural Slot :: {key.split('_')[0]}
                                </span>
@@ -185,7 +185,7 @@ export function StudioShell() {
                       <select 
                         value={currentPage}
                         onChange={(e) => setCurrentPage(e.target.value)}
-                        className="w-full h-14 bg-white border border-zinc-200 rounded-2xl px-6 text-[11px] font-black uppercase tracking-widest outline-none appearance-none cursor-pointer hover:border-zinc-950 transition-all shadow-sm"
+                        className="w-full h-14 bg-white border border-zinc-200 rounded-none px-6 text-[11px] font-black uppercase tracking-widest outline-none appearance-none cursor-pointer hover:border-zinc-950 transition-all shadow-sm"
                       >
                          {pages.map((p) => (
                            <option key={p} value={p}>{p}</option>
@@ -198,146 +198,111 @@ export function StudioShell() {
                 </div>
             </div>
 
-            {/* 3. Global Marketplace Quick-Add */}
-            <div className="space-y-4 pt-6 border-t border-zinc-50">
-               <div className="flex items-center justify-between px-4">
-                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em] italic">Full Component Market</p>
-               </div>
-               <div className="grid grid-cols-1 gap-2">
-                  {Object.entries(COMPONENT_TEMPLATES).map(([key, template]: [string, any]) => {
-                    const isSelected = (selectedComponents[currentPage] || []).includes(key);
-                    if (isSelected) return null;
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => {
-                            const current = selectedComponents[currentPage] || [];
-                            setSelectedComponents({ ...selectedComponents, [currentPage]: [...current, key] });
-                        }}
-                        className="p-4 rounded-[1.5rem] border border-zinc-100 bg-zinc-50/50 hover:bg-white hover:border-zinc-950 transition-all flex items-center justify-between group text-left"
-                      >
-                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-zinc-950 tracking-tight">{template.name}</span>
-                            <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter underline underline-offset-4 decoration-zinc-200">{key.split('_')[0]}</span>
-                         </div>
-                         <PlusCircle className="w-4 h-4 text-zinc-300 group-hover:text-zinc-950 transition-all group-hover:scale-125" />
-                      </button>
-                    )
-                  })}
-               </div>
+            {/* 3. Global Ai Forge (Launchpad) */}
+            <div className="mt-auto p-4 border-t border-zinc-50 space-y-3">
+               <button 
+                  onClick={handleGlobalAiGenerate}
+                  disabled={isAiGenerating}
+                  className={cn(
+                    "w-full py-4 bg-zinc-950 text-white rounded-2xl flex items-center justify-center gap-3 shadow-2xl shadow-zinc-950/20 active:scale-95 transition-all group overflow-hidden relative",
+                    isAiGenerating && "opacity-80 grayscale"
+                  )}
+               >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                  <Sparkles className={cn("w-4 h-4", isAiGenerating ? "animate-spin" : "group-hover:rotate-12 transition-transform")} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] italic">Forge Global Intent</span>
+               </button>
             </div>
-         </div>
-
-         <div className="p-6 border-t border-zinc-100 bg-white space-y-3">
-            <Button 
-               onClick={() => {
-                 setFlowMode('wizard');
-                 setWizardStep('pages');
-               }}
-               className="w-full h-11 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-none font-black uppercase tracking-[0.2em] text-[8px] hover:bg-zinc-100 hover:text-zinc-600 transition-all flex items-center justify-center gap-3 mb-2"
-            >
-               <ChevronLeft className="w-3 h-3" />
-               Back to Configuration
-            </Button>
-            <Button 
-               onClick={handleGlobalAiGenerate}
-               disabled={isAiGenerating}
-               className="w-full h-12 bg-white text-zinc-950 border border-zinc-200 rounded-none font-black uppercase tracking-[0.2em] text-[10px] hover:bg-zinc-50 transition-all flex items-center justify-center gap-3"
-            >
-               <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-               {isAiGenerating ? 'Projecting...' : 'Project Intelligence'}
-            </Button>
-            <Button 
-               onClick={handleSave}
-               disabled={isSaving}
-               className="w-full h-12 bg-zinc-950 text-white rounded-none font-black uppercase tracking-[0.2em] text-[10px] hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-black/10"
-            >
-               <Save className="w-3.5 h-3.5" />
-               {isSaving ? 'Syncing...' : 'Sync Blueprint'}
-            </Button>
          </div>
       </aside>
 
-      {/* 2. CENTER: PRODUCTION CANVAS (LIVE PREVIEW) */}
-      <main className="flex-1 bg-[#f8f8fa] relative overflow-hidden flex flex-col">
-         <div className="absolute inset-0 pointer-events-none opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-         
-         <div className="h-16 border-b border-zinc-200/50 flex items-center justify-between px-8 relative z-20 bg-white/40 backdrop-blur-md">
-            <div className="flex items-center gap-6">
-               <div className="flex items-center gap-2">
-                  <div className="w-1 h-1 bg-zinc-400 rounded-full" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 italic">Live Projection</span>
-               </div>
-               <div className="flex items-center gap-4">
-                  <button className="p-2 bg-zinc-950 text-white rounded-lg shadow-lg">
-                     <Monitor className="w-3.5 h-3.5" />
-                  </button>
-                  <button className="p-2 bg-white text-zinc-400 border border-zinc-100 rounded-lg hover:text-zinc-950 transition-all">
-                     <Smartphone className="w-3.5 h-3.5" />
-                  </button>
-               </div>
-            </div>
-
-            <div className="flex items-center gap-6">
-                <button className="flex items-center gap-2 text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:text-zinc-950 transition-all">
-                   <Eye className="w-3.5 h-3.5" />
-                   Review
-                </button>
-                <div className="h-4 w-[1px] bg-zinc-200" />
-                <button 
-                  onClick={handleEject}
-                  disabled={isGenerating}
-                  className="flex items-center gap-2 text-[9px] font-black text-emerald-600 uppercase tracking-widest hover:text-emerald-700 transition-all"
-                >
-                   <Download className="w-3.5 h-3.5" />
-                   {isGenerating ? 'Ejecting...' : 'Eject build'}
-                </button>
-            </div>
-         </div>
-
-         <div className="flex-1 overflow-y-auto p-12 relative z-10 custom-scrollbar scroll-smooth">
-            <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-[2rem] shadow-2xl shadow-black/5 overflow-hidden border border-zinc-100 ring-1 ring-black/[0.02]">
-                    <SitePreview />
+      {/* 2. CENTER: CANVAS (PREVIEW) */}
+      <main className="flex-1 flex flex-col relative bg-[#fafafa]">
+         {/* Device Switcher (Orchestron Interface) */}
+         <header className="h-[80px] bg-white border-b border-zinc-200 flex items-center justify-between px-10 shrink-0 shadow-sm relative z-10">
+            <div className="flex items-center gap-12">
+                <div className="flex items-center gap-6">
+                    <button className="text-zinc-950 hover:bg-zinc-100 p-2 rounded-lg transition-all group">
+                        <Monitor className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    </button>
+                    <button className="text-zinc-300 hover:bg-zinc-100 p-2 rounded-lg transition-all group">
+                        <Smartphone className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    </button>
+                </div>
+                <div className="h-6 w-px bg-zinc-100" />
+                <div className="flex flex-col">
+                   <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">Realtime Viewport</p>
+                   <div className="flex items-center gap-2">
+                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                       <span className="text-[10px] font-black text-zinc-900 tracking-tighter uppercase italic">{currentPage} Overview</span>
+                   </div>
                 </div>
             </div>
+
+            <div className="flex items-center gap-4">
+                <button 
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="px-6 py-3 border border-zinc-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-950 hover:bg-zinc-50 transition-all flex items-center gap-3"
+                >
+                   {isSaving ? <Save className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                   Sync State
+                </button>
+                <button 
+                  onClick={handleEject}
+                  className="px-8 py-3 bg-zinc-950 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-3 shadow-xl shadow-black/10 active:scale-95"
+                >
+                   <Download className="w-3 h-3" />
+                   Eject Production ZIP
+                </button>
+            </div>
+         </header>
+
+         {/* Site Preview Container */}
+         <div className="flex-1 overflow-y-auto no-scrollbar relative p-12 bg-zinc-50/50">
+            <div className="mx-auto bg-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] rounded-[3rem] border border-zinc-100 overflow-hidden relative group">
+               <div className="absolute inset-x-0 top-0 h-10 bg-zinc-50/50 border-b border-zinc-100 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-200" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-200" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-200" />
+               </div>
+               <div className="pt-0 min-h-[1200px]">
+                  <SitePreview />
+               </div>
+            </div>
+
+            {/* FAB: APPEND COMPONENT */}
+            <button 
+              onClick={() => {
+                setPickerCategory(null);
+                setPickerSlotIndex(null);
+                setIsPickerOpen(true);
+              }}
+              className="fixed bottom-12 right-12 w-16 h-16 bg-zinc-950 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 transition-all z-20 group"
+            >
+               <PlusCircle className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+            </button>
          </div>
       </main>
 
-      {/* 3. RIGHT BAR: COMPONENT INSPECTOR (TWEAKING) */}
-      <aside className="w-[340px] bg-white border-l border-zinc-200 flex flex-col shrink-0 z-20 shadow-xl shadow-black/[0.01]">
-         <div className="p-8 border-b border-zinc-100 bg-[#fdfdfd]">
-            <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-zinc-50 border border-zinc-100 rounded-lg flex items-center justify-center">
-                    <Sliders className="w-4 h-4 text-zinc-950" />
-                </div>
-                <div>
-                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Inspector</p>
-                    <h2 className="text-sm font-black text-zinc-950 uppercase italic tracking-tight leading-none">Property Tuning</h2>
-                </div>
+      {/* 3. RIGHT BAR: INSPECTOR (ATTRS) */}
+      <aside className="w-[420px] bg-white border-l border-zinc-200 flex flex-col shrink-0 z-20 shadow-xl shadow-black/[0.01]">
+         <div className="p-8 border-b border-zinc-100 bg-[#fdfdfd] flex items-center gap-4">
+            <div className="w-10 h-10 bg-zinc-50 border border-zinc-100 rounded-xl flex items-center justify-center">
+                <Sliders className="w-4 h-4 text-zinc-950" />
+            </div>
+            <div>
+                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Configuration</p>
+                <h2 className="text-sm font-black text-zinc-950 uppercase italic tracking-tight leading-none">Inspector Panel</h2>
             </div>
          </div>
-
-         <InspectorPanel />
+         
+         <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <InspectorPanel />
+         </div>
       </aside>
 
       <ComponentPickerModal />
-
-      <AnimatePresence>
-        {isSaving && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-zinc-950/20 backdrop-blur-md flex items-center justify-center"
-          >
-            <div className="bg-white border border-zinc-200 p-10 rounded-[2rem] flex items-center gap-6 shadow-2xl">
-               <div className="w-6 h-6 border-4 border-zinc-950 border-t-transparent animate-spin rounded-full" />
-               <span className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-950">Architectural Sync...</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

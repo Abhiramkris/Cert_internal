@@ -145,7 +145,7 @@ export function WizardShell() {
            </div>
 
             {/* Right: Interaction Section */}
-            <div className="flex-1 bg-white border border-zinc-100 rounded-[2rem] lg:rounded-[3rem] p-8 lg:p-12 shadow-2xl shadow-black/[0.02] flex flex-col relative overflow-hidden min-h-[400px]">
+            <div className="flex-1 bg-white border border-zinc-100 rounded-[2.5rem] lg:rounded-[3rem] p-8 lg:p-12 shadow-2xl shadow-black/[0.02] flex flex-col relative overflow-hidden min-h-[400px]">
               <div className="flex-1 overflow-y-auto no-scrollbar py-2">
                  <AnimatePresence mode="wait">
                     {wizardStep === 'pages' && <PagesStep key="pages" />}
@@ -162,7 +162,7 @@ export function WizardShell() {
                   disabled={currentStepIndex === 0}
                   className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-950 disabled:opacity-0 transition-all"
                 >
-                  Go Back
+                   Go Back
                  </button>
                  <Button 
                     onClick={nextStep}
@@ -218,7 +218,7 @@ function DetailsStep() {
                             value={contentOverrides[q.key] || ''}
                             onChange={(e) => updateField(q.key, e.target.value)}
                             placeholder={q.placeholder}
-                            className="w-full min-h-[100px] bg-zinc-50 border border-zinc-100 rounded-2xl p-4 text-xs font-bold text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-300"
+                            className="w-full min-h-[100px] bg-zinc-50 border border-zinc-100 rounded-none p-4 text-xs font-bold text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-300 shadow-none"
                           />
                        ) : q.type === 'select' ? (
                           <div className="flex flex-wrap gap-2">
@@ -243,7 +243,7 @@ function DetailsStep() {
                             value={contentOverrides[q.key] || ''}
                             onChange={(e) => updateField(q.key, e.target.value)}
                             placeholder={q.placeholder}
-                            className="w-full h-14 bg-zinc-50 border border-zinc-100 rounded-2xl px-6 text-xs font-bold text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-300"
+                            className="w-full h-14 bg-zinc-50 border border-zinc-100 rounded-none px-6 text-xs font-bold text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-300 shadow-none"
                           />
                        )}
 
@@ -282,24 +282,24 @@ function PagesStep() {
           <Label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic font-sans">Project Architecture</Label>
           <div className="grid grid-cols-2 gap-4">
              {options.map((option) => (
-               <button
-                  key={option}
-                  onClick={() => togglePage(option)}
-                  className={cn(
-                    "p-6 rounded-[2rem] border transition-all flex items-center justify-between group",
-                    pages.includes(option) 
-                      ? "bg-zinc-950 border-zinc-950 text-white shadow-xl shadow-black/10" 
-                      : "bg-white border-zinc-100 text-zinc-500 hover:border-zinc-200"
-                  )}
-               >
-                  <span className="text-xs font-black uppercase tracking-wider">{option}</span>
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border flex items-center justify-center transition-all",
-                    pages.includes(option) ? "bg-white border-white text-zinc-950" : "border-zinc-200 group-hover:border-zinc-400"
-                  )}>
-                    {pages.includes(option) && <Check className="w-3 h-3" />}
-                  </div>
-               </button>
+                <button
+                   key={option}
+                   onClick={() => togglePage(option)}
+                   className={cn(
+                     "p-6 rounded-[2.5rem] border transition-all flex items-center justify-between group",
+                     pages.includes(option) 
+                       ? "bg-zinc-950 border-zinc-950 text-white shadow-xl shadow-black/10" 
+                       : "bg-white border-zinc-100 text-zinc-500 hover:border-zinc-200"
+                   )}
+                >
+                   <span className="text-xs font-black uppercase tracking-wider">{option}</span>
+                   <div className={cn(
+                     "w-5 h-5 rounded-full border flex items-center justify-center transition-all",
+                     pages.includes(option) ? "bg-white border-white text-zinc-950" : "border-zinc-200 group-hover:border-zinc-400"
+                   )}>
+                     {pages.includes(option) && <Check className="w-3 h-3" />}
+                   </div>
+                </button>
              ))}
           </div>
        </div>
@@ -329,25 +329,25 @@ function ColorsStep() {
           <Label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic font-sans">Primary Branding Identity</Label>
           <div className="grid grid-cols-2 gap-6">
              {presets.map((preset) => (
-               <button
-                  key={preset.name}
-                  onClick={() => setGlobalStyles({ ...globalStyles, primary_color: preset.primary, accent_color: preset.accent })}
-                  className={cn(
-                    "p-6 rounded-[2rem] border transition-all flex flex-col gap-4 text-left group",
-                    globalStyles.primary_color === preset.primary && globalStyles.accent_color === preset.accent
-                      ? "bg-zinc-950 border-zinc-950 text-white shadow-xl shadow-black/10" 
-                      : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200"
-                  )}
-               >
-                  <div className="flex items-center gap-2">
-                     <div className="w-8 h-8 rounded-full border border-white/20" style={{ backgroundColor: preset.primary }} />
-                     <div className="w-8 h-8 rounded-full border border-white/20" style={{ backgroundColor: preset.accent }} />
-                  </div>
-                  <div className="flex flex-col">
-                     <span className="text-[10px] font-black uppercase tracking-widest">{preset.name}</span>
-                     <span className="text-[8px] font-bold opacity-40 uppercase tracking-tighter italic font-sans">Hex: {preset.primary}</span>
-                  </div>
-               </button>
+                <button
+                   key={preset.name}
+                   onClick={() => setGlobalStyles({ ...globalStyles, primary_color: preset.primary, accent_color: preset.accent })}
+                   className={cn(
+                     "p-6 rounded-[2.5rem] border transition-all flex flex-col gap-4 text-left group",
+                     globalStyles.primary_color === preset.primary && globalStyles.accent_color === preset.accent
+                       ? "bg-zinc-950 border-zinc-950 text-white shadow-xl shadow-black/10" 
+                       : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200"
+                   )}
+                >
+                   <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full border border-white/20" style={{ backgroundColor: preset.primary }} />
+                      <div className="w-8 h-8 rounded-full border border-white/20" style={{ backgroundColor: preset.accent }} />
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-[10px] font-black uppercase tracking-widest">{preset.name}</span>
+                      <span className="text-[8px] font-bold opacity-40 uppercase tracking-tighter italic font-sans">Hex: {preset.primary}</span>
+                   </div>
+                </button>
              ))}
           </div>
 
@@ -400,7 +400,7 @@ function TypographyStep() {
                     key={font.name}
                     onClick={() => setGlobalStyles({ ...globalStyles, font_family_heading: font.name })}
                     className={cn(
-                      "p-5 rounded-[1.5rem] border transition-all text-left group",
+                      "p-5 rounded-[2rem] border transition-all text-left group",
                       globalStyles.font_family_heading === font.name
                         ? "bg-zinc-950 border-zinc-950 text-white" 
                         : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200"
@@ -421,7 +421,7 @@ function TypographyStep() {
                     key={font.name}
                     onClick={() => setGlobalStyles({ ...globalStyles, font_family_body: font.name })}
                     className={cn(
-                      "p-5 rounded-[1.5rem] border transition-all text-left",
+                      "p-5 rounded-[2rem] border transition-all text-left",
                       globalStyles.font_family_body === font.name
                         ? "bg-zinc-950 border-zinc-950 text-white" 
                         : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200"

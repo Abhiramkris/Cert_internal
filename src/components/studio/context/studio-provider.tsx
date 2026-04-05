@@ -79,7 +79,11 @@ export function StudioProvider({
   initialConfig?: any
   project?: any 
 }) {
-  const [pages, setPages] = useState<string[]>(['Home'])
+  const [pages, setPages] = useState<string[]>(
+    initialConfig?.selected_components_map 
+      ? Object.keys(initialConfig.selected_components_map) 
+      : ['Home']
+  )
   const [flowMode, setFlowMode] = useState<'wizard' | 'builder'>('wizard')
   const [wizardStep, setWizardStep] = useState<'pages' | 'details' | 'colors' | 'typography' | 'cta' | 'complete'>('pages')
   const [activeComponentId, setActiveComponentId] = useState<string | null>(null)
@@ -91,6 +95,9 @@ export function StudioProvider({
   const [isGenerating, setIsGenerating] = useState(false)
   const [isAiGenerating, setIsAiGenerating] = useState(false)
   const [isArchitectureVerified, setIsArchitectureVerified] = useState(initialConfig?.selected_components?.length > 0)
+
+  // Avoid race condition: only save AFTER loading at least once
+  const persistenceLoaded = React.useRef(false)
 
   // 1. Global Styles (Enhanced for dual-vector fonts)
   const [globalStyles, setGlobalStyles] = useState(initialConfig?.global_styles || {
@@ -139,7 +146,7 @@ export function StudioProvider({
     target_keywords: ''
   })
 
-  // 5. LocalStorage Persistence Logic
+  // 5. LocalStorage Persistence Logic (Load First)
   useEffect(() => {
     const storageKey = `studio_project_${projectId}`
     const saved = localStorage.getItem(storageKey)
@@ -159,9 +166,13 @@ export function StudioProvider({
         console.error('Failed to parse localStorage data', err)
       }
     }
+    persistenceLoaded.current = true
   }, [projectId])
 
+  // Save changes (only if loaded)
   useEffect(() => {
+    if (!persistenceLoaded.current) return
+
     const storageKey = `studio_project_${projectId}`
     const data = {
       pages,
@@ -175,7 +186,7 @@ export function StudioProvider({
       seo
     }
     localStorage.setItem(storageKey, JSON.stringify(data))
-  }, [projectId, pages, flowMode, wizardStep, globalStyles, selectedComponents, componentSettings, contentOverrides, seo])
+  }, [projectId, pages, currentPage, flowMode, wizardStep, globalStyles, selectedComponents, componentSettings, contentOverrides, seo])
 
   // Dual-Vector Font Injection Effect
   useEffect(() => {

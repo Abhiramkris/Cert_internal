@@ -21,19 +21,20 @@ export function HandoffOverride({
   const defaultNextStatus = templateStages[currentStageIndex + 1]?.status_key || project.status
   const [selectedStatus, setSelectedStatus] = React.useState(project.config?.handoff?.next_status_key || defaultNextStatus)
   const isStatusChanged = selectedStatus !== defaultNextStatus
+
   if (!isManager) {
     return (
       <div className="flex flex-col gap-6 w-full">
         <div className="space-y-1">
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Next Destination</p>
-          <div className="h-12 w-full rounded-xl border border-zinc-100 bg-zinc-50/50 px-4 py-3 text-[13px] font-bold text-zinc-900 flex items-center opacity-60">
+          <div className="h-14 w-full rounded-none border border-zinc-200 bg-zinc-50/50 px-6 text-[14px] font-bold text-zinc-900 flex items-center opacity-60">
             {templateStages[currentStageIndex + 1]?.display_name || 'Project Finalization'}
           </div>
         </div>
         <div className="space-y-1">
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Next Owner</p>
           <select 
-            className="h-12 w-full rounded-xl border border-zinc-100 bg-[#fafafa] px-4 py-2 text-[13px] font-bold text-zinc-900 outline-none appearance-none cursor-pointer focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all shadow-sm"
+            className="h-14 w-full rounded-none border border-zinc-200 bg-white px-6 text-[14px] font-bold text-zinc-900 outline-none appearance-none cursor-pointer focus:ring-4 focus:ring-zinc-900/5 transition-all shadow-sm"
             onChange={async (e) => {
               const status = templateStages[currentStageIndex + 1]?.status_key || project.status
               await saveHandoffPreset(project.id, status, e.target.value)
@@ -54,7 +55,11 @@ export function HandoffOverride({
             })()}
           >
             <option value="">Auto-Assigned</option>
-            {staff?.map((s: any) => (
+            {staff?.filter((s: any) => {
+                const targetStage = templateStages[currentStageIndex + 1]
+                if (s.role === 'Manager' || s.role === 'Admin') return true
+                return s.role === targetStage?.acting_role
+            }).map((s: any) => (
               <option key={s.id} value={s.id}>{s.full_name} ({s.role})</option>
             ))}
           </select>
@@ -73,7 +78,7 @@ export function HandoffOverride({
           </div>
           <select 
             name="status" 
-            className="h-14 w-full rounded-none border-[1px] border-zinc-200 bg-white px-6 text-[14px] font-bold text-zinc-950 outline-none focus:ring-4 focus:ring-zinc-950/5 transition-all appearance-none cursor-pointer shadow-sm"
+            className="h-14 w-full rounded-none border border-zinc-200 bg-white px-6 text-[14px] font-bold text-zinc-950 outline-none focus:ring-4 focus:ring-zinc-950/5 transition-all appearance-none cursor-pointer shadow-sm"
             defaultValue={selectedStatus}
             onChange={async (e) => {
               const targetStatus = e.target.value
@@ -103,7 +108,7 @@ export function HandoffOverride({
           <select 
             id="detail-handoff-assignee"
             name="current_assignee_id" 
-            className="h-14 w-full rounded-none border-[1px] border-zinc-200 bg-white px-6 text-[14px] font-bold text-zinc-950 outline-none focus:ring-4 focus:ring-zinc-950/5 transition-all appearance-none cursor-pointer shadow-sm"
+            className="h-14 w-full rounded-none border border-zinc-200 bg-white px-6 text-[14px] font-bold text-zinc-950 outline-none focus:ring-4 focus:ring-zinc-950/5 transition-all appearance-none cursor-pointer shadow-sm"
             onChange={async (e) => {
               const status = (document.querySelector('select[name="status"]') as HTMLSelectElement).value
               await saveHandoffPreset(project.id, status, e.target.value)
@@ -145,7 +150,7 @@ export function HandoffOverride({
            name="handoff_note"
            required={isStatusChanged}
            minLength={isStatusChanged ? 5 : 0}
-           className="w-full min-h-[140px] rounded-none border-[1px] border-zinc-200 bg-white px-6 py-6 text-[14px] font-bold text-zinc-950 outline-none focus:ring-4 focus:ring-zinc-950/5 transition-all resize-none shadow-sm"
+           className="w-full min-h-[140px] rounded-none border border-zinc-200 bg-white px-6 py-6 text-[14px] font-bold text-zinc-950 outline-none focus:ring-4 focus:ring-zinc-950/5 transition-all resize-none shadow-sm"
            placeholder={isStatusChanged ? "Managers must explain why the workflow direction was changed..." : "Add a handover note (optional)..."}
          />
       </div>

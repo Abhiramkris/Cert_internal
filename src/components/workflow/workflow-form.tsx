@@ -76,7 +76,7 @@ export function WorkflowForm({
         setAllStages(stages || [])
         const allFields = stages?.flatMap(s => (s.workflow_fields || []).map((f: any) => ({
           ...f,
-          role: s.acting_role,
+          role: f.role || s.acting_role,
           stage_id: s.id
         }))) || []
 
@@ -104,7 +104,6 @@ export function WorkflowForm({
     
     // 2. Add Database Fields (regardless of ID)
     dbFields.forEach(f => {
-      // For dynamic fields, we use acting_role of their stage or default to Sales
       const role = f.role || 'Sales'
       if (!groups[role]) groups[role] = []
       groups[role].push({ ...f, isStatic: false })
@@ -130,22 +129,25 @@ export function WorkflowForm({
           if (!userRole) return true
           const uRole = userRole.toLowerCase()
           const fRole = role.toLowerCase()
+          
           if (uRole === 'admin' || uRole === 'manager') return true
-          if (uRole === 'developer' && fRole === 'technical') return true
-          if (uRole === 'sales' && (fRole === 'marketing' || fRole === 'branding')) return true
+          if ((uRole === 'developer' || uRole === 'dev' || uRole === 'technical') && 
+              (fRole === 'technical' || fRole === 'developer' || fRole === 'dev')) return true
+          if (uRole === 'sales' && (fRole === 'marketing' || fRole === 'branding' || fRole === 'sales')) return true
+          
           return fRole === uRole
         })
         .map(([role, roleFields]) => (
         <div key={role} className={cn(
-          "bg-white border-b border-zinc-100 last:border-0 pb-6 mb-6",
+          "bg-white border-b border-zinc-50 last:border-0 pb-6 mb-12",
         )}>
           <div className="flex items-center gap-4 mb-12 translate-x-1">
             <div className={cn(
-               "w-12 h-12 border-2 flex items-center justify-center rounded-2xl shadow-sm",
-               role.toLowerCase() === 'sales' ? 'bg-amber-50 border-zinc-950 text-zinc-900' :
-               role.toLowerCase() === 'seo' ? 'bg-emerald-50 border-zinc-950 text-zinc-900' :
-               role.toLowerCase() === 'design' || role.toLowerCase() === 'designer' ? 'bg-blue-50 border-zinc-950 text-zinc-900' :
-               'bg-zinc-50 border-zinc-950 text-zinc-900'
+               "w-12 h-12 border flex items-center justify-center rounded-xl shadow-sm",
+               role.toLowerCase() === 'sales' ? 'bg-amber-50 border-amber-100 text-zinc-900' :
+               role.toLowerCase() === 'seo' ? 'bg-emerald-50 border-emerald-100 text-zinc-900' :
+               role.toLowerCase() === 'design' || role.toLowerCase() === 'designer' ? 'bg-blue-50 border-blue-100 text-zinc-900' :
+               'bg-zinc-50 border-zinc-100 text-zinc-900'
             )}>
                {role.toLowerCase() === 'sales' ? <Sparkles className="w-6 h-6" /> :
                 role.toLowerCase() === 'seo' ? <Globe className="w-6 h-6" /> :
@@ -153,8 +155,8 @@ export function WorkflowForm({
                 <LayoutTemplate className="w-6 h-6" />}
             </div>
             <div className="flex flex-col">
-               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1">Operational Unit</span>
-               <h3 className="text-xl font-black text-zinc-950 tracking-tight leading-none">{role} Requirements</h3>
+               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1 italic">Unit // Protocol</span>
+               <h3 className="text-xl font-black text-zinc-950 tracking-tight leading-none italic uppercase">{role} Architecture</h3>
             </div>
           </div>
 

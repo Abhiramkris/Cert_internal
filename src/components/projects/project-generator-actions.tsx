@@ -9,9 +9,9 @@ import {
   DialogTitle, 
   DialogDescription 
 } from '@/components/ui/dialog'
-import { Code2, Sparkles, Zap, Download } from 'lucide-react'
+import { Code2, Sparkles, Zap, Download, ExternalLink } from 'lucide-react'
 import { WebsiteBuilderConfigurator } from './website-builder-configurator'
-import { generateProjectZip } from '@/app/dashboard/projects/builder-actions'
+import { generateProjectZip, previewProject } from '@/app/dashboard/projects/builder-actions'
 import { toast } from 'sonner'
 import { StudioArchitectButton } from './studio-architect-button'
 
@@ -22,6 +22,7 @@ interface ProjectGeneratorActionsProps {
 
 export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGeneratorActionsProps) {
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isPreviewing, setIsPreviewing] = useState(false)
 
   const handleGenerateZip = async () => {
     setIsGenerating(true)
@@ -57,6 +58,25 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
     }
   }
 
+  const handlePreviewNode = async () => {
+    setIsPreviewing(true)
+    const toastId = toast.loading('Initializing Preview Node...')
+    try {
+      const result = await previewProject(project.id)
+      if (result.success && result.url) {
+        toast.success(result.message || 'System Operational', { id: toastId })
+        window.open(result.url, '_blank')
+      } else {
+        toast.error('Preview node failed to initialize', { id: toastId })
+      }
+    } catch (error: any) {
+      console.error('Preview Error:', error)
+      toast.error('Preview Node offline: ' + error.message, { id: toastId })
+    } finally {
+      setIsPreviewing(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -67,15 +87,28 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
             className="h-14 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] border-2"
           />
 
-          <Button
-            onClick={handleGenerateZip}
-            disabled={isGenerating}
-            variant="outline"
-            className="h-14 px-8 rounded-2xl border-2 border-zinc-950 bg-white text-zinc-950 font-black uppercase tracking-[0.2em] hover:bg-zinc-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all flex items-center justify-center gap-3 text-[11px] group/eject"
-          >
-            <Download className="w-5 h-5 text-zinc-400 group-hover/eject:text-zinc-950 transition-colors" />
-            {isGenerating ? 'Building Production...' : 'Eject Production Build'}
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button
+              onClick={handleGenerateZip}
+              disabled={isGenerating || isPreviewing}
+              variant="outline"
+              className="h-14 px-8 rounded-2xl border-2 border-zinc-950 bg-white text-zinc-950 font-black uppercase tracking-[0.2em] hover:bg-zinc-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all flex items-center justify-center gap-3 text-[11px] group/eject"
+            >
+              <Download className="w-5 h-5 text-zinc-400 group-hover/eject:text-zinc-950 transition-colors" />
+              {isGenerating ? 'Building...' : 'Eject ZIP'}
+            </Button>
+
+            <Button
+              onClick={handlePreviewNode}
+              disabled={isPreviewing || isGenerating}
+              className="h-14 px-8 rounded-2xl bg-zinc-950 text-white font-black uppercase tracking-[0.2em] hover:bg-zinc-900 shadow-[4px_4px_0px_0px_rgba(39,39,42,0.2)] transition-all flex items-center justify-center gap-3 text-[11px] group/preview"
+            >
+              <div className={isPreviewing ? "animate-spin" : ""}>
+                <Zap className="w-5 h-5 text-emerald-400" />
+              </div>
+              {isPreviewing ? 'Launching...' : 'Preview Node'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

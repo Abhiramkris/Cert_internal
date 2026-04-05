@@ -113,11 +113,11 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="bg-transparent border-b border-zinc-200 p-0 rounded-none h-auto mb-8 w-full justify-start gap-8 flex-wrap">
-          {['overview', 'workflow', 'finances', 'comments'].map((tab) => {
+          {['overview', 'workflow', 'generator', 'finances', 'comments'].map((tab) => {
             if (tab === 'finances' && !canManagePayments) return null
             return (
               <TabsTrigger key={tab} value={tab} className="rounded-none bg-transparent px-0 py-3 text-sm font-bold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-400 transition-all uppercase tracking-wider mb-2 lg:mb-0">
-                {tab}
+                {tab === 'generator' ? 'Studio' : tab}
               </TabsTrigger>
             )
           })}

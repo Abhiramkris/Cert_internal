@@ -33,7 +33,7 @@ export const NAV_INDUSTRIAL = {
     const navLinks = pages.length > 0 ? pages : ['Home', 'Expertise', 'Projects'];
 
     return (
-      <nav className="fixed top-0 left-0 right-0 h-20 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 px-6 md:px-10 flex items-center justify-between z-[100] text-white">
+      <nav className="absolute top-0 left-0 right-0 h-20 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 px-6 md:px-10 flex items-center justify-between z-[100] text-white">
         <div className="flex items-center gap-6 md:gap-12">
            <div className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-2" style={brandStyle}>
               <div className="w-8 h-8 bg-white flex items-center justify-center rounded-lg" style={{ backgroundColor: config?.primary_color || '#fff' }}>
@@ -74,16 +74,26 @@ export const NAV_INDUSTRIAL = {
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Menu, Globe, ArrowRight, X } from 'lucide-react';
+import Link from 'next/link';
 import config from '../data/config.json';
 
 const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
+
+const getLink = (name: string) => {
+  const n = name.toLowerCase();
+  if (n === 'home') return '/';
+  if (n === 'privacy') return '/privacy';
+  if (n === 'terms') return '/terms';
+  // Default to anchored section on page
+  return \`#\${name.toLowerCase().replace(/\\s+/g, '-')}\`;
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const global = config.styles;
   const content = config.content;
-  const pages = config.pages || ['Home', 'Expertise', 'Projects'];
+  const pages = config.pages || ['Home', 'Expertise', 'Projects', 'Privacy'];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -106,27 +116,30 @@ export default function Navbar() {
         )}
       >
         <div className="flex items-center gap-12 lg:gap-20">
-           <motion.div 
-             whileHover={{ scale: 1.05 }}
-             className="text-2xl font-black uppercase italic tracking-tighter flex items-center gap-3 cursor-pointer"
-           >
-              <div className="w-10 h-10 bg-white flex items-center justify-center rounded-2xl shadow-xl shadow-white/5">
-                 <Globe className="w-6 h-6 text-zinc-950" />
-              </div>
-              <span className="hidden sm:block">{content.brand_name || 'Agency'}</span>
-           </motion.div>
+           <Link href="/">
+             <motion.div 
+               whileHover={{ scale: 1.05 }}
+               className="text-2xl font-black uppercase italic tracking-tighter flex items-center gap-3 cursor-pointer"
+             >
+                <div className="w-10 h-10 bg-white flex items-center justify-center rounded-2xl shadow-xl shadow-white/5">
+                   <Globe className="w-6 h-6 text-zinc-950" />
+                </div>
+                <span className="hidden sm:block">{content.brand_name || 'Agency'}</span>
+             </motion.div>
+           </Link>
 
            <div className="hidden lg:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.3em] text-zinc-500">
               {pages.map((item) => (
-                <motion.span 
-                  key={item}
-                  initial={{ color: '#71717a' }}
-                  whileHover={{ y: -2, color: '#fff' }}
-                  className="cursor-pointer transition-colors relative group"
-                >
-                  {item}
-                  <div className="absolute -bottom-2 left-0 w-0 h-[2px] bg-emerald-500 group-hover:w-full transition-all duration-500" />
-                </motion.span>
+                <Link key={item} href={getLink(item)}>
+                  <motion.span 
+                    initial={{ color: '#71717a' }}
+                    whileHover={{ y: -2, color: '#fff' }}
+                    className="cursor-pointer transition-colors relative group"
+                  >
+                    {item}
+                    <div className="absolute -bottom-2 left-0 w-0 h-[2px] bg-emerald-500 group-hover:w-full transition-all duration-500" />
+                  </motion.span>
+                </Link>
               ))}
            </div>
         </div>
