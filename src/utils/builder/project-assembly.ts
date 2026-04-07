@@ -4,7 +4,11 @@ export interface ProjectFiles {
   [path: string]: string
 }
 
-export function assembleProjectFiles(project: any, config: any): ProjectFiles {
+export interface AssembleOptions {
+  isPreview?: boolean
+}
+
+export function assembleProjectFiles(project: any, config: any, options: AssembleOptions = {}): ProjectFiles {
   if (!config) throw new Error('Builder configuration not found')
 
   const styles = config.global_styles
@@ -16,38 +20,43 @@ export function assembleProjectFiles(project: any, config: any): ProjectFiles {
 
   const files: ProjectFiles = {}
 
-  // 1. package.json
-  files['package.json'] = JSON.stringify({
-    name: project.client_name.toLowerCase().replace(/\s+/g, '-'),
-    version: '1.0.0',
-    private: true,
-    scripts: {
-      "dev": "next dev",
-      "build": "next build",
-      "start": "next start"
-    },
-    dependencies: {
-      "next": "latest",
-      "react": "latest",
-      "react-dom": "latest",
-      "lucide-react": "^0.577.0",
-      "clsx": "latest",
-      "tailwind-merge": "latest",
-      "framer-motion": "latest"
-    },
-    devDependencies: {
-      "tailwindcss": "^4.0.0",
-      "@tailwindcss/postcss": "^4.0.0",
-      "postcss": "latest",
-      "autoprefixer": "latest",
-      "typescript": "latest",
-      "@types/node": "latest",
-      "@types/react": "latest",
-      "@types/react-dom": "latest"
-    }
-  }, null, 2)
+  // 1. package.json (Only for Ejected Builds)
+  if (!options.isPreview) {
+    files['package.json'] = JSON.stringify({
+      name: project.client_name.toLowerCase().replace(/\s+/g, '-'),
+      version: '1.0.0',
+      private: true,
+      scripts: {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start"
+      },
+      dependencies: {
+        "next": "latest",
+        "react": "latest",
+        "react-dom": "latest",
+        "lucide-react": "^0.577.0",
+        "clsx": "latest",
+        "tailwind-merge": "latest",
+        "framer-motion": "latest"
+      },
+      devDependencies: {
+        "tailwindcss": "^4.0.0",
+        "@tailwindcss/postcss": "^4.0.0",
+        "postcss": "latest",
+        "autoprefixer": "latest",
+        "typescript": "latest",
+        "@types/node": "latest",
+        "@types/react": "latest",
+        "@types/react-dom": "latest"
+      }
+    }, null, 2)
+  }
 
   // 2. data/config.json
+  const pageMap = config.selected_components_map || { 'Home': config.selected_components || [] }
+  const projectPages = Object.keys(pageMap)
+
   files['data/config.json'] = JSON.stringify({
     styles: {
       ...config.global_styles,
@@ -71,99 +80,62 @@ export function assembleProjectFiles(project: any, config: any): ProjectFiles {
       terms_intro: "Professional standards and service agreements apply to all digital breakthroughs.",
       ...config.content_overrides
     },
-    settings: config.component_settings || {}
+    settings: config.component_settings || {},
+    pages: projectPages
   }, null, 2)
 
-  // 3. Legal Pages
-  files['app/privacy/page.tsx'] = `
-import React from 'react';
-import config from '../../data/config.json';
+  // 3. Components Compilation (Deduplicated)
+  const uniqueKeys = new Set<string>()
+  Object.values(pageMap).forEach((keys: any) => {
+    (keys || []).forEach((k: string) => {
+      if ((COMPONENT_TEMPLATES as any)[k]) uniqueKeys.add(k)
+    })
+  })
 
-export default function PrivacyPage() {
-  return (
-    <main className="max-w-4xl mx-auto py-24 px-8 font-sans">
-      <h1 className="text-4xl font-black mb-12 italic tracking-tight">Privacy Policy</h1>
-      <div className="space-y-8 text-zinc-600 leading-relaxed font-medium">
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-zinc-900">1. Data Collection</h2>
-          <p>We collect minimal data necessary to provide our services. This includes contact information provided via forms.</p>
-        </section>
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-zinc-900">2. Contact Us</h2>
-          <p>For any privacy concerns, reach out at:</p>
-          <ul className="list-none space-y-2 text-zinc-900 font-bold">
-            <li>Email: {config.content.email || 'hello@agency.com'}</li>
-            <li>Phone: {config.content.phone || 'N/A'}</li>
-          </ul>
-        </section>
-      </div>
-    </main>
-  );
-}
-`
-
-  files['app/terms/page.tsx'] = `
-import React from 'react';
-import config from '../../data/config.json';
-
-export default function TermsPage() {
-  return (
-    <main className="max-w-4xl mx-auto py-24 px-8 font-sans">
-      <h1 className="text-4xl font-black mb-12 italic tracking-tight">Terms of Service</h1>
-      <div className="space-y-8 text-zinc-600 leading-relaxed font-medium">
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-zinc-900">1. Agreement</h2>
-          <p>By using this site, you agree to our terms of service and professional standards.</p>
-        </section>
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-zinc-900">2. Contact Information</h2>
-          <p>Please contact us for any legal inquiries:</p>
-          <ul className="list-none space-y-2 text-zinc-900 font-bold">
-            <li>Email: {config.content.email || 'hello@agency.com'}</li>
-            <li>Phone: {config.content.phone || 'N/A'}</li>
-          </ul>
-        </section>
-      </div>
-    </main>
-  );
-}
-`
-
-  // 4. Components Sorting & Assembly
-  const rawSelectedKeys = config.selected_components || []
-  const validKeys = rawSelectedKeys.filter((key: string) => (COMPONENT_TEMPLATES as any)[key])
-
-  // Split into Nav, Body, and Footer
-  const navs = validKeys.filter((key: string) => key.startsWith('NAV_'))
-  const footers = validKeys.filter((key: string) => key.startsWith('FOOTER_'))
-  const body = validKeys.filter((key: string) => !key.startsWith('NAV_') && !key.startsWith('FOOTER_'))
-
-  const orderedKeys = [...navs, ...body, ...footers]
-  
-  orderedKeys.forEach((key: string) => {
+  uniqueKeys.forEach((key: string) => {
     const template = (COMPONENT_TEMPLATES as any)[key]
     if (template) {
       files[`components/${key.toLowerCase().replace(/_/g, '-')}.tsx`] = template.code(styles, content)
     }
   })
 
-  // 5. Main Page
-  files['app/page.tsx'] = `
-import React from 'react';
-import config from '../data/config.json';
-${orderedKeys.map((key: string) => `import ${key.replace(/_/g, '')} from '../components/${key.toLowerCase().replace(/_/g, '-')}';`).join('\n')}
+  // 4. Dynamic Pages Assembly
+  Object.entries(pageMap).forEach(([pageName, rawKeys]: [string, any]) => {
+     const validKeys = (rawKeys || []).filter((key: string) => (COMPONENT_TEMPLATES as any)[key])
+     const navs = validKeys.filter((key: string) => key.startsWith('NAV_'))
+     const footers = validKeys.filter((key: string) => key.startsWith('FOOTER_'))
+     const body = validKeys.filter((key: string) => !key.startsWith('NAV_') && !key.startsWith('FOOTER_'))
+     const orderedKeys = [...navs, ...body, ...footers]
 
-export default function Home() {
-  return (
-    <main className="min-h-screen">
-      ${orderedKeys.map((key: string) => `
+     const isHome = pageName.toLowerCase() === 'home'
+     const dotPath = isHome ? '..' : '../..'
+     
+     const imports = orderedKeys.map((key: string) => `import ${key.replace(/_/g, '')} from '${dotPath}/components/${key.toLowerCase().replace(/_/g, '-')}';`).join('\n')
+     const sections = orderedKeys.map((key: string) => `
       <section id="${key.toLowerCase().replace(/_/g, '-')}">
         <${key.replace(/_/g, '')} />
-      </section>`).join('\n      ')}
+      </section>`).join('\n      ')
+
+     const pageCode = `
+import React from 'react';
+import config from '${dotPath}/data/config.json';
+${imports}
+
+export default function ${pageName.replace(/\s+/g, '')}Page() {
+  return (
+    <main className="min-h-screen">
+      ${sections}
     </main>
   );
 }
 `
+     if (isHome) {
+       files['app/page.tsx'] = pageCode.trim()
+     } else {
+       const routePath = pageName.toLowerCase().replace(/\s+/g, '-')
+       files[`app/${routePath}/page.tsx`] = pageCode.trim()
+     }
+  })
 
   // 6. Layout & global CSS
   const headingFont = styles.font_family_heading || 'Inter'
@@ -258,8 +230,9 @@ module.exports = {
 }
 `
 
-  // 8. gitignore
-  files['.gitignore'] = `
+  // 8. gitignore (Only for Ejected Builds)
+  if (!options.isPreview) {
+    files['.gitignore'] = `
 node_modules
 .next
 out
@@ -269,6 +242,26 @@ build
 *.tsbuildinfo
 next-env.d.ts
 `
+  }
+
+  // 9. tsconfig.json (Prevents Next.js warning spam)
+  files['tsconfig.json'] = JSON.stringify({
+    "compilerOptions": {
+      "target": "es5",
+      "lib": ["dom", "dom.iterable", "esnext"],
+      "allowJs": true,
+      "skipLibCheck": true,
+      "strict": true,
+      "noEmit": true,
+      "esModuleInterop": true,
+      "module": "esnext",
+      "moduleResolution": "bundler",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "jsx": "preserve"
+    },
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
+  }, null, 2)
 
   return files
 }

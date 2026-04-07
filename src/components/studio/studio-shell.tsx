@@ -17,7 +17,8 @@ import {
   Save,
   PlusCircle,
   GripVertical,
-  Trash2
+  Trash2,
+  X
 } from 'lucide-react'
 import { useStudio } from './context/studio-provider'
 import { cn } from '@/lib/utils'
@@ -30,11 +31,14 @@ import { ComponentPickerModal } from './modals/component-picker-modal'
 import { Reorder } from 'framer-motion'
 
 export function StudioShell() {
+  const [isAddingPage, setIsAddingPage] = React.useState(false);
+  const [newPageName, setNewPageName] = React.useState('');
+
   const { 
     flowMode, setFlowMode,
     selectedComponents, setSelectedComponents,
     activeComponentId, setActiveComponentId,
-    pages, currentPage, setCurrentPage,
+    pages, setPages, currentPage, setCurrentPage,
     setIsPickerOpen, setPickerCategory, setPickerSlotIndex,
     isSaving, isGenerating, isAiGenerating,
     handleSave, handleEject, handleGlobalAiGenerate,
@@ -181,19 +185,77 @@ export function StudioShell() {
                       Switch between defined pages to orchestrate unique component vectors.
                    </p>
                    
-                   <div className="relative mt-4">
-                      <select 
-                        value={currentPage}
-                        onChange={(e) => setCurrentPage(e.target.value)}
-                        className="w-full h-14 bg-white border border-zinc-200 rounded-none px-6 text-[11px] font-black uppercase tracking-widest outline-none appearance-none cursor-pointer hover:border-zinc-950 transition-all shadow-sm"
-                      >
-                         {pages.map((p) => (
-                           <option key={p} value={p}>{p}</option>
-                         ))}
-                      </select>
-                      <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
-                         <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
+                   <div className="relative mt-4 flex flex-col gap-2">
+                      <div className="relative">
+                        <select 
+                          value={currentPage}
+                          onChange={(e) => setCurrentPage(e.target.value)}
+                          className="w-full h-14 bg-white border border-zinc-200 rounded-none px-6 text-[11px] font-black uppercase tracking-widest outline-none appearance-none cursor-pointer hover:border-zinc-950 transition-all shadow-sm"
+                        >
+                           {pages.map((p) => (
+                             <option key={p} value={p}>{p}</option>
+                           ))}
+                        </select>
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
+                           <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
+                        </div>
                       </div>
+                      
+                      {!isAddingPage ? (
+                        <button 
+                          onClick={() => setIsAddingPage(true)}
+                          className="w-full h-10 border border-dashed border-zinc-300 hover:border-zinc-950 hover:bg-zinc-50 text-zinc-500 hover:text-zinc-950 transition-all text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                        >
+                          <Plus className="w-3 h-3" /> Add Custom Page
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                           <input 
+                              type="text" 
+                              value={newPageName}
+                              onChange={(e) => setNewPageName(e.target.value)}
+                              placeholder="Page Name..."
+                              className="flex-1 min-w-0 h-10 bg-white border border-zinc-200 px-4 text-[10px] font-bold uppercase tracking-widest outline-none focus:border-zinc-950 transition-all placeholder:text-zinc-300"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && newPageName.trim()) {
+                                  const name = newPageName.trim();
+                                  if (!pages.includes(name)) {
+                                     setPages([...pages, name]);
+                                     setSelectedComponents({ ...selectedComponents, [name]: [] });
+                                     setCurrentPage(name);
+                                  }
+                                  setNewPageName('');
+                                  setIsAddingPage(false);
+                                }
+                                if (e.key === 'Escape') {
+                                  setIsAddingPage(false);
+                                  setNewPageName('');
+                                }
+                              }}
+                           />
+                           <button 
+                             onClick={() => {
+                                if (newPageName.trim()) {
+                                  const name = newPageName.trim();
+                                  if (!pages.includes(name)) {
+                                     setPages([...pages, name]);
+                                     setSelectedComponents({ ...selectedComponents, [name]: [] });
+                                     setCurrentPage(name);
+                                  }
+                                  setNewPageName('');
+                                  setIsAddingPage(false);
+                                }
+                             }}
+                             className="h-10 px-3 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-widest transition-all hover:bg-zinc-800 shrink-0"
+                           >
+                             Add
+                           </button>
+                           <button onClick={() => { setIsAddingPage(false); setNewPageName(''); }} className="h-10 w-10 flex shrink-0 items-center justify-center bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition-all hover:bg-zinc-200">
+                             <X className="w-4 h-4" />
+                           </button>
+                        </div>
+                      )}
                    </div>
                 </div>
             </div>

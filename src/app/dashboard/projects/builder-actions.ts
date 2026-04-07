@@ -51,6 +51,8 @@ export async function saveWebsiteConfig(projectId: string, builder: any) {
         builder: {
           global_styles: builder.global_styles,
           selected_components: builder.selected_components,
+          selected_components_map: builder.selected_components_map,
+          pages: builder.pages,
           content_overrides: builder.content_overrides,
           component_settings: builder.component_settings
         }
@@ -248,6 +250,25 @@ import { assembleProjectFiles } from '@/utils/builder/project-assembly'
 import { exec, spawn } from 'child_process'
 import { promisify } from 'util'
 import treeKill from 'tree-kill'
+import net from 'net'
+
+async function getAvailablePort(startingPort: number): Promise<number> {
+  return new Promise((resolve) => {
+    let port = startingPort
+    function tryPort() {
+      const server = net.createServer()
+      server.listen(port, () => {
+        server.once('close', () => resolve(port))
+        server.close()
+      })
+      server.on('error', () => {
+        port++
+        tryPort()
+      })
+    }
+    tryPort()
+  })
+}
 
 const execAsync = promisify(exec)
 
@@ -257,9 +278,15 @@ const activePreviews: Record<string, any> = {}
 async function killExistingPreview(projectId: string) {
   if (activePreviews[projectId]) {
     return new Promise<void>((resolve) => {
-      const pid = activePreviews[projectId].pid
+      const child = activePreviews[projectId]
+      const pid = child.pid
       if (pid) {
         console.log(`[Preview ${projectId}]: Terminating existing process tree ${pid}...`)
+        
+        // Suppress logs from dying process to prevent harmless scandir/cache panic logs
+        child.stdout?.removeAllListeners('data')
+        child.stderr?.removeAllListeners('data')
+
         treeKill(pid, 'SIGKILL', (err) => {
           if (err) console.warn(`[Preview ${projectId}]: Kill error:`, err)
           delete activePreviews[projectId]
@@ -348,7 +375,7 @@ export async function previewProject(projectId: string) {
   await fs.mkdir(previewDir, { recursive: true })
 
   // 3. Assemble and Write Files
-  const files = assembleProjectFiles(project, config)
+  const files = assembleProjectFiles(project, config, { isPreview: true })
 
   // 3. Atomic File Write
   for (const [filePath, content] of Object.entries(files)) {
@@ -370,18 +397,14 @@ export async function previewProject(projectId: string) {
 
   // 5. Build/Run Lifecycle
   try {
-     const hasModules = await fs.access(path.join(previewDir, 'node_modules')).then(() => true).catch(() => false)
-     if (!hasModules) {
-        toastServerSide(projectId, "Initializing build environment (npm install)...")
-        await execAsync('npm install', { cwd: previewDir })
-     }
-
-     console.log(`[Preview ${projectId}]: Launching Live Preview Node...`)
+     const assignedPort = await getAvailablePort(3001)
+     console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
      
-     // Spawn the server and pipe logs for Docker observability
-     const child = spawn('npm', ['run', 'dev', '--', '-p', '3001'], { 
+     // Use root Next.js binary directly to avoid nested package.json / npm install overhead
+     const nextBin = path.join(process.cwd(), 'node_modules/.bin/next')
+     const child = spawn(nextBin, ['dev', '-p', assignedPort.toString()], { 
        cwd: previewDir,
-       env: { ...process.env, NODE_ENV: 'development' }
+       env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
      })
 
      child.stdout?.on('data', (data) => {
@@ -395,7 +418,7 @@ export async function previewProject(projectId: string) {
      activePreviews[projectId] = child
 
      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:6565'
-     const publicUrl = siteUrl.replace(/:\d+$/, '').replace(/\/$/, '') + ':3001'
+     const publicUrl = siteUrl.replace(/:\d+$/, '').replace(/\/$/, '') + `:${assignedPort}`
 
      return { 
         success: true, 
@@ -410,6 +433,78 @@ export async function previewProject(projectId: string) {
 
 function toastServerSide(projectId: string, message: string) {
     console.log(`[Preview ${projectId}]: ${message}`)
+}
+
+export async function previewComponent(componentId: string) {
+  // Create a mock configuration for the selected component
+  const mockConfig = {
+    theme: {
+      accent_color: '#3b82f6',
+      radius: '1rem',
+      font_family_heading: 'Inter',
+      font_family_body: 'Inter'
+    },
+    layout: [
+      { id: 'library-nav-mock', template: 'NAV_INDUSTRIAL' }, // Add a default nav for context
+      { id: 'library-hero-mock', template: componentId }
+    ]
+  }
+
+  // Use a fixed ID for the library preview
+  const previewId = 'library-audit-preview'
+  const previewDir = path.join(process.cwd(), 'tmp/previews', previewId)
+  
+  await killExistingPreview(previewId)
+  await purgeDirectory(previewDir)
+  await fs.mkdir(previewDir, { recursive: true })
+
+  // 1. Assemble Mock Project Files
+  const mockProject = {
+    client_name: 'Studio Library Audit',
+    description: `Real-world verification of component: ${componentId}`
+  }
+  
+  const files = assembleProjectFiles(mockProject as any, mockConfig as any, { isPreview: true })
+  for (const [relativePath, content] of Object.entries(files)) {
+    const fullPath = path.join(previewDir, relativePath)
+    await fs.mkdir(path.dirname(fullPath), { recursive: true })
+    
+    if (relativePath === 'app/page.tsx' || relativePath.endsWith('.tsx')) {
+       const timestampComment = `\n\n// Library Audit: ${new Date().toISOString()}\n`
+       await fs.writeFile(fullPath, content + timestampComment)
+    } else {
+       await fs.writeFile(fullPath, content)
+    }
+  }
+
+  // 2. Launch Preview Node
+  try {
+     const assignedPort = await getAvailablePort(3001)
+     console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
+     
+     const nextBin = path.join(process.cwd(), 'node_modules/.bin/next')
+     const child = spawn(nextBin, ['dev', '-p', assignedPort.toString()], { 
+       cwd: previewDir,
+       env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
+     })
+
+     child.stdout?.on('data', (data) => console.log(`[Library Audit]: ${data.toString().trim()}`))
+     child.stderr?.on('data', (data) => console.error(`[Library Audit ERR]: ${data.toString().trim()}`))
+
+     activePreviews[previewId] = child
+
+     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:6565'
+     const publicUrl = siteUrl.replace(/:\d+$/, '').replace(/\/$/, '') + `:${assignedPort}`
+
+     return { 
+        success: true, 
+        url: publicUrl,
+        message: `Library Audit: ${componentId} is live.`
+     }
+  } catch (err: any) {
+    console.error('Library Audit Failed:', err)
+    throw new Error(`Library Audit Failed: ${err.message}`)
+  }
 }
 
 

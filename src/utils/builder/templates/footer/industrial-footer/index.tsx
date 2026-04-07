@@ -36,8 +36,8 @@ export const FOOTER_INDUSTRIAL = {
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500">
            <span>© {new Date().getFullYear()} {content?.brand_name || 'Agency'} LABS INC.</span>
            <div className="flex gap-8">
-              <span className="hover:text-white cursor-pointer transition-colors" style={{ color: config?.accent_color }}>Privacy Vector</span>
-              <span className="hover:text-white cursor-pointer transition-colors" style={{ color: config?.accent_color }}>Legal Briefing</span>
+              <a href={content?.privacy_policy_url || '#'} className="hover:text-white cursor-pointer transition-colors" style={{ color: config?.accent_color }}>Privacy Vector</a>
+              <a href={content?.terms_url || '#'} className="hover:text-white cursor-pointer transition-colors" style={{ color: config?.accent_color }}>Terms of Command</a>
            </div>
         </div>
       </footer>
@@ -75,15 +75,22 @@ export default function FooterIndustrial() {
            </p>
 
            <div className="flex gap-8">
-              {[Instagram, Twitter, Linkedin, GithubIcon].map((Icon, idx) => (
-                <motion.div 
+              {[
+                { Icon: Twitter, url: content?.twitter_url || '#' },
+                { Icon: Linkedin, url: content?.linkedin_url || '#' },
+                { Icon: GithubIcon, url: content?.github_url || content?.github_link || '#' }
+              ].map(({ Icon, url }, idx) => (
+                <motion.a 
                   key={idx}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
                   initial={{ color: '#ffffff' }}
                   whileHover={{ y: -5, color: '#10b981' }}
                   className="w-10 h-10 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center cursor-pointer transition-all"
                 >
                    <Icon className="w-5 h-5" />
-                </motion.div>
+                </motion.a>
               ))}
            </div>
         </div>
@@ -111,13 +118,15 @@ export default function FooterIndustrial() {
             <span className="text-zinc-800 text-[8px]">ALL DATA ENCRYPTED VIA INDUSTRIAL COMMAND PROTOCOL.</span>
          </div>
          
-         <div className="flex wrap justify-center gap-10 md:gap-20">
-            {['Privacy Vector', 'Legal Briefing', 'Terms of Command'].map((link) => (
-              <span key={link} className="hover:text-white cursor-pointer transition-colors relative group">
-                 {link}
-                 <div className="absolute -bottom-2 left-0 w-0 h-[1px] bg-emerald-500 group-hover:w-full transition-all duration-300" />
-              </span>
-            ))}
+         <div className="flex flex-wrap justify-center gap-10 md:gap-20">
+            <a href={content?.privacy_policy_url || '#'} className="hover:text-white cursor-pointer transition-colors relative group">
+               Privacy Vector
+               <div className="absolute -bottom-2 left-0 w-0 h-[1px] bg-emerald-500 group-hover:w-full transition-all duration-300" />
+            </a>
+            <a href={content?.terms_url || '#'} className="hover:text-white cursor-pointer transition-colors relative group">
+               Terms of Command
+               <div className="absolute -bottom-2 left-0 w-0 h-[1px] bg-emerald-500 group-hover:w-full transition-all duration-300" />
+            </a>
          </div>
       </div>
     </footer>

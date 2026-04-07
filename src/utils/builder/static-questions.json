@@ -90,13 +90,22 @@
     "placeholder": "e.g., /contact or https://calendly.com"
   },
   {
-    "key": "social_links",
-    "label": "Social Ecosystem",
+    "key": "twitter_url",
+    "label": "Twitter / X Profile",
     "role": "Marketing",
     "required": false,
-    "type": "json",
+    "type": "text",
     "category": "content_overrides",
-    "placeholder": "{ \"facebook\": \"...\", \"instagram\": \"...\" }"
+    "placeholder": "https://twitter.com/..."
+  },
+  {
+    "key": "linkedin_url",
+    "label": "LinkedIn Profile",
+    "role": "Marketing",
+    "required": false,
+    "type": "text",
+    "category": "content_overrides",
+    "placeholder": "https://linkedin.com/company/..."
   },
   {
     "key": "target_keywords",
@@ -214,6 +223,15 @@
     "type": "text",
     "category": "technical_metadata",
     "placeholder": "/privacy"
+  },
+  {
+    "key": "terms_url",
+    "label": "Terms of Service URL",
+    "role": "Technical",
+    "required": false,
+    "type": "text",
+    "category": "technical_metadata",
+    "placeholder": "/terms"
   },
   {
     "key": "github_link",

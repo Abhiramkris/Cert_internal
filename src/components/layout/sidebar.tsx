@@ -14,7 +14,8 @@ import {
   LayoutDashboard,
   LogOut,
   Calendar,
-  ShieldCheck
+  ShieldCheck,
+  Library
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AGENCY_CONFIG } from '@/utils/agency-config'
@@ -38,7 +39,8 @@ export function Sidebar({ user, isMobile = false }: SidebarProps) {
   ]
  
   // Role-specific navigation  
-  if (user?.role === 'Manager' || user?.role === 'Admin') {
+  if (user?.role === 'Manager' || user?.role === 'Admin' || user?.role === 'Developer') {
+    navItems.push({ name: 'Studio Library', href: '/dashboard/library', icon: Library })
     navItems.push({ name: 'Team Management', href: '/dashboard/teams', icon: Users })
     navItems.push({ name: 'Payments', href: '/dashboard/payments', icon: CreditCard })
   }

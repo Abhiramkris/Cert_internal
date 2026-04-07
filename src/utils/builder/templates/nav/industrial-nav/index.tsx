@@ -84,8 +84,7 @@ const getLink = (name: string) => {
   if (n === 'home') return '/';
   if (n === 'privacy') return '/privacy';
   if (n === 'terms') return '/terms';
-  // Default to anchored section on page
-  return \`#\${name.toLowerCase().replace(/\\s+/g, '-')}\`;
+  return \`/\${name.toLowerCase().replace(/\\s+/g, '-')}\`;
 }
 
 export default function Navbar() {

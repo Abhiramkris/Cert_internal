@@ -2,10 +2,15 @@
   "name": "Project Footer",
   "prompt_context": "A premium, professional footer with social references and official brand text. The legal and operational text should reflect the project's authority.",
   "content_schema": {
-    "brand_name": "string (Official company or client name)"
+    "brand_name": "string (Official company or client name)",
+    "privacy_policy_url": "string (URL to Privacy Policy, default to # if unknown)",
+    "terms_url": "string (URL to Terms of Command, default to # if unknown)",
+    "twitter_url": "string (URL to Twitter, default to empty)",
+    "linkedin_url": "string (URL to LinkedIn, default to empty)",
+    "github_url": "string (URL to GitHub, default to empty)"
   },
-  "component_settings": {
-    "animation": "fade"
-  },
+  "settings_schema": [
+    { "id": "animation", "label": "Animation", "type": "select", "options": ["fade", "slide"], "default": "fade" }
+  ],
   "image_hints": "N/A"
 }

@@ -242,7 +242,8 @@ export function StudioProvider({
           // For legacy compatibility in build ejection
           selected_components: selectedComponents[currentPage] || [], 
           component_settings: componentSettings,
-          content_overrides: contentOverrides
+          content_overrides: contentOverrides,
+          pages: pages
         }),
         saveSeoConfig(projectId, seo)
       ])
