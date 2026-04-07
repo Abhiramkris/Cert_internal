@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import JSZip from 'jszip'
 import fs from 'fs/promises'
 import path from 'path'
@@ -417,8 +418,10 @@ export async function previewProject(projectId: string) {
 
      activePreviews[projectId] = child
 
-     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:6565'
-     const publicUrl = siteUrl.replace(/:\d+$/, '').replace(/\/$/, '') + `:${assignedPort}`
+     const headerList = await headers()
+     const host = headerList.get('host') || 'localhost:6565'
+     const hostname = host.split(':')[0]
+     const publicUrl = `http://${hostname}:${assignedPort}`
 
      return { 
         success: true, 
@@ -493,8 +496,10 @@ export async function previewComponent(componentId: string) {
 
      activePreviews[previewId] = child
 
-     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:6565'
-     const publicUrl = siteUrl.replace(/:\d+$/, '').replace(/\/$/, '') + `:${assignedPort}`
+     const headerList = await headers()
+     const host = headerList.get('host') || 'localhost:6565'
+     const hostname = host.split(':')[0]
+     const publicUrl = `http://${hostname}:${assignedPort}`
 
      return { 
         success: true, 
