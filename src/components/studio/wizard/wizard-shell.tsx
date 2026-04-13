@@ -188,74 +188,99 @@ function DetailsStep() {
 
   // Group questions by role for better UI flow
   const roles = [...new Set(staticQuestions.map(q => q.role))]
+  
+  // Use state to track active tab
+  const [activeRole, setActiveRole] = useState(roles[0])
 
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-12"
+      className="space-y-8"
     >
-       {roles.map((role) => {
-         const questions = staticQuestions.filter(q => q.role === role)
-         return (
-           <div key={role} className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-[1px] flex-1 bg-zinc-100" />
-                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] italic">{role} // Protocols</span>
-                 <div className="h-[1px] flex-1 bg-zinc-100" />
-              </div>
+       {/* Role Tabs */}
+       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-zinc-100">
+          {roles.map(role => (
+              <button
+                  key={role}
+                  onClick={() => setActiveRole(role)}
+                  className={cn(
+                      "px-6 py-3 rounded-t-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border border-b-0",
+                      activeRole === role 
+                          ? "bg-zinc-950 border-zinc-950 text-white shadow-xl shadow-black/10" 
+                          : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:bg-zinc-100/50 hover:text-zinc-600 translate-y-1 hover:translate-y-0"
+                  )}
+              >
+                  {role}
+              </button>
+          ))}
+       </div>
 
-              <div className="grid grid-cols-1 gap-6">
-                 {questions.map((q) => (
-                    <div key={q.key} className="space-y-3">
-                       <Label className="text-[10px] font-black text-zinc-950 uppercase tracking-widest flex items-center gap-2">
-                          {q.label}
-                          {q.required && <span className="text-rose-500 font-bold">*</span>}
-                       </Label>
-                       
-                       {q.type === 'textarea' ? (
-                          <textarea 
-                            value={contentOverrides[q.key] || ''}
-                            onChange={(e) => updateField(q.key, e.target.value)}
-                            placeholder={q.placeholder}
-                            className="w-full min-h-[100px] bg-zinc-50 border border-zinc-100 rounded-none p-4 text-xs font-bold text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-300 shadow-none"
-                          />
-                       ) : q.type === 'select' ? (
-                          <div className="flex flex-wrap gap-2">
-                             {q.options?.map((opt: string) => (
-                                <button
-                                  key={opt}
-                                  onClick={() => updateField(q.key, opt)}
-                                  className={cn(
-                                    "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
-                                    contentOverrides[q.key] === opt 
-                                      ? "bg-zinc-950 border-zinc-950 text-white shadow-xl shadow-black/10" 
-                                      : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-200"
-                                  )}
-                                >
-                                   {opt}
-                                </button>
-                             ))}
-                          </div>
-                       ) : (
-                          <input 
-                            type={q.type === 'number' ? 'number' : 'text'}
-                            value={contentOverrides[q.key] || ''}
-                            onChange={(e) => updateField(q.key, e.target.value)}
-                            placeholder={q.placeholder}
-                            className="w-full h-14 bg-zinc-50 border border-zinc-100 rounded-none px-6 text-xs font-bold text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-300 shadow-none"
-                          />
-                       )}
+       {/* Active Role Content */}
+       <div className="relative min-h-[300px]">
+         <AnimatePresence mode="wait">
+            <motion.div
+                key={activeRole as string}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+                {staticQuestions
+                    .filter(q => q.role === activeRole)
+                    .map((q) => (
+                        <div key={q.key} className={cn(
+                            "space-y-3",
+                            (q.type === 'textarea' || q.type === 'json_list' || q.type === 'json') ? "md:col-span-2" : ""
+                        )}>
+                            <Label className="text-[10px] font-black text-zinc-950 uppercase tracking-widest flex items-center gap-2">
+                                {q.label}
+                                {q.required && <span className="text-rose-500 font-bold">*</span>}
+                            </Label>
+                           
+                           {q.type === 'textarea' ? (
+                              <textarea 
+                                value={contentOverrides[q.key] || ''}
+                                onChange={(e) => updateField(q.key, e.target.value)}
+                                placeholder={q.placeholder}
+                                className="w-full min-h-[100px] bg-zinc-50 border border-zinc-100 rounded-none p-4 text-xs font-bold text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-300 shadow-none"
+                              />
+                           ) : q.type === 'select' ? (
+                              <div className="flex flex-wrap gap-2">
+                                 {q.options?.map((opt: string) => (
+                                    <button
+                                      key={opt}
+                                      onClick={() => updateField(q.key, opt)}
+                                      className={cn(
+                                        "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
+                                        contentOverrides[q.key] === opt 
+                                          ? "bg-zinc-950 border-zinc-950 text-white shadow-xl shadow-black/10" 
+                                          : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-200"
+                                      )}
+                                    >
+                                       {opt}
+                                    </button>
+                                 ))}
+                              </div>
+                           ) : (
+                              <input 
+                                type={q.type === 'number' ? 'number' : 'text'}
+                                value={contentOverrides[q.key] || ''}
+                                onChange={(e) => updateField(q.key, e.target.value)}
+                                placeholder={q.placeholder}
+                                className="w-full h-14 bg-zinc-50 border border-zinc-100 rounded-none px-6 text-xs font-bold text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-all placeholder:text-zinc-300 shadow-none"
+                              />
+                           )}
 
-                       {q.description && (
-                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter italic">{q.description}</p>
-                       )}
-                    </div>
-                 ))}
-              </div>
-           </div>
-         )
-       })}
+                           {q.description && (
+                              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter italic">{q.description}</p>
+                           )}
+                        </div>
+                    ))}
+            </motion.div>
+         </AnimatePresence>
+       </div>
     </motion.div>
   )
 }
@@ -496,11 +521,36 @@ function CTAStep() {
              </div>
           </div>
 
+          <div className="space-y-4 pt-4 border-t border-zinc-50">
+             <Label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic font-sans">Interaction Vector // Size</Label>
+             <div className="grid grid-cols-3 gap-4">
+                {['compact', 'standard', 'large'].map((size) => (
+                   <button
+                      key={size}
+                      onClick={() => setGlobalStyles({ ...globalStyles, button_padding: size as any })}
+                      className={cn(
+                        "p-6 rounded-2xl border transition-all flex flex-col items-center justify-center gap-3",
+                        (globalStyles.button_padding || 'standard') === size 
+                          ? "bg-zinc-950 border-zinc-950 text-white" 
+                          : "bg-zinc-50 border-zinc-100 text-zinc-950 hover:border-zinc-200"
+                      )}
+                   >
+                      <div className={cn(
+                        "bg-zinc-400/20 border border-current opacity-50 transition-all rounded-md mx-auto",
+                        size === 'compact' ? 'w-6 h-3' : size === 'standard' ? 'w-10 h-5' : 'w-14 h-7'
+                      )} />
+                      <span className="text-[10px] font-black uppercase tracking-widest italic">{size}</span>
+                   </button>
+                ))}
+             </div>
+          </div>
+
           <div className="p-10 border border-zinc-100 rounded-[2.5rem] bg-zinc-50 flex flex-col items-center gap-6">
              <Label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic italic">Action Preview (Real-time)</Label>
              <button 
                 className={cn(
-                  "px-8 py-4 font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center gap-3",
+                  "font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-3",
+                   (!globalStyles.button_padding || globalStyles.button_padding === 'standard') ? 'px-8 py-4' : globalStyles.button_padding === 'compact' ? 'px-6 py-3' : 'px-12 py-5',
                    globalStyles.button_radius === 'none' ? 'rounded-none' : globalStyles.button_radius === 'md' ? 'rounded-lg' : 'rounded-full',
                    globalStyles.button_style === 'solid' ? 'bg-zinc-950 text-white' : globalStyles.button_style === 'glass' ? 'bg-zinc-950/10 border border-zinc-950 text-zinc-950' : 'border border-zinc-950 text-zinc-950'
                 )}

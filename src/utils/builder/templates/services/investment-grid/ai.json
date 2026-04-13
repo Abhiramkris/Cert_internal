@@ -1,0 +1,50 @@
+{
+  "name": "Investment Opportunity Grid",
+  "prompt_context": "A sophisticated 3-column feature grid inspired by financial service platforms. Includes large image cards, a central CTA block, and a social-proof stats panel. Ideal for wealth management, fintech, or consultancy services.",
+  "content_schema": {
+    "h2_line1": "string (Main heading part 1, max 6 words)",
+    "h2_line2": "string (Main heading part 2, max 6 words)",
+    "highlight_word": "string (One word from the heading to highlight)",
+    "card_left": {
+      "title": "string (Card title, max 5 words)",
+      "image": "string (Unsplash image URL)"
+    },
+    "card_right": {
+      "title": "string (Card title, max 5 words)",
+      "image": "string (Unsplash image URL)"
+    },
+    "cta_block": {
+      "text": "string (CTA message, max 10 words)",
+      "bg_color": "string (Optional hex code for the block background, defaults to primary/accent)"
+    },
+    "stats_block": {
+      "value": "string (e.g., '77K+')",
+      "label": "string (e.g., 'Lovely Customer')",
+      "percentage": "number (0-100)",
+      "review_avatars": ["string (3-4 image URLs)"]
+    }
+  },
+  "settings_schema": [
+    {
+      "id": "theme",
+      "label": "Color Theme",
+      "type": "select",
+      "options": ["industrial", "modern", "minimal"],
+      "default": "industrial"
+    },
+    {
+      "id": "accent_color",
+      "label": "Highlight Color",
+      "type": "color",
+      "default": "#d9f99d"
+    },
+    {
+       "id": "animation",
+       "label": "Entrance Strategy",
+       "type": "select",
+       "options": ["fade", "slide-up", "zoom"],
+       "default": "slide-up"
+    }
+  ],
+  "image_hints": "Use professional, evocative images related to the target demographic (e.g., happy seniors for 'Golden Years', kids for 'Next Generation'). Black and white or desaturated images provide a premium industrial look."
+}

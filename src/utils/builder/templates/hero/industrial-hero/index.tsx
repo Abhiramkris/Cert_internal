@@ -22,11 +22,25 @@ export const HERO_FULL_IMAGE_STATS = {
     const overlayOpacity = (settings?.overlay_opacity ?? 50) / 100
     const spacingTop = settings?.spacing_top ?? 80
 
+    const containerAnim = settings?.container_animation === 'fade-up' ? 'animate-in fade-in slide-in-from-bottom-8 duration-1000' :
+                          settings?.container_animation === 'scale-up' ? 'animate-in zoom-in-95 duration-1000' :
+                          settings?.container_animation === 'blur-in' ? 'animate-in fade-in blur-sm duration-1000' : 
+                          settings?.container_animation === 'none' ? '' : 'animate-in fade-in duration-1000';
+
+    const textAnim = settings?.text_animation === 'fade' ? 'animate-in fade-in duration-700' :
+                     settings?.text_animation === 'scale' ? 'animate-in zoom-in-95 duration-700' :
+                     settings?.text_animation === 'none' ? '' : 'animate-in slide-in-from-bottom-4 fade-in duration-700';
+
+    const textSize = settings?.hero_text_size || "text-6xl md:text-8xl";
+    const textAlignment = settings?.hero_text_alignment || "text-left";
+    const textMargin = settings?.hero_text_margin || "mb-8";
+    const flexAlignment = textAlignment === 'text-center' ? 'items-center' : textAlignment === 'text-right' ? 'items-end' : 'items-start';
+
     return (
       <section 
         className={cn(
           "relative min-h-[600px] flex flex-col justify-end overflow-hidden bg-zinc-950 group transition-all duration-700",
-          config?.text_alignment === 'center' ? 'items-center' : 'items-start'
+          flexAlignment
         )}
         style={{ paddingTop: `${spacingTop}px` }}
       >
@@ -47,24 +61,26 @@ export const HERO_FULL_IMAGE_STATS = {
         {/* Content Layer */}
         <div className={cn(
           "relative z-10 px-12 mb-20 max-w-5xl",
-          config?.text_alignment === 'center' ? 'text-center' : 'text-left'
+          textAlignment, containerAnim
         )}>
           <h1 
-            className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.85] mb-6 uppercase italic"
+            className={cn(`font-black text-white tracking-tighter leading-[0.85] uppercase italic ${textSize} ${textMargin}`, textAnim)}
             style={h1Style}
           >
             {content?.h1 || "Precision Logistics, Start to Finish."}
           </h1>
           <p className={cn(
             "text-base text-zinc-300 font-medium max-w-xl mb-12 leading-relaxed opacity-80",
-            config?.text_alignment === 'center' ? 'mx-auto' : ''
+            textAlignment === 'text-center' ? 'mx-auto' : '',
+            textAnim
           )} style={{ fontFamily: config?.font_family_body || 'Inter' }}>
             {content?.description || "Delivering excellence through heavy haulage and strategic freight solutions since 2008."}
           </p>
 
           <div className={cn(
             "flex items-center gap-8",
-            config?.text_alignment === 'center' ? 'justify-center' : 'justify-start'
+            textAlignment === 'text-center' ? 'justify-center' : textAlignment === 'text-right' ? 'justify-end' : 'justify-start',
+            textAnim
           )}>
             <button 
               className="h-14 px-10 bg-white text-zinc-900 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-2xl shadow-black/20"
@@ -120,20 +136,64 @@ export default function HeroStats() {
     { label: 'Global Clients', value: '250+' }
   ];
 
-  const variants = {
-    fade: { initial: { opacity: 0 }, animate: { opacity: 1 } },
-    'scale-up': { initial: { scale: 0.9, opacity: 0 }, animate: { scale: 1, opacity: 1 } },
-    zoom: { initial: { scale: 1.1, opacity: 0 }, animate: { scale: 1, opacity: 1 } },
-    'slide-up': { initial: { y: 40, opacity: 0 }, animate: { y: 0, opacity: 1 } }
+  const containerAnimPreset = settings?.container_animation || 'fade-up';
+  const textAnimPreset = settings?.text_animation || 'slide-up';
+  const textSize = settings?.hero_text_size || "text-6xl md:text-8xl";
+  const textAlignment = settings?.hero_text_alignment || "text-left";
+  const textMargin = settings?.hero_text_margin || "mb-8";
+  const flexAlignment = textAlignment === 'text-center' ? 'items-center' : textAlignment === 'text-right' ? 'items-end' : 'items-start';
+
+  const containerVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: containerAnimPreset === 'fade-up' ? 40 : 0, 
+      scale: containerAnimPreset === 'scale-up' || containerAnimPreset === 'elastic-pop' ? 0.9 : 1,
+      filter: containerAnimPreset === 'blur-in' ? "blur(10px)" : "blur(0px)",
+      x: containerAnimPreset === 'slide-right' ? -50 : 0
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1, 
+      filter: "blur(0px)",
+      x: 0,
+      transition: { 
+        duration: 1, 
+        staggerChildren: 0.1,
+        type: containerAnimPreset === 'elastic-pop' ? "spring" : "tween",
+        bounce: 0.5
+      } 
+    }
   };
 
-  const anim = variants[settings?.animation || 'fade'];
+  const itemVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: textAnimPreset === 'slide-up' ? 20 : textAnimPreset === 'spring-up' ? 40 : 0,
+      scale: textAnimPreset === 'scale' ? 0.95 : 1,
+      filter: textAnimPreset === 'blur-reveal' ? "blur(8px)" : "blur(0px)",
+      rotateX: textAnimPreset === 'flip-down' ? 90 : 0
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      filter: "blur(0px)",
+      rotateX: 0,
+      transition: { 
+        duration: 0.8, 
+        ease: "easeOut",
+        type: textAnimPreset === 'spring-up' ? "spring" : "tween",
+        bounce: 0.4 
+      } 
+    }
+  };
 
   return (
     <section 
       className={cn(
         "relative min-h-[90vh] flex flex-col justify-end overflow-hidden bg-zinc-950",
-        global.text_alignment === 'center' ? 'items-center' : 'items-start'
+        flexAlignment
       )}
       style={{ paddingTop: settings?.spacing_top ? settings.spacing_top + 'px' : '80px' }}
     >
@@ -155,28 +215,33 @@ export default function HeroStats() {
 
       {/* Main Content */}
       <motion.div 
-        initial={anim.initial}
-        whileInView={anim.animate}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        variants={containerAnimPreset === 'none' ? {} : containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
         className={cn(
           "relative z-10 px-12 md:px-24 mb-20 max-w-7xl",
-          global.text_alignment === 'center' ? 'text-center' : 'text-left'
+          textAlignment
         )}
       >
-        <h1 
-          className="text-6xl md:text-9xl font-black text-white tracking-[1.2px] leading-[0.85] mb-8 uppercase italic"
+        <motion.h1 
+          variants={textAnimPreset === 'none' ? {} : itemVariants}
+          className={\`\${textSize} \${textMargin} font-black text-white tracking-[1.2px] leading-[0.85] uppercase italic\`}
           style={{ fontFamily: global.font_family_heading }}
         >
           {content.h1 || "Precision Logistics."}
-        </h1>
-        <p className={cn("text-lg md:text-xl text-zinc-300 font-medium max-w-2xl mb-16 leading-relaxed", global.text_alignment === 'center' ? 'mx-auto' : "")}>
+        </motion.h1>
+        <motion.p 
+          variants={textAnimPreset === 'none' ? {} : itemVariants}
+          className={cn("text-lg md:text-xl text-zinc-300 font-medium max-w-2xl mb-16 leading-relaxed", textAlignment === 'text-center' ? 'mx-auto' : "")}
+        >
           {content.description}
-        </p>
-        <div className={cn("flex flex-wrap items-center gap-10", global.text_alignment === 'center' ? 'justify-center' : "")}>
-           <button className="h-20 px-14 bg-white text-zinc-950 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-2xl">
+        </motion.p>
+        <motion.div variants={textAnimPreset === 'none' ? {} : itemVariants} className={cn("flex flex-wrap items-center gap-10", textAlignment === 'text-center' ? 'justify-center' : textAlignment === 'text-right' ? 'justify-end' : "")}>
+           <button className="h-20 px-14 bg-white text-zinc-950 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-2xl hover:opacity-90 transition-all">
               {content.cta_primary}
            </button>
-        </div>
+        </motion.div>
       </motion.div>
 
       {settings?.show_stats !== false && (

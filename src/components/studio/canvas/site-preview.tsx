@@ -16,12 +16,12 @@ export function SitePreview() {
     isArchitectureVerified,
     activeComponentId,
     setActiveComponentId,
-    currentPage
+    currentPage,
+    pages
   } = useStudio()
 
   const currentStack = selectedComponents[currentPage] || []
   const hasNavbarAtTop = currentStack[0]?.includes('NAV')
-  const pages = Object.keys(selectedComponents)
 
   if (currentStack.length === 0) {
     return (

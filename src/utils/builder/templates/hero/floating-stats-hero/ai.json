@@ -1,0 +1,76 @@
+{
+  "name": "Floating Stats Hero",
+  "prompt_context": "A modern, engaging hero section featuring a centered cut-out image, surrounded by a prominent floating social-proof badge. It features a split headline with an accent color, and a large dark floating card at the bottom containing 4 key metrics/statistics. Perfect for agencies, tech companies, or service providers. The tone must be perfectly aligned with the project's description.",
+  "content_schema": {
+    "badge_text": "string (Short social proof text, e.g., '50K+ Satisfied Customers')",
+    "h1_line1": "string (First part of the headline, e.g. 'Life Feels Empty Without')",
+    "h1_accent": "string (The highlighted second part of the headline, e.g. 'Beautiful Design')",
+    "description": "string (Subheading description, max 20 words)",
+    "hero_image": "string (A cut-out portrait or product image on a transparent background, or any subject. MUST be high-quality)",
+    "stats_highlight": {
+      "type": "object",
+      "properties": {
+        "value": "string (Main highlight value, e.g. '50K+')",
+        "label": "string (Highlight label, e.g. 'Satisfied Clients')",
+        "description": "string (Highlight subtext, max 10 words)"
+      }
+    },
+    "stats": [
+      {
+        "label": "string (Metric label derived from project goals, e.g. 'Years Experience', 'Professional Designers')",
+        "value": "string (Relevant metric value, e.g. '13+', '20', '10K')"
+      }
+    ]
+  },
+  "settings_schema": [
+    {
+      "id": "container_animation",
+      "label": "Container Animation",
+      "type": "select",
+      "options": ["fade-up", "scale-up", "blur-in", "3d-flip", "elastic-pop", "slide-right", "none"],
+      "default": "fade-up"
+    },
+    {
+      "id": "text_animation",
+      "label": "Text Entry Animation",
+      "type": "select",
+      "options": ["slide-up", "fade", "scale", "spring-up", "blur-reveal", "flip-down", "none"],
+      "default": "slide-up"
+    },
+    {
+      "id": "hero_text_size",
+      "label": "Headline Size",
+      "type": "select",
+      "options": ["text-5xl md:text-6xl", "text-6xl md:text-7xl lg:text-[80px]", "text-7xl md:text-8xl", "text-8xl md:text-[8.5rem]"],
+      "default": "text-6xl md:text-7xl lg:text-[80px]"
+    },
+    {
+      "id": "hero_text_margin",
+      "label": "Headline Margin Bottom",
+      "type": "select",
+      "options": ["mb-0", "mb-4", "mb-8", "mb-12", "mb-16"],
+      "default": "mb-8"
+    },
+    {
+      "id": "hero_text_alignment",
+      "label": "Text Alignment",
+      "type": "select",
+      "options": ["text-left", "text-center", "text-right"],
+      "default": "text-center"
+    },
+    {
+       "id": "show_top_badge",
+       "label": "Top Social Badge",
+       "type": "boolean",
+       "default": true
+    },
+    {
+       "id": "stats_card_style",
+       "label": "Metrics Card Theme",
+       "type": "select",
+       "options": ["dark", "light"],
+       "default": "dark"
+    }
+  ],
+  "image_hints": "Select a high-quality cut-out image (transparent background if possible, or isolated on white) of professional people or project subjects to sit centered behind the text and stats card."
+}

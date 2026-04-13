@@ -52,9 +52,7 @@ export const NAV_INDUSTRIAL = {
         </div>
 
         <div className="flex items-center gap-4 md:gap-8">
-           <div className="hidden xl:flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-              Status: <span className="text-emerald-500 flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Operational</span>
-           </div>
+          
            <button 
              className="h-10 px-4 md:px-6 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-white/5"
              style={btnStyle}
@@ -144,11 +142,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-6 md:gap-10">
-           <div className="hidden xl:flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">
-              <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
-              System Status: <span className="text-zinc-400">Nominal</span>
-           </div>
-           
+          
            <motion.button 
              whileHover={{ scale: 1.05 }}
              whileTap={{ scale: 0.95 }}

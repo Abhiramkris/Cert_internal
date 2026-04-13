@@ -16,11 +16,39 @@
   },
   "settings_schema": [
     {
-      "id": "animation",
-      "label": "Entrance Strategy",
+      "id": "container_animation",
+      "label": "Container Animation",
       "type": "select",
-      "options": ["fade", "scale-up", "zoom", "slide-up"],
-      "default": "fade"
+      "options": ["fade-up", "scale-up", "blur-in", "3d-flip", "elastic-pop", "slide-right", "none"],
+      "default": "fade-up"
+    },
+    {
+      "id": "text_animation",
+      "label": "Text Entry Animation",
+      "type": "select",
+      "options": ["slide-up", "fade", "scale", "spring-up", "blur-reveal", "flip-down", "none"],
+      "default": "slide-up"
+    },
+    {
+      "id": "hero_text_size",
+      "label": "Headline Size",
+      "type": "select",
+      "options": ["text-5xl md:text-6xl", "text-6xl md:text-8xl", "text-7xl md:text-9xl", "text-8xl md:text-[8.5rem]"],
+      "default": "text-6xl md:text-8xl"
+    },
+    {
+      "id": "hero_text_margin",
+      "label": "Headline Margin Bottom",
+      "type": "select",
+      "options": ["mb-0", "mb-4", "mb-8", "mb-12", "mb-16"],
+      "default": "mb-8"
+    },
+    {
+      "id": "hero_text_alignment",
+      "label": "Text Alignment",
+      "type": "select",
+      "options": ["text-left", "text-center", "text-right"],
+      "default": "text-center"
     },
     {
       "id": "overlay_opacity",

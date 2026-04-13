@@ -1,0 +1,49 @@
+STUDIO ARCHITECT v3.0 - DOCKER DEPLOYMENT GUIDE
+===============================================
+
+This project is configured for a high-performance, containerized deployment using Docker and Docker Compose. It utilizes a multi-stage Dockerfile to build a minimal standalone Next.js production image and runs it behind an NGINX reverse proxy.
+
+---
+
+1. ENVIRONMENT CONFIGURATION
+Before building the container, you must ensure your environment variables are correctly configured. Docker Compose requires an `.env` file in the root directory.
+
+Ensure your `.env` file contains the following critical keys:
+
+# Frontend build variables
+NEXT_PUBLIC_SUPABASE_URL="your-supabase-project-url"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+NEXT_PUBLIC_SITE_URL="your-production-url"
+
+# Backend server variables
+SUPABASE_SERVICE_ROLE_KEY="your-supabase-service-role-key"
+OPENROUTER_API_KEY="your-openrouter-key"
+DEEPSEEK_API_KEY="your-deepseek-key"
+
+*(Note: The `NEXT_PUBLIC` variables must be present during the build stage as they are compiled into the standalone runner!)*
+
+---
+
+2. RUNNING THE CONTAINERS
+Once your `.env` file is ready, you can build and launch the environment using Docker Compose.
+
+To build the images and run the containers in detached (background) mode:
+$ docker-compose up --build -d
+
+To follow the logs and monitor the server booting up:
+$ docker-compose logs -f
+
+---
+
+3. ARCHITECTURAL OVERVIEW
+- App Container (Next.js): Runs the standalone Next.js server on internal port 3000. It runs as a secure non-root `nextjs` user. It also dynamically spawns temporary `/tmp` preview workspaces.
+- NGINX Container: Placed in front of the application to proxy requests. It exposes ports 80, 443, and 3001. Ensure you hook nginx.conf properly if you plan on deploying SSL certificates.
+
+---
+
+4. STOPPING THE CONTAINERS
+To gracefully stop the environment without destroying the containers:
+$ docker-compose stop
+
+To completely tear down the containers and remove the custom network:
+$ docker-compose down

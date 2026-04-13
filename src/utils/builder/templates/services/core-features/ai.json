@@ -1,0 +1,52 @@
+{
+  "name": "Core Features Split",
+  "prompt_context": "A central services/features component displaying exactly 4 key features wrapped around a vertical portrait image. INSTRUCTION: You MUST dynamically generate the features based on the provided project description and the answers to the static questions. Extract the 4 most compelling unique value propositions or services offered by the project.",
+  "content_schema": {
+    "h2": "string (Main heading summarizing the features based on the project data, max 10 words)",
+    "description": "string (Short description under the heading emphasizing the project's value, max 20 words)",
+    "center_image": "string (A beautiful vertical portrait format image URL)",
+    "features": [
+      {
+        "title": "string (Dynamic feature name derived from project details)",
+        "description": "string (Dynamic feature brief description derived from project data)",
+        "icon": "string (One of: BarChart, Edit, Smartphone, Shield, Zap, Globe)"
+      }
+    ]
+  },
+  "settings_schema": [
+    {
+      "id": "theme",
+      "label": "Color Theme",
+      "type": "select",
+      "options": ["primary", "dark", "light", "white", "custom"],
+      "default": "primary"
+    },
+    {
+      "id": "custom_bg",
+      "label": "Custom Background Color",
+      "type": "color",
+      "default": "#072e23"
+    },
+    {
+      "id": "custom_text",
+      "label": "Custom Text Color",
+      "type": "color",
+      "default": "#ffffff"
+    },
+    {
+       "id": "animation",
+       "label": "Entrance Strategy",
+       "type": "select",
+       "options": ["fade", "slide-up", "zoom"],
+       "default": "slide-up"
+    },
+    {
+      "id": "layout_density",
+      "label": "Content Density",
+      "type": "select",
+      "options": ["compact", "standard", "spacious"],
+      "default": "standard"
+    }
+  ],
+  "image_hints": "Select a sophisticated portrait image, preferably a person representing the target demographic or a crisp product shot. Should have a clean, balanced background."
+}

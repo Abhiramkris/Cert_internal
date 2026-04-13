@@ -6,7 +6,9 @@ import ai from './ai.json';
 export const FOOTER_INDUSTRIAL = {
   ...ai,
   type: 'layout',
-  preview: (config: any, content: any, settings: any) => {
+  preview: (config: any, content: any, settings: any, pages: string[] = []) => {
+    const navLinks = pages.length > 0 ? pages : ['Home', 'Expertise', 'Projects'];
+
     return (
       <footer className="py-24 px-10 bg-zinc-950 text-white border-t border-white/5 space-y-16">
         <div className="flex flex-col md:flex-row justify-between gap-12 border-b border-white/5 pb-16">
@@ -25,9 +27,9 @@ export const FOOTER_INDUSTRIAL = {
               <div className="space-y-4">
                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Company</h4>
                  <div className="text-[10px] text-zinc-400 space-y-2 font-bold uppercase tracking-widest">
-                    <p className="hover:text-white transition-colors cursor-pointer">Expertise</p>
-                    <p className="hover:text-white transition-colors cursor-pointer">Network</p>
-                    <p className="hover:text-white transition-colors cursor-pointer">Projects</p>
+                    {navLinks.map((page, i) => (
+                      <p key={i} className="hover:text-white transition-colors cursor-pointer">{page}</p>
+                    ))}
                  </div>
               </div>
            </div>
@@ -55,6 +57,11 @@ const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
 export default function FooterIndustrial() {
   const global = config.styles;
   const content = config.content;
+  const pages = config.pages || ['Home', 'Expertise', 'Projects'];
+  
+  // Split pages into two columns if there are many, or just duplicate them cleanly for structure.
+  const column1 = pages.slice(0, Math.ceil(pages.length / 2)) || ['Blueprint', 'Strategy'];
+  const column2 = pages.slice(Math.ceil(pages.length / 2)) || ['Audits', 'Network'];
 
   return (
     <footer className="py-24 px-10 bg-zinc-950 text-white border-t border-white/5 space-y-24 selection:bg-emerald-500 selection:text-white">
@@ -96,11 +103,11 @@ export default function FooterIndustrial() {
         </div>
 
         <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-16 md:gap-24">
-           {['Expertise', 'Projects', 'Legal'].map((title, idx) => (
+           {[ {title: 'Navigation', links: column1}, {title: 'Resources', links: column2.length ? column2 : ['Privacy', 'Terms']}, {title: 'Legal', links: ['Access Control', 'Data Matrix', 'Command Protocols']} ].map((col, idx) => (
              <div key={idx} className="space-y-8">
-                <h4 className="text-[11px] font-black uppercase tracking-[0.5em] text-zinc-700 underline underline-offset-8 decoration-emerald-800">{title}</h4>
+                <h4 className="text-[11px] font-black uppercase tracking-[0.5em] text-zinc-700 underline underline-offset-8 decoration-emerald-800">{col.title}</h4>
                 <ul className="text-xs font-bold text-zinc-500 space-y-5 uppercase tracking-[0.2em]">
-                   {['Blueprint', 'Strategy', 'Audits'].map((link) => (
+                   {col.links.map((link) => (
                      <li key={link} className="hover:text-emerald-500 cursor-pointer flex items-center gap-2 group transition-all">
                         {link}
                         <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
