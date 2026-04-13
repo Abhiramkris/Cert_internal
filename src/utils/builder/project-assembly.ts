@@ -102,22 +102,22 @@ export function assembleProjectFiles(project: any, config: any, options: Assembl
 
   // 4. Dynamic Pages Assembly
   Object.entries(pageMap).forEach(([pageName, rawKeys]: [string, any]) => {
-     const validKeys = (rawKeys || []).filter((key: string) => (COMPONENT_TEMPLATES as any)[key])
-     const navs = validKeys.filter((key: string) => key.startsWith('NAV_'))
-     const footers = validKeys.filter((key: string) => key.startsWith('FOOTER_'))
-     const body = validKeys.filter((key: string) => !key.startsWith('NAV_') && !key.startsWith('FOOTER_'))
-     const orderedKeys = [...navs, ...body, ...footers]
+    const validKeys = (rawKeys || []).filter((key: string) => (COMPONENT_TEMPLATES as any)[key])
+    const navs = validKeys.filter((key: string) => key.startsWith('NAV_'))
+    const footers = validKeys.filter((key: string) => key.startsWith('FOOTER_'))
+    const body = validKeys.filter((key: string) => !key.startsWith('NAV_') && !key.startsWith('FOOTER_'))
+    const orderedKeys = [...navs, ...body, ...footers]
 
-     const isHome = pageName.toLowerCase() === 'home'
-     const dotPath = isHome ? '..' : '../..'
-     
-     const imports = orderedKeys.map((key: string) => `import ${key.replace(/_/g, '')} from '${dotPath}/components/${key.toLowerCase().replace(/_/g, '-')}';`).join('\n')
-     const sections = orderedKeys.map((key: string) => `
+    const isHome = pageName.toLowerCase() === 'home'
+    const dotPath = isHome ? '..' : '../..'
+
+    const imports = orderedKeys.map((key: string) => `import ${key.replace(/_/g, '')} from '${dotPath}/components/${key.toLowerCase().replace(/_/g, '-')}';`).join('\n')
+    const sections = orderedKeys.map((key: string) => `
       <section id="${key.toLowerCase().replace(/_/g, '-')}">
         <${key.replace(/_/g, '')} />
       </section>`).join('\n      ')
 
-     const pageCode = `
+    const pageCode = `
 import React from 'react';
 import config from '${dotPath}/data/config.json';
 ${imports}
@@ -130,12 +130,12 @@ export default function ${pageName.replace(/\s+/g, '')}Page() {
   );
 }
 `
-     if (isHome) {
-       files['app/page.tsx'] = pageCode.trim()
-     } else {
-       const routePath = pageName.toLowerCase().replace(/\s+/g, '-')
-       files[`app/${routePath}/page.tsx`] = pageCode.trim()
-     }
+    if (isHome) {
+      files['app/page.tsx'] = pageCode.trim()
+    } else {
+      const routePath = pageName.toLowerCase().replace(/\s+/g, '-')
+      files[`app/${routePath}/page.tsx`] = pageCode.trim()
+    }
   })
 
   // 5. Automatic Privacy Policy Page Generation
@@ -143,15 +143,15 @@ export default function ${pageName.replace(/\s+/g, '')}Page() {
   const validGlobalKeys = allUsedKeys.filter((key: string) => (COMPONENT_TEMPLATES as any)[key]);
   const defaultNav = validGlobalKeys.find((key: string) => key.startsWith('NAV_'));
   const defaultFooter = validGlobalKeys.find((key: string) => key.startsWith('FOOTER_'));
-  
+
   const privacyImports = [];
   const privacyComponents = [];
-  
+
   if (defaultNav) {
     privacyImports.push(`import ${defaultNav.replace(/_/g, '')} from '../components/${defaultNav.toLowerCase().replace(/_/g, '-')}';`);
     privacyComponents.push(`<${defaultNav.replace(/_/g, '')} />`);
   }
-  
+
   const bgClass = styles.primary_color === '#000000' || styles.primary_color === '#052c22' || styles.primary_color === '#111827' || styles.primary_color === '#0f172a' ? 'bg-zinc-950 text-zinc-300' : 'bg-[#fafafa] text-zinc-600';
   const headingClass = styles.primary_color === '#000000' || styles.primary_color === '#052c22' || styles.primary_color === '#111827' || styles.primary_color === '#0f172a' ? 'text-white' : 'text-zinc-900';
   const borderClass = styles.primary_color === '#000000' || styles.primary_color === '#052c22' || styles.primary_color === '#111827' || styles.primary_color === '#0f172a' ? 'border-white/10' : 'border-zinc-200';

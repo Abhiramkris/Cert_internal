@@ -11,10 +11,10 @@ import { promptAI, generateSystemPrompt } from '@/utils/ai/ai-client'
 
 export async function saveSeoConfig(projectId: string, seo: any) {
   const supabase = await createClient()
-  
+
   const { data: project } = await supabase.from('projects').select('config').eq('id', projectId).single()
   const config = project?.config || {}
-  
+
   const { error } = await supabase
     .from('projects')
     .update({
@@ -43,7 +43,7 @@ export async function saveWebsiteConfig(projectId: string, builder: any) {
 
   const { data: project } = await supabase.from('projects').select('config').eq('id', projectId).single()
   const config = project?.config || {}
-  
+
   const { error } = await supabase
     .from('projects')
     .update({
@@ -160,7 +160,7 @@ The "settings" object must strictly match the technical keys defined in the SETT
 
 export async function generateAiWebsiteContent(projectId: string, config: any) {
   const supabase = await createClient()
-  
+
   // 1. Fetch Project Details
   const { data: project, error: fetchError } = await supabase
     .from('projects')
@@ -188,7 +188,7 @@ export async function generateAiWebsiteContent(projectId: string, config: any) {
   selected_components.forEach((key: string) => {
     const template = (COMPONENT_TEMPLATES as any)[key]
     if (template) {
-       componentsDescription += `
+      componentsDescription += `
 --- COMPONENT: ${key} ---
 Name: ${template.name}
 Role: ${template.prompt_context}
@@ -236,10 +236,10 @@ Return a SINGLE JSON object:
     if (updateError) throw new Error(`Failed to update project config: ${updateError.message}`)
 
     revalidatePath(`/dashboard/projects/${projectId}`)
-    return { 
-      success: true, 
-      message: "Website intelligence projected successfully", 
-      data: aiResponse 
+    return {
+      success: true,
+      message: "Website intelligence projected successfully",
+      data: aiResponse
     }
   } catch (err: any) {
     console.error('Global AI Generation Failed:', err)
@@ -307,7 +307,7 @@ async function killExistingPreview(projectId: string) {
       const pid = child.pid
       if (pid) {
         console.log(`[Preview ${projectId}]: Terminating existing process tree ${pid}...`)
-        
+
         // Suppress logs from dying process to prevent harmless scandir/cache panic logs
         child.stdout?.removeAllListeners('data')
         child.stderr?.removeAllListeners('data')
@@ -328,7 +328,7 @@ async function killExistingPreview(projectId: string) {
 
 export async function generateProjectZip(projectId: string) {
   const supabase = await createClient()
-  
+
   const { data: project } = await supabase
     .from('projects')
     .select('*')
@@ -356,10 +356,10 @@ export async function generateProjectZip(projectId: string) {
   }
 
   const content64 = await zip.generateAsync({ type: 'base64' })
-  return { 
-    success: true, 
-    fileName: `${project.client_name.replace(/\s+/g, '_')}_Project.zip`, 
-    data: content64 
+  return {
+    success: true,
+    fileName: `${project.client_name.replace(/\s+/g, '_')}_Project.zip`,
+    data: content64
   }
 }
 
@@ -378,7 +378,7 @@ async function purgeDirectory(dir: string) {
 
 export async function previewProject(projectId: string) {
   const supabase = await createClient()
-  
+
   const { data: project } = await supabase
     .from('projects')
     .select('*')
@@ -390,7 +390,7 @@ export async function previewProject(projectId: string) {
   if (!config) throw new Error('Builder configuration not found')
 
   const previewDir = path.join(process.cwd(), 'tmp/previews', projectId)
-  
+
   // 1. Cleanup existing process tree
   await killExistingPreview(projectId)
 
@@ -406,7 +406,7 @@ export async function previewProject(projectId: string) {
   for (const [filePath, content] of Object.entries(files)) {
     const fullPath = path.join(previewDir, filePath)
     await fs.mkdir(path.dirname(fullPath), { recursive: true })
-    
+
     // For app/page.tsx, we append a timestamp to force HMR if reusing modules
     if (filePath === 'app/page.tsx') {
       const timestampComment = `\n\n// Studio Sync: ${new Date().toISOString()}\n`
@@ -422,40 +422,40 @@ export async function previewProject(projectId: string) {
 
   // 5. Build/Run Lifecycle
   try {
-     const assignedPort = await getAvailablePort(3001, 3005)
-     console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
-     
-     const nextBin = await findNextBinary()
-     const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString(), '-H', '0.0.0.0'] : ['dev', '-p', assignedPort.toString(), '-H', '0.0.0.0']
-     const spawnCmd = nextBin === 'npx next' ? 'npx' : nextBin
+    const assignedPort = await getAvailablePort(3001, 3005)
+    console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
 
-     console.log(`[Preview ${projectId}]: Executing ${spawnCmd} ${spawnArgs.join(' ')}`)
+    const nextBin = await findNextBinary()
+    const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString(), '-H', '0.0.0.0'] : ['dev', '-p', assignedPort.toString(), '-H', '0.0.0.0']
+    const spawnCmd = nextBin === 'npx next' ? 'npx' : nextBin
 
-     const child = spawn(spawnCmd, spawnArgs, { 
-       cwd: previewDir,
-       env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
-     })
+    console.log(`[Preview ${projectId}]: Executing ${spawnCmd} ${spawnArgs.join(' ')}`)
 
-     child.stdout?.on('data', (data) => {
-       console.log(`[Preview ${projectId}]: ${data.toString().trim()}`)
-     })
+    const child = spawn(spawnCmd, spawnArgs, {
+      cwd: previewDir,
+      env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
+    })
 
-     child.stderr?.on('data', (data) => {
-       console.error(`[Preview ${projectId} ERR]: ${data.toString().trim()}`)
-     })
+    child.stdout?.on('data', (data) => {
+      console.log(`[Preview ${projectId}]: ${data.toString().trim()}`)
+    })
 
-     activePreviews[projectId] = child
+    child.stderr?.on('data', (data) => {
+      console.error(`[Preview ${projectId} ERR]: ${data.toString().trim()}`)
+    })
 
-     const headerList = await headers()
-     const host = headerList.get('host') || 'localhost:6565'
-     const hostname = host.split(':')[0]
-     const publicUrl = `http://${hostname}:${assignedPort}`
+    activePreviews[projectId] = child
 
-     return { 
-        success: true, 
-        url: publicUrl,
-        message: 'Preview Node synchronized successfully'
-     }
+    const headerList = await headers()
+    const host = headerList.get('host') || 'localhost:6565'
+    const hostname = host.split(':')[0]
+    const publicUrl = `http://${hostname}:${assignedPort}`
+
+    return {
+      success: true,
+      url: publicUrl,
+      message: 'Preview Node synchronized successfully'
+    }
   } catch (err: any) {
     console.error('Preview Sync Failed:', err)
     throw new Error(`Preview Sync Failed: ${err.message}`)
@@ -463,7 +463,7 @@ export async function previewProject(projectId: string) {
 }
 
 function toastServerSide(projectId: string, message: string) {
-    console.log(`[Preview ${projectId}]: ${message}`)
+  console.log(`[Preview ${projectId}]: ${message}`)
 }
 
 export async function previewComponent(componentId: string) {
@@ -484,7 +484,7 @@ export async function previewComponent(componentId: string) {
   // Use a fixed ID for the library preview
   const previewId = 'library-audit-preview'
   const previewDir = path.join(process.cwd(), 'tmp/previews', previewId)
-  
+
   await killExistingPreview(previewId)
   await purgeDirectory(previewDir)
   await fs.mkdir(previewDir, { recursive: true })
@@ -494,49 +494,49 @@ export async function previewComponent(componentId: string) {
     client_name: 'Studio Library Audit',
     description: `Real-world verification of component: ${componentId}`
   }
-  
+
   const files = assembleProjectFiles(mockProject as any, mockConfig as any, { isPreview: true })
   for (const [relativePath, content] of Object.entries(files)) {
     const fullPath = path.join(previewDir, relativePath)
     await fs.mkdir(path.dirname(fullPath), { recursive: true })
-    
+
     if (relativePath === 'app/page.tsx' || relativePath.endsWith('.tsx')) {
-       const timestampComment = `\n\n// Library Audit: ${new Date().toISOString()}\n`
-       await fs.writeFile(fullPath, content + timestampComment)
+      const timestampComment = `\n\n// Library Audit: ${new Date().toISOString()}\n`
+      await fs.writeFile(fullPath, content + timestampComment)
     } else {
-       await fs.writeFile(fullPath, content)
+      await fs.writeFile(fullPath, content)
     }
   }
 
   // 2. Launch Preview Node
   try {
-     const assignedPort = await getAvailablePort(3001, 3005)
-     console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
-     
-     const nextBin = await findNextBinary()
-     const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString(), '-H', '0.0.0.0'] : ['dev', '-p', assignedPort.toString(), '-H', '0.0.0.0']
-     const spawnCmd = nextBin === 'npx next' ? 'npx' : nextBin
+    const assignedPort = await getAvailablePort(3001, 3005)
+    console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
 
-     const child = spawn(spawnCmd, spawnArgs, { 
-       cwd: previewDir,
-       env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
-     })
+    const nextBin = await findNextBinary()
+    const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString(), '-H', '0.0.0.0'] : ['dev', '-p', assignedPort.toString(), '-H', '0.0.0.0']
+    const spawnCmd = nextBin === 'npx next' ? 'npx' : nextBin
 
-     child.stdout?.on('data', (data) => console.log(`[Library Audit]: ${data.toString().trim()}`))
-     child.stderr?.on('data', (data) => console.error(`[Library Audit ERR]: ${data.toString().trim()}`))
+    const child = spawn(spawnCmd, spawnArgs, {
+      cwd: previewDir,
+      env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
+    })
 
-     activePreviews[previewId] = child
+    child.stdout?.on('data', (data) => console.log(`[Library Audit]: ${data.toString().trim()}`))
+    child.stderr?.on('data', (data) => console.error(`[Library Audit ERR]: ${data.toString().trim()}`))
 
-     const headerList = await headers()
-     const host = headerList.get('host') || 'localhost:6565'
-     const hostname = host.split(':')[0]
-     const publicUrl = `http://${hostname}:${assignedPort}`
+    activePreviews[previewId] = child
 
-     return { 
-        success: true, 
-        url: publicUrl,
-        message: `Library Audit: ${componentId} is live.`
-     }
+    const headerList = await headers()
+    const host = headerList.get('host') || 'localhost:6565'
+    const hostname = host.split(':')[0]
+    const publicUrl = `http://${hostname}:${assignedPort}`
+
+    return {
+      success: true,
+      url: publicUrl,
+      message: `Library Audit: ${componentId} is live.`
+    }
   } catch (err: any) {
     console.error('Library Audit Failed:', err)
     throw new Error(`Library Audit Failed: ${err.message}`)
