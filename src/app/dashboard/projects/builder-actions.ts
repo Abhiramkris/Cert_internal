@@ -274,10 +274,13 @@ async function findNextBinary(): Promise<string> {
   return 'npx next'
 }
 
-async function getAvailablePort(startingPort: number): Promise<number> {
-  return new Promise((resolve) => {
+async function getAvailablePort(startingPort: number, maxPort: number = 3005): Promise<number> {
+  return new Promise((resolve, reject) => {
     let port = startingPort
     function tryPort() {
+      if (port > maxPort) {
+        return reject(new Error(`No available ports in range ${startingPort}-${maxPort}`))
+      }
       const server = net.createServer()
       server.listen(port, () => {
         server.once('close', () => resolve(port))
@@ -312,8 +315,8 @@ async function killExistingPreview(projectId: string) {
         treeKill(pid, 'SIGKILL', (err) => {
           if (err) console.warn(`[Preview ${projectId}]: Kill error:`, err)
           delete activePreviews[projectId]
-          // Small grace period for port release
-          setTimeout(resolve, 500)
+          // Extended grace period for port release (1.5s)
+          setTimeout(resolve, 1500)
         })
       } else {
         delete activePreviews[projectId]
@@ -419,7 +422,7 @@ export async function previewProject(projectId: string) {
 
   // 5. Build/Run Lifecycle
   try {
-     const assignedPort = await getAvailablePort(3001)
+     const assignedPort = await getAvailablePort(3001, 3005)
      console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
      
      const nextBin = await findNextBinary()
@@ -507,7 +510,7 @@ export async function previewComponent(componentId: string) {
 
   // 2. Launch Preview Node
   try {
-     const assignedPort = await getAvailablePort(3001)
+     const assignedPort = await getAvailablePort(3001, 3005)
      console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
      
      const nextBin = await findNextBinary()
