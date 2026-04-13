@@ -253,6 +253,27 @@ import { promisify } from 'util'
 import treeKill from 'tree-kill'
 import net from 'net'
 
+async function findNextBinary(): Promise<string> {
+  const possiblePaths = [
+    path.join(process.cwd(), 'node_modules/.bin/next'),
+    path.join(process.cwd(), 'next'),
+    '/usr/local/bin/next',
+    'next' // Try global path
+  ]
+
+  for (const binPath of possiblePaths) {
+    try {
+      await fs.access(binPath, fs.constants.X_OK)
+      return binPath
+    } catch {
+      continue
+    }
+  }
+
+  // Fallback to npx next if nothing else works
+  return 'npx next'
+}
+
 async function getAvailablePort(startingPort: number): Promise<number> {
   return new Promise((resolve) => {
     let port = startingPort
@@ -401,9 +422,13 @@ export async function previewProject(projectId: string) {
      const assignedPort = await getAvailablePort(3001)
      console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
      
-     // Use root Next.js binary directly to avoid nested package.json / npm install overhead
-     const nextBin = path.join(process.cwd(), 'node_modules/.bin/next')
-     const child = spawn(nextBin, ['dev', '-p', assignedPort.toString()], { 
+     const nextBin = await findNextBinary()
+     const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString()] : ['dev', '-p', assignedPort.toString()]
+     const spawnCmd = nextBin === 'npx next' ? 'npx' : nextBin
+
+     console.log(`[Preview ${projectId}]: Executing ${spawnCmd} ${spawnArgs.join(' ')}`)
+
+     const child = spawn(spawnCmd, spawnArgs, { 
        cwd: previewDir,
        env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
      })
@@ -485,8 +510,11 @@ export async function previewComponent(componentId: string) {
      const assignedPort = await getAvailablePort(3001)
      console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
      
-     const nextBin = path.join(process.cwd(), 'node_modules/.bin/next')
-     const child = spawn(nextBin, ['dev', '-p', assignedPort.toString()], { 
+     const nextBin = await findNextBinary()
+     const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString()] : ['dev', '-p', assignedPort.toString()]
+     const spawnCmd = nextBin === 'npx next' ? 'npx' : nextBin
+
+     const child = spawn(spawnCmd, spawnArgs, { 
        cwd: previewDir,
        env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
      })
