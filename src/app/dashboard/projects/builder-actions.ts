@@ -426,7 +426,7 @@ export async function previewProject(projectId: string) {
      console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
      
      const nextBin = await findNextBinary()
-     const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString()] : ['dev', '-p', assignedPort.toString()]
+     const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString(), '-H', '0.0.0.0'] : ['dev', '-p', assignedPort.toString(), '-H', '0.0.0.0']
      const spawnCmd = nextBin === 'npx next' ? 'npx' : nextBin
 
      console.log(`[Preview ${projectId}]: Executing ${spawnCmd} ${spawnArgs.join(' ')}`)
@@ -514,7 +514,7 @@ export async function previewComponent(componentId: string) {
      console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
      
      const nextBin = await findNextBinary()
-     const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString()] : ['dev', '-p', assignedPort.toString()]
+     const spawnArgs = nextBin === 'npx next' ? ['next', 'dev', '-p', assignedPort.toString(), '-H', '0.0.0.0'] : ['dev', '-p', assignedPort.toString(), '-H', '0.0.0.0']
      const spawnCmd = nextBin === 'npx next' ? 'npx' : nextBin
 
      const child = spawn(spawnCmd, spawnArgs, { 
