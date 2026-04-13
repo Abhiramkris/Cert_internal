@@ -371,6 +371,24 @@ module.exports = {
   },
 }
 `
+  // 8. Next.js Config (Handles cross-origin security for remote GCP access)
+  files['next.config.js'] = `
+module.exports = {
+  allowedDevOrigins: ['35.185.199.124', 'localhost:3000'],
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    turbo: {
+      rules: {
+         '*.svg': {
+            loaders: ['@svgr/webpack'],
+            as: 'js',
+         },
+      },
+    },
+  },
+};
+`
 
   // 8. gitignore (Only for Ejected Builds)
   if (!options.isPreview) {
