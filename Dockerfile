@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Install dependencies and build in a single stage to minimize disk space usage
 COPY package.json package-lock.json* ./
-RUN npm ci && npm cache clean --force
+RUN npm install && npm cache clean --force
 
 COPY . .
 
