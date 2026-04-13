@@ -37,9 +37,12 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Create tmp directory with correct permissions for dynamic builds
-RUN mkdir -p /app/tmp && chown -R nextjs:nodejs /app/tmp
+RUN mkdir -p /app/tmp && \
+    mkdir -p /app/node_modules && \
+    chown -R nextjs:nodejs /app/tmp /app/node_modules
 
 COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
