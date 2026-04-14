@@ -83,19 +83,35 @@ export default async function ClientReviewPage({ params }: { params: { token: st
             </div>
             
             <div className="aspect-video w-full rounded-[2.5rem] border-8 border-slate-900 bg-slate-900 shadow-2xl overflow-hidden relative group">
-              {project.dev_config?.live_preview_url ? (
-                <iframe 
-                  src={project.dev_config.live_preview_url} 
-                  className="w-full h-full bg-white transition-opacity duration-700"
-                  title="Staging Preview"
-                />
-              ) : (
+            {(() => {
+              // Priority 1: Check for stored port
+              // Priority 2: Fallback to existing absolute URL if it exists
+              const port = project.dev_config?.port;
+              const legacyUrl = project.dev_config?.live_preview_url;
+              
+              // We're on the server, so we can't use window.location. 
+              // But we can just use relative URLs if we're behind Nginx, 
+              // or reconstruct from headers if needed. 
+              // However, since ports are external, we need the hostname.
+              // For simplicity in a server component, we'll use a relative-ish approach 
+              // or just pass through the port.
+              
+              if (!port && !legacyUrl) return (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12">
                   <Clock className="w-16 h-16 text-white/10 mb-4 animate-pulse" />
                   <h3 className="text-xl font-bold text-white/20">Preview Under Construction</h3>
                   <p className="text-white/10 text-sm max-w-xs mt-2">Our development team is currently pushing the latest changes. Check back shortly.</p>
                 </div>
-              )}
+              );
+
+              return (
+                <iframe 
+                  src={port ? `http://\${typeof window !== 'undefined' ? window.location.hostname : '35.185.199.124'}:\${port}` : legacyUrl} 
+                  className="w-full h-full bg-white transition-opacity duration-700 font-sans"
+                  title="Staging Preview"
+                />
+              );
+            })()}
             </div>
           </section>
 

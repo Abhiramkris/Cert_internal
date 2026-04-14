@@ -416,11 +416,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Secure Context Shim for Remote Dev */}
         <script dangerouslySetInnerHTML={{ __html: \`
           if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-            if (!window.crypto) window.crypto = {};
-            if (!window.crypto.subtle) window.crypto.subtle = {
-              digest: () => new Promise(resolve => resolve(new Uint8Array(32)))
+            const mockSubtle = {
+              digest: () => new Promise(resolve => resolve(new Uint8Array(32))),
+              generateKey: () => new Promise(resolve => resolve({})),
+              importKey: () => new Promise(resolve => resolve({})),
+              sign: () => new Promise(resolve => resolve(new Uint8Array(32))),
+              verify: () => new Promise(resolve => resolve(true)),
+              encrypt: () => new Promise(resolve => resolve(new Uint8Array(32))),
+              decrypt: () => new Promise(resolve => resolve(new Uint8Array(32)))
             };
-            console.log('Secure Context Shim Active');
+            if (!window['crypto']) window['crypto'] = {} as any;
+            if (!window['crypto']['subtle']) {
+              Object.defineProperty(window['crypto'], 'subtle', { value: mockSubtle, writable: true });
+            }
+            if (!window['crypto']['randomUUID']) {
+              Object.defineProperty(window['crypto'], 'randomUUID', { 
+                value: () => '00000000-0000-0000-0000-000000000000', 
+                writable: true 
+              });
+            }
+            console.log('Premium Secure Context Shim Active');
           }
         \` }} />
       </head>

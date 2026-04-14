@@ -446,10 +446,17 @@ export async function previewProject(projectId: string) {
 
     activePreviews[projectId] = child
 
-    const headerList = await headers()
-    const host = headerList.get('host') || 'localhost:6565'
-    const hostname = host.split(':')[0]
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost'
+    const hostname = new URL(siteUrl).hostname
     const publicUrl = `http://${hostname}:${assignedPort}`
+
+    // Persist only the PORT and the relative status, not the absolute URL
+    await supabase.from('projects').update({
+      dev_config: { 
+        ...(project.dev_config || {}), 
+        port: assignedPort
+      }
+    }).eq('id', projectId)
 
     return {
       success: true,
