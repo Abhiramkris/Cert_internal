@@ -400,7 +400,12 @@ export async function previewProject(projectId: string) {
   await fs.mkdir(previewDir, { recursive: true })
 
   // 3. Assemble and Write Files
-  const files = assembleProjectFiles(project, config, { isPreview: true })
+  const headerList = await headers()
+  const requestHost = headerList.get('host')?.split(':')[0]
+  const files = assembleProjectFiles(project, config, { 
+    isPreview: true,
+    currentHost: requestHost
+  })
 
   // 3. Atomic File Write
   for (const [filePath, content] of Object.entries(files)) {
@@ -502,7 +507,12 @@ export async function previewComponent(componentId: string) {
     description: `Real-world verification of component: ${componentId}`
   }
 
-  const files = assembleProjectFiles(mockProject as any, mockConfig as any, { isPreview: true })
+  const headerList = await headers()
+  const requestHost = headerList.get('host')?.split(':')[0]
+  const files = assembleProjectFiles(mockProject as any, mockConfig as any, { 
+    isPreview: true,
+    currentHost: requestHost
+  })
   for (const [relativePath, content] of Object.entries(files)) {
     const fullPath = path.join(previewDir, relativePath)
     await fs.mkdir(path.dirname(fullPath), { recursive: true })

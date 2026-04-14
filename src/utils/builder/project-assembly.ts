@@ -6,6 +6,7 @@ export interface ProjectFiles {
 
 export interface AssembleOptions {
   isPreview?: boolean
+  currentHost?: string
 }
 
 export function assembleProjectFiles(project: any, config: any, options: AssembleOptions = {}): ProjectFiles {
@@ -377,10 +378,19 @@ module.exports = {
     'http://35.185.199.124',
     'localhost:3000',
     'http://localhost:3000',
-    ...Array.from({ length: 10 }, (_, i) => `35.185.199.124:${3001 + i}`),
-    ...Array.from({ length: 10 }, (_, i) => `http://35.185.199.124:${3001 + i}`),
-    ...Array.from({ length: 10 }, (_, i) => `localhost:${3001 + i}`),
-    ...Array.from({ length: 10 }, (_, i) => `http://localhost:${3001 + i}`)
+    ...(options.currentHost ? [
+      options.currentHost,
+      `http://${options.currentHost}`,
+      `https://${options.currentHost}`
+    ] : []),
+    '35.185.199.124',
+    'localhost',
+    '*.ngrok-free.dev',
+    '*.ngrok.io',
+    ...Array.from({ length: 11 }, (_, i) => `35.185.199.124:${3000 + i}`),
+    ...Array.from({ length: 11 }, (_, i) => `localhost:${3000 + i}`),
+    ...Array.from({ length: 11 }, (_, i) => `http://35.185.199.124:${3000 + i}`),
+    ...Array.from({ length: 11 }, (_, i) => `http://localhost:${3000 + i}`)
   ];
 
   files['next.config.js'] = `
@@ -410,10 +420,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="${fontImport}" rel="stylesheet" />
-        {/* Secure Context Shim for Remote Dev */}
+        {/* Secure Context Shim (MUST BE FIRST) */}
         <script dangerouslySetInnerHTML={{ __html: \`
           if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
             const mockSubtle = {
@@ -425,7 +432,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               encrypt: () => new Promise(resolve => resolve(new Uint8Array(32))),
               decrypt: () => new Promise(resolve => resolve(new Uint8Array(32)))
             };
-            if (!window['crypto']) window['crypto'] = {} as any;
+            if (!window['crypto']) window['crypto'] = {};
             if (!window['crypto']['subtle']) {
               Object.defineProperty(window['crypto'], 'subtle', { value: mockSubtle, writable: true });
             }
@@ -435,8 +442,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 writable: true 
               });
             }
+            console.log('Studio Infra: Shim v3 Active (Top-of-Head Execution)');
           }
         \` }} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="${fontImport}" rel="stylesheet" />
       </head>
       <body className="antialiased text-zinc-900 bg-white">
         {children}

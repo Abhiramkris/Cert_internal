@@ -54,15 +54,18 @@ export const NAV_INDUSTRIAL = {
         <div className="flex items-center gap-4 md:gap-8">
           
            <button 
-             className="h-10 px-4 md:px-6 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-white/5"
+             className="hidden lg:flex h-14 px-10 text-[10px] font-black uppercase tracking-widest items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-white/5"
              style={btnStyle}
            >
-              <span className="hidden sm:inline">Join Us</span>
+              <span>{content?.cta_primary || 'Join Us'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
            </button>
-           <div className="lg:hidden w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg border border-white/10">
-              <Menu className="w-5 h-5 text-white" />
-           </div>
+            <button 
+              className="lg:hidden w-12 h-12 flex items-center justify-center bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"
+              onClick={() => {}} 
+            >
+               <Menu className="w-5 h-5 text-white" />
+            </button>
         </div>
       </nav>
     );
@@ -100,7 +103,7 @@ export default function Navbar() {
 
   return (
     <nav className={cn(
-      "fixed top-0 left-0 right-0 z-[100] transition-all duration-500 px-6 md:px-12",
+      "fixed top-0 left-0 right-0 z-[100] transition-all duration-500 px-6 md:px-12 pointer-events-none",
       scrolled ? "py-4" : "py-8"
     )}>
       <motion.div 
@@ -108,7 +111,7 @@ export default function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          "max-w-7xl mx-auto h-20 md:h-24 bg-zinc-950/80 backdrop-blur-3xl border border-white/5 rounded-[2rem] md:rounded-full px-8 md:px-12 flex items-center justify-between text-white shadow-2xl transition-all duration-500",
+          "max-w-7xl mx-auto h-20 md:h-24 bg-zinc-950/80 backdrop-blur-3xl border border-white/5 rounded-[2rem] md:rounded-full px-8 md:px-12 flex items-center justify-between text-white shadow-2xl transition-all duration-500 pointer-events-auto",
           scrolled ? "bg-zinc-950/90 border-white/10" : ""
         )}
       >
@@ -146,7 +149,7 @@ export default function Navbar() {
            <motion.button 
              whileHover={{ scale: 1.05 }}
              whileTap={{ scale: 0.95 }}
-             className="h-14 px-10 bg-white text-zinc-950 rounded-full text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl shadow-white/5 transition-all"
+             className="hidden lg:flex h-14 px-10 bg-white text-zinc-950 rounded-full text-xs font-black uppercase tracking-[0.2em] items-center justify-center gap-3 shadow-2xl shadow-white/5 transition-all"
            >
               {content.cta_primary || "Join Us"}
               <ArrowRight className="w-5 h-5" />
@@ -168,19 +171,20 @@ export default function Navbar() {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-x-6 top-32 bottom-6 bg-zinc-950/95 backdrop-blur-3xl rounded-[3rem] border border-white/5 z-[99] p-12 flex flex-col gap-12 lg:hidden shadow-[0_0_100px_rgba(0,0,0,0.8)]"
+            className="fixed inset-x-6 top-32 bottom-6 bg-zinc-950/95 backdrop-blur-3xl rounded-[3rem] border border-white/5 z-[99] p-12 flex flex-col gap-12 lg:hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] pointer-events-auto"
           >
              <div className="flex flex-col gap-8 text-4xl font-black uppercase italic tracking-tighter">
                 {pages.map((item, i) => (
-                  <motion.span 
-                    key={item}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
-                  >
-                    {item}
-                  </motion.span>
+                  <Link key={item} href={getLink(item)} onClick={() => setIsOpen(false)}>
+                    <motion.span 
+                      initial={{ x: -20, opacity: 0 }}
+                      whileInView={{ x: 0, opacity: 1 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="text-zinc-500 hover:text-white transition-colors cursor-pointer block"
+                    >
+                      {item}
+                    </motion.span>
+                  </Link>
                 ))}
              </div>
              

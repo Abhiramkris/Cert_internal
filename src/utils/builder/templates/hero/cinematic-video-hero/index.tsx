@@ -182,7 +182,7 @@ export default function CinematicHero() {
     'fade': { initial: { opacity: 1 }, animate: { opacity: 1 } },
     'scale': { initial: { opacity: 1, scale: 0.9 }, animate: { opacity: 1, scale: 1 } },
     'spring-up': { initial: { opacity: 1, y: 40 }, animate: { opacity: 1, y: 0, transition: { type: 'spring', mass: 0.5, damping: 10 } } },
-    'blur-reveal': { initial: { opacity: 1, filter: 'blur(12px)', y: 15 }, animate: { opacity: 1, filter: 'blur(0px)', y: 0 } },
+    'blur-reveal': { initial: { opacity: 1, filter: 'none', y: 15 }, animate: { opacity: 1, filter: 'blur(0px)', y: 0 } },
     'flip-down': { initial: { opacity: 1, rotateX: -90, transformOrigin: 'top' }, animate: { opacity: 1, rotateX: 0, transformOrigin: 'top' } },
     'none': { initial: { opacity: 1 }, animate: { opacity: 1 } },
   };

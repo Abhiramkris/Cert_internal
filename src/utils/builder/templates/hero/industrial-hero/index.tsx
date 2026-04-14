@@ -171,7 +171,7 @@ export default function HeroStats() {
       opacity: 0, 
       y: textAnimPreset === 'slide-up' ? 20 : textAnimPreset === 'spring-up' ? 40 : 0,
       scale: textAnimPreset === 'scale' ? 0.95 : 1,
-      filter: textAnimPreset === 'blur-reveal' ? "blur(8px)" : "blur(0px)",
+      filter: textAnimPreset === 'blur-reveal' ? "blur(0px)" : "blur(0px)",
       rotateX: textAnimPreset === 'flip-down' ? 90 : 0
     },
     visible: { 
