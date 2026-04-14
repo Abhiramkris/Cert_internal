@@ -23,7 +23,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "3001-3005:3001-3005"
+      - "3001-3010:3001-3010"
     depends_on:
       - app
     restart: always

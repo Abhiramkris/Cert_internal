@@ -274,7 +274,7 @@ async function findNextBinary(): Promise<string> {
   return 'npx next'
 }
 
-async function getAvailablePort(startingPort: number, maxPort: number = 3005): Promise<number> {
+async function getAvailablePort(startingPort: number, maxPort: number = 3010): Promise<number> {
   return new Promise((resolve, reject) => {
     let port = startingPort
     function tryPort() {
@@ -422,7 +422,7 @@ export async function previewProject(projectId: string) {
 
   // 5. Build/Run Lifecycle
   try {
-    const assignedPort = await getAvailablePort(3001, 3005)
+    const assignedPort = await getAvailablePort(3001, 3010)
     console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
 
     const nextBin = await findNextBinary()
@@ -510,7 +510,7 @@ export async function previewComponent(componentId: string) {
 
   // 2. Launch Preview Node
   try {
-    const assignedPort = await getAvailablePort(3001, 3005)
+    const assignedPort = await getAvailablePort(3001, 3010)
     console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
 
     const nextBin = await findNextBinary()
