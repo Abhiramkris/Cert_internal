@@ -372,9 +372,16 @@ module.exports = {
 }
 `
   // 8. Next.js Config (Handles cross-origin security for remote GCP access)
+  const allowedOrigins = [
+    '35.185.199.124', 
+    'localhost:3000',
+    ...Array.from({ length: 10 }, (_, i) => `35.185.199.124:${3001 + i}`),
+    ...Array.from({ length: 10 }, (_, i) => `localhost:${3001 + i}`)
+  ];
+
   files['next.config.js'] = `
 module.exports = {
-  allowedDevOrigins: ['35.185.199.124', 'localhost:3000'],
+  allowedDevOrigins: ${JSON.stringify(allowedOrigins)},
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   experimental: {
