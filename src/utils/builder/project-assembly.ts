@@ -374,9 +374,13 @@ module.exports = {
   // 8. Next.js Config (Handles cross-origin security for remote GCP access)
   const allowedOrigins = [
     '35.185.199.124', 
+    'http://35.185.199.124',
     'localhost:3000',
+    'http://localhost:3000',
     ...Array.from({ length: 10 }, (_, i) => `35.185.199.124:${3001 + i}`),
-    ...Array.from({ length: 10 }, (_, i) => `localhost:${3001 + i}`)
+    ...Array.from({ length: 10 }, (_, i) => `http://35.185.199.124:${3001 + i}`),
+    ...Array.from({ length: 10 }, (_, i) => `localhost:${3001 + i}`),
+    ...Array.from({ length: 10 }, (_, i) => `http://localhost:${3001 + i}`)
   ];
 
   files['next.config.js'] = `
@@ -395,6 +399,37 @@ module.exports = {
     },
   },
 };
+`
+  
+  // 9. Layout with Secure Context Shim
+  files['app/layout.tsx'] = `
+import './globals.css';
+import React from 'react';
+export const metadata = { title: '${project.client_name} | Premium Web' };
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="${fontImport}" rel="stylesheet" />
+        {/* Secure Context Shim for Remote Dev */}
+        <script dangerouslySetInnerHTML={{ __html: \`
+          if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+            if (!window.crypto) window.crypto = {};
+            if (!window.crypto.subtle) window.crypto.subtle = {
+              digest: () => new Promise(resolve => resolve(new Uint8Array(32)))
+            };
+            console.log('Secure Context Shim Active');
+          }
+        \` }} />
+      </head>
+      <body className="antialiased text-zinc-900 bg-white">
+        {children}
+      </body>
+    </html>
+  );
+}
 `
 
   // 8. gitignore (Only for Ejected Builds)

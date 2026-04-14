@@ -104,7 +104,7 @@ export default function Navbar() {
       scrolled ? "py-4" : "py-8"
     )}>
       <motion.div 
-        initial={{ y: -20, opacity: 0 }}
+        initial={{ y: -20, opacity: 1 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
         className={cn(

@@ -167,23 +167,23 @@ export default function CinematicHero() {
   const textAnimationPreset = settings?.text_animation ?? 'slide-up';
 
   const containerVariants = {
-    'fade-up': { initial: { opacity: 0, y: 40, scale: 0.95 }, animate: { opacity: 1, y: 0, scale: 1 } },
-    'scale-up': { initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 } },
-    'blur-in': { initial: { opacity: 0, filter: 'blur(20px)' }, animate: { opacity: 1, filter: 'blur(0px)' } },
-    '3d-flip': { initial: { opacity: 0, rotateX: 60, y: 50 }, animate: { opacity: 1, rotateX: 0, y: 0, transition: { type: 'spring', damping: 20, stiffness: 80 } } },
-    'elastic-pop': { initial: { opacity: 0, scale: 0.6 }, animate: { opacity: 1, scale: 1, transition: { type: 'spring', bounce: 0.6, duration: 1 } } },
-    'slide-right': { initial: { opacity: 0, x: -80 }, animate: { opacity: 1, x: 0, transition: { type: 'spring', damping: 25, stiffness: 120 } } },
+    'fade-up': { initial: { opacity: 1, y: 40, scale: 0.95 }, animate: { opacity: 1, y: 0, scale: 1 } },
+    'scale-up': { initial: { opacity: 1, scale: 0.8 }, animate: { opacity: 1, scale: 1 } },
+    'blur-in': { initial: { opacity: 1, filter: 'blur(20px)' }, animate: { opacity: 1, filter: 'blur(0px)' } },
+    '3d-flip': { initial: { opacity: 1, rotateX: 60, y: 50 }, animate: { opacity: 1, rotateX: 0, y: 0, transition: { type: 'spring', damping: 20, stiffness: 80 } } },
+    'elastic-pop': { initial: { opacity: 1, scale: 0.6 }, animate: { opacity: 1, scale: 1, transition: { type: 'spring', bounce: 0.6, duration: 1 } } },
+    'slide-right': { initial: { opacity: 1, x: -80 }, animate: { opacity: 1, x: 0, transition: { type: 'spring', damping: 25, stiffness: 120 } } },
     'none': { initial: { opacity: 1 }, animate: { opacity: 1 } },
   };
   const selectedContainerVariant = containerVariants[containerAnimationPreset as keyof typeof containerVariants] || containerVariants['fade-up'];
 
   const textVariants = {
-    'slide-up': { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } },
-    'fade': { initial: { opacity: 0 }, animate: { opacity: 1 } },
-    'scale': { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 } },
-    'spring-up': { initial: { opacity: 0, y: 40 }, animate: { opacity: 1, y: 0, transition: { type: 'spring', mass: 0.5, damping: 10 } } },
-    'blur-reveal': { initial: { opacity: 0, filter: 'blur(12px)', y: 15 }, animate: { opacity: 1, filter: 'blur(0px)', y: 0 } },
-    'flip-down': { initial: { opacity: 0, rotateX: -90, transformOrigin: 'top' }, animate: { opacity: 1, rotateX: 0, transformOrigin: 'top' } },
+    'slide-up': { initial: { opacity: 1, y: 20 }, animate: { opacity: 1, y: 0 } },
+    'fade': { initial: { opacity: 1 }, animate: { opacity: 1 } },
+    'scale': { initial: { opacity: 1, scale: 0.9 }, animate: { opacity: 1, scale: 1 } },
+    'spring-up': { initial: { opacity: 1, y: 40 }, animate: { opacity: 1, y: 0, transition: { type: 'spring', mass: 0.5, damping: 10 } } },
+    'blur-reveal': { initial: { opacity: 1, filter: 'blur(12px)', y: 15 }, animate: { opacity: 1, filter: 'blur(0px)', y: 0 } },
+    'flip-down': { initial: { opacity: 1, rotateX: -90, transformOrigin: 'top' }, animate: { opacity: 1, rotateX: 0, transformOrigin: 'top' } },
     'none': { initial: { opacity: 1 }, animate: { opacity: 1 } },
   };
   const selectedTextVariant = textVariants[textAnimationPreset as keyof typeof textVariants] || textVariants['slide-up'];
