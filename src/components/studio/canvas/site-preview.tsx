@@ -42,17 +42,6 @@ export function SitePreview() {
       {/* 1. Production Blueprint Frame (High Fidelity) */}
       <div className="absolute -inset-10 border border-zinc-200/50 rounded-[3rem] pointer-events-none transition-all group-hover/canvas:border-zinc-300" />
       
-      {/* Technical Labels (Corners) */}
-      <div className="absolute -top-14 -left-6 flex items-center gap-3 pointer-events-none">
-         <div className="w-8 h-[1px] bg-zinc-200" />
-         <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.3em] italic">
-            Architectural Vector // {currentPage} // {isArchitectureVerified ? 'Verified' : 'Draft'}
-         </span>
-      </div>
-      <div className="absolute -bottom-14 -right-6 flex items-center gap-3 pointer-events-none">
-         <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.3em] italic">End_Of_Stream // {currentPage} // EOF</span>
-         <div className="w-8 h-[1px] bg-zinc-200" />
-      </div>
 
       <div className="relative shadow-2xl shadow-black/[0.08] rounded-[2.5rem] overflow-hidden border border-zinc-200/60 bg-white min-h-[80vh] origin-top transition-all duration-700">
         {/* Component Stream */}
@@ -89,20 +78,6 @@ export function SitePreview() {
               </motion.div>
             )
           })}
-        </div>
-
-        {/* Status Signature */}
-        <div className="py-24 bg-zinc-50/50 border-t border-zinc-100 flex flex-col items-center gap-6">
-           <div className="flex items-center gap-4">
-              <div className="h-[1px] w-12 bg-zinc-200" />
-              <div className="px-6 py-2 bg-white border border-zinc-200 text-zinc-950 rounded-full text-[9px] font-black uppercase tracking-[0.3em] shadow-sm">
-                 Architect v3.0 Verified
-              </div>
-              <div className="h-[1px] w-12 bg-zinc-200" />
-           </div>
-           <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em] italic mb-10">
-              Ready for production eject
-           </p>
         </div>
       </div>
     </div>

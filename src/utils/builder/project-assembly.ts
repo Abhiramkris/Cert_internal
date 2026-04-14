@@ -435,7 +435,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 writable: true 
               });
             }
-            console.log('Premium Secure Context Shim Active');
           }
         \` }} />
       </head>
