@@ -1,143 +1,219 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Instagram, Twitter, Linkedin, Github as GithubIcon, Globe, MapPin } from 'lucide-react';
+import { Globe, Twitter, Github, Linkedin, ArrowUpRight, Cpu } from 'lucide-react';
 import ai from './ai.json';
 
-export const FOOTER_INDUSTRIAL = {
+export const FOOTER_INDUSTRIAL_COMMAND = {
   ...ai,
   type: 'layout',
-  preview: (config: any, content: any, settings: any, pages: string[] = []) => {
-    const navLinks = pages.length > 0 ? pages : ['Home', 'Expertise', 'Projects'];
-
+  preview: (config: any, content: any, settings: any) => {
+    const brandFont = { fontFamily: config?.font_family_heading || 'Inter', fontWeight: '900' };
+    const pFont = { fontFamily: config?.font_family_body || 'Inter' };
+    
     return (
-      <footer className="py-24 px-10 bg-zinc-950 text-white border-t border-white/5 space-y-16">
-        <div className="flex flex-col md:flex-row justify-between gap-12 border-b border-white/5 pb-16">
-           <div className="space-y-6">
-              <div className="text-2xl font-black uppercase italic tracking-tighter flex items-center gap-3" 
-                   style={{ fontFamily: config?.font_family_heading || 'Inter' }}>
-                 <Globe className="w-6 h-6" style={{ color: config?.accent_color || '#10b981' }} />
-                 {content?.brand_name || 'Agency'}
+      <footer className="w-full bg-zinc-950 border-t border-white/5 pt-24 pb-12 px-8 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-24">
+            {/* Brand Column */}
+            <div className="lg:col-span-5 space-y-8">
+              <div className="flex items-center gap-3 text-2xl font-black uppercase italic tracking-tighter text-white" style={brandFont}>
+                <div className="w-10 h-10 bg-white flex items-center justify-center rounded-xl">
+                   <Globe className="w-6 h-6 text-zinc-950" />
+                </div>
+                <span>{content?.brand_name || 'Agency'}</span>
               </div>
-              <p className="text-xs md:text-sm text-zinc-500 font-bold uppercase tracking-[0.2em] max-w-sm leading-relaxed">
-                 High-stakes digital engineering for the world's most demanding enterprises.
+              <p className="text-zinc-500 text-lg leading-relaxed max-w-sm" style={pFont}>
+                {content?.bio || "Architecting the infrastructure of the digital future."}
               </p>
-           </div>
-           
-           <div className="grid grid-cols-2 md:grid-cols-3 gap-10">
-              <div className="space-y-4">
-                 <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Company</h4>
-                 <div className="text-[10px] text-zinc-400 space-y-2 font-bold uppercase tracking-widest">
-                    {navLinks.map((page, i) => (
-                      <p key={i} className="hover:text-white transition-colors cursor-pointer">{page}</p>
-                    ))}
-                 </div>
+              <div className="flex items-center gap-4">
+                 {[Twitter, Github, Linkedin].map((Icon, i) => (
+                   <div key={i} className="w-12 h-12 bg-white/5 border border-white/5 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                      <Icon className="w-5 h-5" />
+                   </div>
+                 ))}
               </div>
-           </div>
-        </div>
+            </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500">
-           <span>© {new Date().getFullYear()} {content?.brand_name || 'Agency'} LABS INC.</span>
-           <div className="flex gap-8">
-              <a href={content?.privacy_policy_url || '#'} className="hover:text-white cursor-pointer transition-colors" style={{ color: config?.accent_color }}>Privacy Vector</a>
-              <a href={content?.terms_url || '#'} className="hover:text-white cursor-pointer transition-colors" style={{ color: config?.accent_color }}>Terms of Command</a>
-           </div>
+            {/* Links Grid */}
+            <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-3 gap-12">
+               {(content?.links || []).map((col: any, i: number) => (
+                 <div key={i} className="space-y-6">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">
+                      {col.label}
+                    </h4>
+                    <ul className="space-y-4">
+                       {col.links?.map((link: string, j: number) => (
+                         <li key={j} className="text-zinc-400 hover:text-white transition-colors cursor-pointer text-sm font-medium flex items-center gap-2 group">
+                            <span>{link}</span>
+                            <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all -translate-y-1" />
+                         </li>
+                       ))}
+                    </ul>
+                 </div>
+               ))}
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+             <div className="flex items-center gap-6 text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600">
+                <span>© {new Date().getFullYear()} {content?.brand_name}</span>
+                <span>All Rights Reserved</span>
+             </div>
+             
+             {settings?.show_status && (
+                <div className="flex items-center gap-4 px-6 py-2 bg-white/5 border border-white/5 rounded-full">
+                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
+                   <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500/80">Network Status: Operational</span>
+                   <div className="w-[1px] h-3 bg-white/10 mx-2" />
+                   <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Node-01-Verified</span>
+                </div>
+             )}
+          </div>
         </div>
       </footer>
     );
   },
-  code: (config: any) => `
+  code: (config: any, content: any, settings: any) => `
 'use client'
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Instagram, Twitter, Linkedin, Github as GithubIcon, Globe, MapPin, ArrowUpRight } from 'lucide-react';
-import config from '../data/config.json';
+import { Globe, Twitter, Github, Linkedin, ArrowUpRight, Cpu, Layers } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
-const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
-
-export default function FooterIndustrial() {
-  const global = config.styles;
-  const content = config.content;
-  const pages = config.pages || ['Home', 'Expertise', 'Projects'];
+export default function IndustrialCommandFooter() {
+  const global = ${JSON.stringify(config)};
+  const content = ${JSON.stringify(content)};
+  const settings = ${JSON.stringify(settings)};
   
-  // Split pages into two columns if there are many, or just duplicate them cleanly for structure.
-  const column1 = pages.slice(0, Math.ceil(pages.length / 2)) || ['Blueprint', 'Strategy'];
-  const column2 = pages.slice(Math.ceil(pages.length / 2)) || ['Audits', 'Network'];
+  const links = content?.links || [
+    { label: "Solutions", links: ["Global Ledger", "Neural Audit", "Quantum Mesh"] },
+    { label: "Ecosystem", links: ["Network Status", "Developer Node", "Community"] },
+    { label: "Company", links: ["About Force", "Careers", "Legal"] }
+  ];
 
   return (
-    <footer className="py-24 px-10 bg-zinc-950 text-white border-t border-white/5 space-y-24 selection:bg-emerald-500 selection:text-white">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between gap-24 lg:gap-32 pb-24 border-b border-white/5">
-        <div className="space-y-12 flex-1">
-           <motion.div 
-             whileHover={{ x: 5 }}
-             className="text-3xl font-black uppercase italic tracking-tighter flex items-center gap-4 group cursor-pointer"
-           >
-              <div className="w-12 h-12 bg-white flex items-center justify-center rounded-2xl shadow-2xl shadow-emerald-500/10">
-                 <Globe className="w-6 h-6 text-zinc-950" />
+    <footer className="w-full bg-zinc-950 border-t border-white/5 pt-32 pb-16 px-6 md:px-12 overflow-hidden relative">
+      {/* Background Architectural Grid */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" 
+           style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+      
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 mb-32">
+          
+          {/* Brand Column */}
+          <div className="lg:col-span-5 space-y-12">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="flex items-center gap-4 text-3xl font-black uppercase italic tracking-tighter text-white"
+            >
+              <div className="w-12 h-12 bg-white flex items-center justify-center rounded-2xl shadow-2xl shadow-white/5">
+                 <Globe className="w-7 h-7 text-zinc-950" />
               </div>
-              <span>{content.brand_name || 'Agency'}</span>
-           </motion.div>
-           
-           <p className="text-lg text-zinc-500 font-medium max-w-sm leading-relaxed mt-10">
-              Transforming complex industrial logic into seamless digital breakthroughs of the highest technical caliber.
-           </p>
+              <span style={{ fontFamily: global.font_family_heading }}>{content.brand_name}</span>
+            </motion.div>
+            
+            <motion.p 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              viewport={{ once: true }}
+              className="text-zinc-500 text-xl leading-relaxed max-w-md"
+              style={{ fontFamily: global.font_family_body }}
+            >
+              {content.bio}
+            </motion.p>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              viewport={{ once: true }}
+              className="flex items-center gap-5"
+            >
+               {[Twitter, Github, Linkedin].map((Icon, i) => (
+                 <Link key={i} href="#">
+                   <motion.div 
+                     whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                     whileTap={{ scale: 0.9 }}
+                     className="w-14 h-14 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white transition-all shadow-xl"
+                   >
+                      <Icon className="w-6 h-6" />
+                   </motion.div>
+                 </Link>
+               ))}
+            </motion.div>
+          </div>
 
-           <div className="flex gap-8">
-              {[
-                { Icon: Twitter, url: content?.twitter_url || '#' },
-                { Icon: Linkedin, url: content?.linkedin_url || '#' },
-                { Icon: GithubIcon, url: content?.github_url || content?.github_link || '#' }
-              ].map(({ Icon, url }, idx) => (
-                <motion.a 
-                  key={idx}
-                  href={url}
-                  target="_blank"
-                  rel="noreferrer"
-                  initial={{ color: '#ffffff' }}
-                  whileHover={{ y: -5, color: '#10b981' }}
-                  className="w-10 h-10 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center cursor-pointer transition-all"
-                >
-                   <Icon className="w-5 h-5" />
-                </motion.a>
-              ))}
+          {/* Links Grid */}
+          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-16">
+             {links.map((col, i) => (
+               <motion.div 
+                 key={i} 
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.3 + (i * 0.1) }}
+                 viewport={{ once: true }}
+                 className="space-y-8"
+               >
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.5em] text-zinc-600">
+                    {col.label}
+                  </h4>
+                  <ul className="space-y-5">
+                     {col.links.map((link, j) => (
+                       <li key={j}>
+                         <Link href="#" className="text-zinc-400 hover:text-white transition-all text-base font-semibold flex items-center gap-2 group">
+                            <span className="relative">
+                              {link}
+                              <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-white group-hover:w-full transition-all duration-500" />
+                            </span>
+                            <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+                         </Link>
+                       </li>
+                     ))}
+                  </ul>
+               </motion.div>
+             ))}
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          viewport={{ once: true }}
+          className="pt-16 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-10"
+        >
+           <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700">
+              <span className="hover:text-zinc-400 transition-colors cursor-pointer">© {new Date().getFullYear()} {content.brand_name}</span>
+              <span className="hidden md:block w-1.5 h-1.5 bg-zinc-800 rounded-full" />
+              <span className="hover:text-zinc-400 transition-colors cursor-pointer">Privileges Reserved</span>
+              <span className="hidden md:block w-1.5 h-1.5 bg-zinc-800 rounded-full" />
+              <span className="hover:text-zinc-400 transition-colors cursor-pointer">Security Protocol: v4.1</span>
            </div>
-        </div>
-
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-16 md:gap-24">
-           {[ {title: 'Navigation', links: column1}, {title: 'Resources', links: column2.length ? column2 : ['Privacy', 'Terms']}, {title: 'Legal', links: ['Access Control', 'Data Matrix', 'Command Protocols']} ].map((col, idx) => (
-             <div key={idx} className="space-y-8">
-                <h4 className="text-[11px] font-black uppercase tracking-[0.5em] text-zinc-700 underline underline-offset-8 decoration-emerald-800">{col.title}</h4>
-                <ul className="text-xs font-bold text-zinc-500 space-y-5 uppercase tracking-[0.2em]">
-                   {col.links.map((link) => (
-                     <li key={link} className="hover:text-emerald-500 cursor-pointer flex items-center gap-2 group transition-all">
-                        {link}
-                        <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                     </li>
-                   ))}
-                </ul>
-             </div>
-           ))}
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 pt-16 text-[10px] font-black uppercase tracking-[0.6em] text-zinc-600">
-         <div className="flex flex-col gap-2 md:items-start text-center md:text-left">
-            <span>© {new Date().getFullYear()} {content.brand_name || 'Agency'} LABS INC.</span>
-            <span className="text-zinc-800 text-[8px]">ALL DATA ENCRYPTED VIA INDUSTRIAL COMMAND PROTOCOL.</span>
-         </div>
-         
-         <div className="flex flex-wrap justify-center gap-10 md:gap-20">
-            <a href={content?.privacy_policy_url || '#'} className="hover:text-white cursor-pointer transition-colors relative group">
-               Privacy Vector
-               <div className="absolute -bottom-2 left-0 w-0 h-[1px] bg-emerald-500 group-hover:w-full transition-all duration-300" />
-            </a>
-            <a href={content?.terms_url || '#'} className="hover:text-white cursor-pointer transition-colors relative group">
-               Terms of Command
-               <div className="absolute -bottom-2 left-0 w-0 h-[1px] bg-emerald-500 group-hover:w-full transition-all duration-300" />
-            </a>
-         </div>
+           
+           {settings?.show_status && (
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center gap-5 px-8 py-3 bg-zinc-900 border border-white/5 rounded-2xl shadow-2xl"
+              >
+                 <div className="relative">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping absolute inset-0" />
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full relative z-10" />
+                 </div>
+                 <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500/80">Network: Optimal</span>
+                 <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Live Feedback Active</span>
+              </motion.div>
+           )}
+        </div >
       </div>
     </footer>
   );
 }
-  `
+`
 };

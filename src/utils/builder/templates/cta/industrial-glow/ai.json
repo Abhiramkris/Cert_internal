@@ -1,0 +1,16 @@
+{
+  "id": "CTA_INDUSTRIAL_GLOW",
+  "name": "Industrial Glow CTA",
+  "description": "Magnetic conversion section with volumetric lighting and glassmorphism.",
+  "category": "cta",
+  "fields": [
+    { "id": "h2", "label": "Heading", "type": "text", "default": "Initiate your digital transformation today." },
+    { "id": "description", "label": "Description", "type": "textarea", "default": "Join the global network of enterprises leveraging our precision-engineered infrastructure to scale at the speed of light." },
+    { "id": "cta_text", "label": "Button Text", "type": "text", "default": "Request Access Node" },
+    { "id": "secondary_text", "label": "Secondary Link", "type": "text", "default": "View Documentation" }
+  ],
+  "settings": [
+    { "id": "glow_color", "label": "Glow Tone", "type": "select", "options": ["emerald", "blue", "purple", "white"], "default": "emerald" },
+    { "id": "layout_variant", "label": "Layout Alignment", "type": "select", "options": ["center", "split"], "default": "center" }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "SERVICES_INDUSTRIAL_GRID",
+  "name": "Industrial Features Grid",
+  "description": "High-density services grid with icon capsules and glassmorphism.",
+  "category": "services",
+  "fields": [
+    { "id": "h2", "label": "Main Heading", "type": "text", "default": "Architectural Nodes & Solution Sets" },
+    { "id": "description", "label": "Description", "type": "textarea", "default": "Explore our multi-layered solutions designed for industrial resilience and digital performance." },
+    { "id": "services", "label": "Services/Features", "type": "list", "itemType": "object", "default": [
+      { "title": "Neural Orchestration", "desc": "Advanced AI kernels integrated into your core architecture.", "icon": "Cpu" },
+      { "label": "Security Mesh", "desc": "Multi-layer encryption nodes for enterprise-grade integrity.", "icon": "Shield" },
+      { "label": "Quantum Scaling", "desc": "Elastic infrastructure that scales at the speed of thought.", "icon": "Zap" },
+      { "label": "Global Logistics", "desc": "Distributed network nodes for zero-latency delivery.", "icon": "Globe" }
+    ]}
+  ],
+  "settings": [
+    { "id": "columns", "label": "Columns", "type": "select", "options": ["2", "3", "4"], "default": "3" },
+    { "id": "card_style", "label": "Card Style", "type": "select", "options": ["bordered", "glass", "minimal"], "default": "bordered" }
+  ]
+}

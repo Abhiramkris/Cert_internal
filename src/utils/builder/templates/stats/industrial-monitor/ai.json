@@ -1,0 +1,20 @@
+{
+  "id": "STATS_INDUSTRIAL_MONITOR",
+  "name": "Industrial Stats Monitor",
+  "description": "Premium metric display with glassmorphism and animated counters.",
+  "category": "stats",
+  "fields": [
+    { "id": "h2", "label": "Heading", "type": "text", "default": "Global Impact & Verified Performance" },
+    { "id": "description", "label": "Description", "type": "textarea", "default": "Our metrics reflect a commitment to excellence across every vertical of the enterprise." },
+    { "id": "stats", "label": "Metrics", "type": "list", "itemType": "object", "default": [
+      { "label": "Systems Verified", "value": "2.4k+", "icon": "Shield" },
+      { "label": "Global Uptime", "value": "99.9%", "icon": "Zap" },
+      { "label": "Annual Revenue", "value": "$12.4M", "icon": "BarChart" },
+      { "label": "Cities Reached", "node": "480", "icon": "Globe" }
+    ]}
+  ],
+  "settings": [
+    { "id": "theme", "label": "Theme", "type": "select", "options": ["dark", "glass", "vibrant"], "default": "dark" },
+    { "id": "columns", "label": "Grid Columns", "type": "select", "options": ["2", "3", "4"], "default": "4" }
+  ]
+}

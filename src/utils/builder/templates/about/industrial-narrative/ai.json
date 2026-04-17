@@ -1,0 +1,20 @@
+{
+  "id": "ABOUT_INDUSTRIAL_NARRATIVE",
+  "name": "Industrial Narrative",
+  "description": "High-fidelity story section with split layout and geometric image masking.",
+  "category": "about",
+  "fields": [
+    { "id": "eyebrow", "label": "Eyebrow Text", "type": "text", "default": "Foundational Philosophy" },
+    { "id": "h2", "label": "Heading", "type": "text", "default": "Engineering the future of digital architecture." },
+    { "id": "description", "label": "Main Description", "type": "textarea", "default": "Our mission is to bridge the gap between complex industrial engineering and intuitive digital experiences. We believe that true design excellence lies at the intersection of performance and aesthetics." },
+    { "id": "points", "label": "Key Highlights", "type": "list", "itemType": "object", "default": [
+      { "label": "Neural Optimizations", "desc": "Proprietary AI kernels for maximum load efficiency." },
+      { "label": "Architectural Integrity", "desc": "Clean codebases built for industrial-scale resilience." }
+    ]},
+    { "id": "image", "label": "Narrative Image", "type": "image", "default": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200" }
+  ],
+  "settings": [
+    { "id": "image_side", "label": "Image Position", "type": "select", "options": ["left", "right"], "default": "right" },
+    { "id": "animation_intensity", "label": "Animation Intensity", "type": "select", "options": ["subtle", "dynamic", "aggressive"], "default": "dynamic" }
+  ]
+}

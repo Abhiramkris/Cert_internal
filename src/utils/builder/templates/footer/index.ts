@@ -1,5 +1,5 @@
-import { FOOTER_INDUSTRIAL } from './industrial-footer';
+import { FOOTER_INDUSTRIAL_COMMAND } from './industrial-footer';
 
 export const FOOTER_COMPONENTS = {
-  FOOTER_INDUSTRIAL
+  FOOTER_INDUSTRIAL_COMMAND
 };
