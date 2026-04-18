@@ -69,7 +69,7 @@ checks.forEach(check => {
       passedAll = false;
       console.log(`[FAIL] ${check.name}`);
       console.log(`       Target was not found in ${check.file}`);
-      console.log(`       Checking for: ${check.expected}`);
+      console.log(`       Checking for: ${check.expected} `);
     }
   } catch (err) {
     passedAll = false;
