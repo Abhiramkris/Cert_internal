@@ -394,21 +394,27 @@ export async function previewProject(projectId: string) {
   // 1. Cleanup existing process tree
   await killExistingPreview(projectId)
 
-  // 2. Zero-Cache Purge (Keep node_modules)
+  // 2. Reserve a port early so we can inject it into the basePath
+  const assignedPort = await getAvailablePort(3001, 3010)
+
+  // 3. Zero-Cache Purge (Keep node_modules)
   console.log(`[Preview ${projectId}]: Purging stale cache...`)
   await purgeDirectory(previewDir)
   await fs.mkdir(previewDir, { recursive: true })
 
-  // 3. Assemble and Write Files
+  // 4. Assemble and Write Files
   const headerList = await headers()
-  const requestHost = headerList.get('host')?.split(':')[0]
+  const currentHost = headerList.get('host') || 'localhost'
+  const isCloud = currentHost.includes('cloud-ip.cc')
+  const protocol = isCloud ? 'https' : 'http'
+  
   const files = assembleProjectFiles(project, config, { 
     isPreview: true,
-    currentHost: requestHost,
-    basePath: `/preview/\${assignedPort}`
+    currentHost: currentHost.split(':')[0],
+    basePath: `/preview/${projectId}`
   })
 
-  // 3. Atomic File Write
+  // 5. Atomic File Write
   for (const [filePath, content] of Object.entries(files)) {
     const fullPath = path.join(previewDir, filePath)
     await fs.mkdir(path.dirname(fullPath), { recursive: true })
@@ -426,9 +432,8 @@ export async function previewProject(projectId: string) {
   const configPath = path.join(previewDir, 'data/config.json')
   await fs.utimes(configPath, new Date(), new Date())
 
-  // 5. Build/Run Lifecycle
+  // 6. Build/Run Lifecycle
   try {
-    const assignedPort = await getAvailablePort(3001, 3010)
     console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
 
     const nextBin = await findNextBinary()
@@ -442,21 +447,14 @@ export async function previewProject(projectId: string) {
       env: { ...process.env, NODE_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1' }
     })
 
-    child.stdout?.on('data', (data) => {
-      console.log(`[Preview ${projectId}]: ${data.toString().trim()}`)
-    })
-
-    child.stderr?.on('data', (data) => {
-      console.error(`[Preview ${projectId} ERR]: ${data.toString().trim()}`)
-    })
+    child.stdout?.on('data', (data) => console.log(`[Preview ${projectId}]: ${data.toString().trim()}`))
+    child.stderr?.on('data', (data) => console.error(`[Preview ${projectId} ERR]: ${data.toString().trim()}`))
 
     activePreviews[projectId] = child
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost'
-    const hostname = new URL(siteUrl).hostname
-    const publicUrl = `http://\${hostname}/preview/\${assignedPort}/`
+    const publicUrl = `/preview/${projectId}/`
 
-    // Persist only the PORT and the relative status, not the absolute URL
+    // Persist only the PORT
     await supabase.from('projects').update({
       dev_config: { 
         ...(project.dev_config || {}), 
@@ -530,6 +528,25 @@ export async function previewComponent(componentId: string) {
   // 2. Launch Preview Node
   try {
     const assignedPort = await getAvailablePort(3001, 3010)
+    
+    // RE-ASSEMBLE with the correct basePath
+    const headerList = await headers()
+    const currentHost = headerList.get('host') || 'localhost'
+    const isCloud = currentHost.includes('cloud-ip.cc')
+    const protocol = isCloud ? 'https' : 'http'
+
+    const files = assembleProjectFiles(mockProject as any, mockConfig as any, { 
+      isPreview: true,
+      currentHost: currentHost.split(':')[0],
+      basePath: `/preview/${previewId}`
+    })
+
+    for (const [relativePath, content] of Object.entries(files)) {
+      const fullPath = path.join(previewDir, relativePath)
+      await fs.mkdir(path.dirname(fullPath), { recursive: true })
+      await fs.writeFile(fullPath, content)
+    }
+
     console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
 
     const nextBin = await findNextBinary()
@@ -546,15 +563,12 @@ export async function previewComponent(componentId: string) {
 
     activePreviews[previewId] = child
 
-    const headerList = await headers()
-    const host = headerList.get('host') || 'localhost:6565'
-    const hostname = host.split(':')[0]
-    const publicUrl = `http://\${hostname}/preview/\${assignedPort}/`
+    const publicUrl = `/preview/${previewId}/`
 
     return {
       success: true,
       url: publicUrl,
-      message: `Library Audit: \${componentId} is live.`
+      message: `Library Audit: ${componentId} is live.`
     }
   } catch (err: any) {
     console.error('Library Audit Failed:', err)
@@ -565,90 +579,49 @@ export async function previewComponent(componentId: string) {
 
 
 export async function syncProductionBuild(projectId: string) {
-  // Use Admin Client to bypass RLS for background build tasks
+  // Use Admin Client to bypass RLS
   const supabase = createAdminClient()
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('*, dev_config(*)')
-    .eq('id', projectId)
+  console.log(`[Queue]: Adding build job for project ${projectId}...`)
+
+  // Create a Deployment Job
+  const { data: job, error } = await supabase
+    .from('deployment_jobs')
+    .insert({
+      project_id: projectId,
+      status: 'PENDING'
+    })
+    .select()
     .single()
 
-  if (!project) throw new Error('Project not found')
-  
-  const repoLink = project.dev_config?.repo_link
-  if (!repoLink) throw new Error('No GitHub repository linked to this project')
-
-  const slug = project.client_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-  const syncDir = path.join(process.cwd(), 'tmp/sync', projectId)
-  const buildOutDir = path.join(syncDir, 'out')
-  const finalDestDir = path.join(process.cwd(), 'builds', slug)
-
-  try {
-    console.log(`[Sync ${projectId}]: Initializing build for ${slug}...`)
-    
-    // 1. Prepare Workspace
-    await fs.mkdir(path.join(process.cwd(), 'tmp/sync'), { recursive: true })
-    
-    // 2. Clone or Pull
-    try {
-      await fs.access(syncDir)
-      console.log(`[Sync ${projectId}]: Pulling latest changes...`)
-      await execAsync('git pull', { cwd: syncDir })
-    } catch {
-      console.log(`[Sync ${projectId}]: Cloning repository...`)
-      await execAsync(`git clone ${repoLink} ${syncDir}`)
+  if (error) {
+    console.error(`[Queue ERR]: Failed to insert into deployment_jobs: ${error.message}`)
+    if (error.message.includes('not found')) {
+      console.warn('HINT: The deployment_jobs table is missing. Run the SQL migration provided in the walkthrough.')
     }
-
-    // 3. Install Dependencies
-    console.log(`[Sync ${projectId}]: Installing dependencies...`)
-    await execAsync('npm install', { cwd: syncDir })
-
-    // 4. Production Build (Assuming Next.js with output: export)
-    console.log(`[Sync ${projectId}]: Running production build...`)
-    // Ensure we force the build to be an export if the user hasn't set it yet
-    // Since we are building from GitHub, we assume the dev might have already added output: 'export'
-    // but if we are the ones who generated it, our latest assembly supports it.
-    await execAsync('npm run build', { cwd: syncDir })
-
-    // 5. Deploy to Subdomain Volume
-    console.log(`[Sync ${projectId}]: Deploying to ${finalDestDir}...`)
-    await fs.mkdir(finalDestDir, { recursive: true })
     
-    // Atomic Swap: Remove old out and copy new one
-    const finalOut = path.join(finalDestDir, 'out')
-    await fs.rm(finalOut, { recursive: true, force: true })
-    
-    // Check if 'out' exists (Next.js default export dir)
-    try {
-      await fs.access(buildOutDir)
-      await execAsync(`cp -r ${buildOutDir} ${finalOut}`)
-    } catch (e) {
-      // Fallback: check for 'dist' or other common names if needed, 
-      // but the user said "same that the website we build" so 'out' is expected.
-      throw new Error("Build completed but 'out' directory not found. Ensure next.config.js has output: 'export'.")
-    }
-
-    console.log(`[Sync ${projectId}]: Full deployment successful.`)
-    
-    const liveUrl = `http://${slug}.tool.cloud-ip.cc/`
-    
-    // Update live_preview_url in dev_config
+    // Fallback: Still set BUILDING in dev_config for UI feedback
     await supabase.from('dev_config').upsert({
       project_id: projectId,
-      live_preview_url: liveUrl
+      sync_status: 'BUILDING'
     })
+    throw new Error(`Failed to queue build: ${error.message}`)
+  }
 
-    revalidatePath(`/dashboard/projects/${projectId}`)
-    
-    return { 
-      success: true, 
-      url: liveUrl,
-      message: 'Production build synchronized and deployed successfully' 
-    }
+  console.log(`[Queue SUCCESS]: Created job ${job.id} for project ${projectId}`)
 
-  } catch (err: any) {
-    console.error(`[Sync ${projectId} ERR]:`, err.message)
-    throw new Error(`Sync Failed: ${err.message}`)
+  // Set UI state to BUILDING so the dashboard reflects the queue
+  await supabase.from('dev_config').upsert({
+    project_id: projectId,
+    sync_status: 'BUILDING',
+    sync_error: null
+  })
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+  
+  return { 
+    success: true, 
+    jobId: job.id,
+    message: 'Production build queued in independent service' 
   }
 }

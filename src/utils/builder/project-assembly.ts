@@ -161,9 +161,9 @@ export default function ${pageName.replace(/\s+/g, '')}Page() {
 
   files['app/privacy-policy/page.tsx'] = `
 import React from 'react';
-import config from '../data/config.json';
-${privacyImports.join('\n')}
-${defaultFooter ? `import ${defaultFooter.replace(/_/g, '')} from '../components/${defaultFooter.toLowerCase().replace(/_/g, '-')}';` : ''}
+import config from '../../data/config.json';
+${privacyImports.join('\n').replace(/\.\.\/components/g, '../../components')}
+${defaultFooter ? `import ${defaultFooter.replace(/_/g, '')} from '../../components/${defaultFooter.toLowerCase().replace(/_/g, '-')}';` : ''}
 
 export default function PrivacyPolicyPage() {
   const companyName = config.content.brand_name || "${project.client_name}";
@@ -319,17 +319,6 @@ module.exports = {
   ${options.basePath ? "basePath: '" + options.basePath + "'," : ""}
   ${options.isProduction ? "output: 'export'," : ""}
   typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
-  experimental: {
-    turbo: {
-      rules: {
-         '*.svg': {
-            loaders: ['@svgr/webpack'],
-            as: 'js',
-         },
-      },
-    },
-  },
 };`.trim();
   files['next.config.js'] = nextConfig;
 

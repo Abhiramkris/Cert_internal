@@ -47,3 +47,6 @@ $ docker-compose stop
 
 To completely tear down the containers and remove the custom network:
 $ docker-compose down
+
+npx tsx src/services/worker.ts
+

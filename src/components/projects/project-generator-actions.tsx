@@ -137,33 +137,54 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
           <div className="pt-2">
             {project.dev_config?.[0]?.repo_link ? (
               <div className="space-y-4">
-                <Button
-                  onClick={handleSyncGithub}
-                  disabled={isSyncing || isPreviewing || isGenerating}
-                  className="w-full h-14 rounded-2xl bg-white border-2 border-emerald-500 text-emerald-600 font-black uppercase tracking-[0.2em] hover:bg-emerald-50 shadow-[4px_4px_0px_0px_rgba(16,185,129,0.1)] transition-all flex items-center justify-center gap-3 text-[11px] group/sync"
-                >
-                  <div className={isSyncing ? "animate-spin" : ""}>
-                    <RefreshCcw className="w-5 h-5" />
+                {(() => {
+                  const devConfig = project.dev_config[0]
+                  return (
+                    <>
+                {devConfig.sync_status === 'BUILDING' && (
+                  <div className="flex flex-col items-center gap-3 py-4 border-2 border-emerald-100 bg-emerald-50/30 rounded-2xl animate-pulse">
+                    <RefreshCcw className="w-6 h-6 text-emerald-500 animate-spin" />
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Building Production Bundle...</p>
                   </div>
-                  {isSyncing ? 'Syncing...' : 'Sync GitHub Production'}
-                </Button>
+                ) || (
+                  <Button
+                    onClick={handleSyncGithub}
+                    disabled={isSyncing || isPreviewing || isGenerating}
+                    className="w-full h-14 rounded-2xl bg-white border-2 border-emerald-500 text-emerald-600 font-black uppercase tracking-[0.2em] hover:bg-emerald-50 shadow-[4px_4px_0px_0px_rgba(16,185,129,0.1)] transition-all flex items-center justify-center gap-3 text-[11px] group/sync"
+                  >
+                    <div className={isSyncing ? "animate-spin" : ""}>
+                      <RefreshCcw className="w-5 h-5" />
+                    </div>
+                    {isSyncing ? 'Sync GitHub Production' : 'Sync GitHub Production'}
+                  </Button>
+                )}
                 
-                {project.dev_config?.[0]?.live_preview_url && (
+                {devConfig.sync_status === 'FAILED' && (
+                  <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl">
+                    <p className="text-[10px] font-bold text-rose-600 uppercase tracking-tight mb-1">Last Build Failed</p>
+                    <p className="text-[10px] text-rose-500 font-medium leading-tight">{devConfig.sync_error || 'Unknown error during sync'}</p>
+                  </div>
+                )}
+                
+                {devConfig.live_preview_url && (
                   <a 
-                    href={project.dev_config[0].live_preview_url}
+                    href={devConfig.live_preview_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
                   >
                     <Globe className="w-3.h-3" />
-                    Live: {project.dev_config[0].live_preview_url.replace('http://', '')}
+                    Live: {devConfig.live_preview_url.replace('http://', '').replace(/\/$/, '')}
                     <ExternalLink className="w-3 h-3" />
                   </a>
-                ) || (
+                ) || !devConfig.sync_status || devConfig.sync_status === 'IDLE' && (
                   <p className="text-[10px] text-zinc-400 font-bold text-center uppercase tracking-widest">
                     Subdomain pending first sync
                   </p>
                 )}
+                    </>
+                  )
+                })()}
               </div>
             ) : (
               <div className="p-4 rounded-2xl border-2 border-dashed border-zinc-100 bg-zinc-50/50 flex flex-col items-center gap-2">

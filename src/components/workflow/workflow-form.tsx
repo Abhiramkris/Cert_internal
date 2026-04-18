@@ -203,6 +203,7 @@ export function WorkflowForm({
                            id={fieldName} 
                            name={fieldName} 
                            placeholder={f.placeholder} 
+                           key={`${fieldName}-${getDisplayValue(initialData[f.isStatic ? f.key : f.name])}`}
                            defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
                            readOnly={fieldReadOnly}
                            className="min-h-[140px] w-full bg-white border border-zinc-200 p-6 text-[14px] font-bold tracking-tight text-zinc-950 focus:ring-4 focus:ring-zinc-950/5 transition-all outline-none resize-none placeholder:text-zinc-300 leading-relaxed rounded-none shadow-none" 
@@ -211,6 +212,7 @@ export function WorkflowForm({
                          <select 
                            id={fieldName} 
                            name={fieldName} 
+                           key={`${fieldName}-${getDisplayValue(initialData[f.isStatic ? f.key : f.name])}`}
                            defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
                            disabled={fieldReadOnly}
                            className="w-full h-14 bg-white border border-zinc-200 px-6 text-[14px] font-bold tracking-tight text-zinc-950 focus:ring-4 focus:ring-zinc-950/5 transition-all appearance-none cursor-pointer outline-none rounded-none shadow-none"
@@ -224,6 +226,7 @@ export function WorkflowForm({
                            name={fieldName} 
                            type={fieldType} 
                            placeholder={f.placeholder || "Enter details..."} 
+                           key={`${fieldName}-${getDisplayValue(initialData[f.isStatic ? f.key : f.name])}`}
                            defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
                            readOnly={fieldReadOnly}
                            className="h-14 w-full bg-white border border-zinc-200 px-6 text-[14px] font-bold tracking-tight text-zinc-950 focus:ring-4 focus:ring-zinc-950/5 transition-all placeholder:text-zinc-300 rounded-none shadow-none" 
