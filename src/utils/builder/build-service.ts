@@ -3,6 +3,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { assembleProjectFiles } from './project-assembly'
 
 const execAsync = promisify(exec)
 
@@ -30,31 +31,76 @@ export async function performProductionBuild(projectId: string, repoLink: string
   try {
     log(`Initializing build process for ${slug}...`)
     
-    // 1. Prepare Workspace
+    // 1. Fetch Latest Config from DB
+    log(`Syncing latest Designer changes for ${clientName}...`)
+    const { data: projectRecord, error: projectError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single()
+
+    if (projectError || !projectRecord) throw new Error(`Project ${projectId} not found in DB.`)
+    const config = projectRecord.config?.builder
+    if (!config) throw new Error(`Builder configuration not found for ${projectId}.`)
+
+    // 2. Prepare Workspace
     await fs.mkdir(path.join(process.cwd(), 'tmp/sync'), { recursive: true })
     
-    // 2. Clone or Pull
+    // 3. Clone or Pull
     try {
       await fs.access(syncDir)
       log(`Found existing workspace. Pulling latest changes...`)
-      const { stdout, stderr } = await execAsync('git pull', { cwd: syncDir })
+      const { stderr } = await execAsync('git pull', { cwd: syncDir })
       if (stderr && !stderr.includes('Updating')) log(`Git Pulled: ${stderr}`)
     } catch {
       log(`Workspace not found. Cloning repository ${repoLink}...`)
       await execAsync(`git clone ${repoLink} ${syncDir}`)
     }
 
-    // 3. Install Dependencies
+    // 4. Fresh Code Generation (The Sync)
+    log(`Injecting latest Designer files into workspace...`)
+    const files = assembleProjectFiles(projectRecord, config, { isProduction: true })
+    for (const [filePath, content] of Object.entries(files)) {
+      const fullPath = path.join(syncDir, filePath)
+      await fs.mkdir(path.dirname(fullPath), { recursive: true })
+      await fs.writeFile(fullPath, content)
+    }
+
+    // 5. Git Synchronization (Push back to GitHub)
+    try {
+      log(`Pushing updates to GitHub...`)
+      await execAsync('git add .', { cwd: syncDir })
+      // Check if there are changes to commit
+      const { stdout: status } = await execAsync('git status --porcelain', { cwd: syncDir })
+      if (status) {
+        await execAsync('git commit -m "chore: sync project structure from Studio Architect Designer [bot]"', { cwd: syncDir })
+        await execAsync('git push', { cwd: syncDir })
+        log(`Git Pushed: Updated project structure successfully.`)
+      } else {
+        log(`Git: No changes to push. Workspace already in sync.`)
+      }
+    } catch (gitErr: any) {
+      log(`Git Warning: Could not push to remote. Continuing build... (${gitErr.message})`)
+    }
+
+    // 6. Install Dependencies
     log(`Installing dependencies (npm install)...`)
     await execAsync('npm install', { cwd: syncDir })
 
-    // 4. Production Build
+    // 7. Production Build
     log(`Running production build (npm run build)...`)
-    // Note: We expect 'output: export' in next.config.js
-    await execAsync('env NEXT_TELEMETRY_DISABLED=1 npm run build', { cwd: syncDir })
+    
+    // Attempt build with isolation hints
+    const { stdout: buildOut, stderr: buildErr } = await execAsync('env NEXT_TELEMETRY_DISABLED=1 npm run build', { 
+      cwd: syncDir,
+      env: { ...process.env, NODE_ENV: 'production' }
+    })
+    
+    if (buildOut) log(`Build Output: ${buildOut.slice(-500)}`)
+    if (buildErr) log(`Build Warnings: ${buildErr.slice(-500)}`)
 
-    // 5. Deploy to Subdomain Volume
-    log(`Deploying static assets to ${finalDestDir}...`)
+    // 8. Deploy to Subdomain Volume
+    log(`Deployment Phase: Moving assets to ${finalDestDir}...`)
     await fs.mkdir(finalDestDir, { recursive: true })
     
     const finalOut = path.join(finalDestDir, 'out')

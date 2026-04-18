@@ -19,11 +19,12 @@
 
 # production
 /build
+/builds
+/out/
 
 # misc
 /tmp
-tmp
-tmp/
+/tmp/
 .DS_Store
 *.pem
 

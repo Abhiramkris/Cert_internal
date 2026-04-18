@@ -87,9 +87,9 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
     const toastId = toast.loading('Synchronizing Production Build...')
     try {
       const result = await syncProductionBuild(project.id)
-      if (result.success && result.url) {
+      if (result.success) {
         toast.success(result.message || 'Production Build Deployed', { id: toastId })
-        window.open(result.url, '_blank')
+        // Note: The live link will appear below the button once the background worker finishes
       } else {
         toast.error('Sync failed', { id: toastId })
       }
@@ -135,18 +135,29 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
           </div>
 
           <div className="pt-2">
-            {project.dev_config?.[0]?.repo_link ? (
-              <div className="space-y-4">
-                {(() => {
-                  const devConfig = project.dev_config[0]
-                  return (
-                    <>
-                {devConfig.sync_status === 'BUILDING' && (
+            {(() => {
+              // Normalize dev_config: could be an array (join) or a single object (single() join)
+              const devConfig = Array.isArray(project.dev_config) ? project.dev_config[0] : project.dev_config
+              
+              if (!devConfig?.repo_link) {
+                return (
+                  <div className="p-4 rounded-2xl border-2 border-dashed border-zinc-100 bg-zinc-50/50 flex flex-col items-center gap-2">
+                    <Github className="w-6 h-6 text-zinc-300" />
+                    <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 text-center">
+                      Link GitHub Repo in Developer Config to enable Production Sync
+                    </p>
+                  </div>
+                )
+              }
+
+              return (
+                <div className="space-y-4">
+                  {devConfig.sync_status === 'BUILDING' ? (
                   <div className="flex flex-col items-center gap-3 py-4 border-2 border-emerald-100 bg-emerald-50/30 rounded-2xl animate-pulse">
                     <RefreshCcw className="w-6 h-6 text-emerald-500 animate-spin" />
                     <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Building Production Bundle...</p>
-                  </div>
-                ) || (
+                    </div>
+                  ) : (
                   <Button
                     onClick={handleSyncGithub}
                     disabled={isSyncing || isPreviewing || isGenerating}
@@ -177,23 +188,10 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
                     Live: {devConfig.live_preview_url.replace('http://', '').replace(/\/$/, '')}
                     <ExternalLink className="w-3 h-3" />
                   </a>
-                ) || !devConfig.sync_status || devConfig.sync_status === 'IDLE' && (
-                  <p className="text-[10px] text-zinc-400 font-bold text-center uppercase tracking-widest">
-                    Subdomain pending first sync
-                  </p>
                 )}
-                    </>
-                  )
-                })()}
-              </div>
-            ) : (
-              <div className="p-4 rounded-2xl border-2 border-dashed border-zinc-100 bg-zinc-50/50 flex flex-col items-center gap-2">
-                <Github className="w-6 h-6 text-zinc-300" />
-                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 text-center">
-                  Link GitHub Repo in Developer Config to enable Production Sync
-                </p>
-              </div>
-            )}
+                </div>
+              )
+            })()}
           </div>
         </div>
       </div>
