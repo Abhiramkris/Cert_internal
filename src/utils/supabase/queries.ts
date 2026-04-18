@@ -44,7 +44,7 @@ export async function getProjectDetail(id: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('projects')
-    .select('*, project_team(*), comments(*), payments(*), workflow_templates(*, workflow_stages(*, workflow_fields(*)))')
+    .select('*, project_team(*), dev_config(*), comments(*), payments(*), workflow_templates(*, workflow_stages(*, workflow_fields(*)))')
     .eq('id', id)
     .single()
 

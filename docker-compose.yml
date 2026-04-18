@@ -13,6 +13,8 @@ services:
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+    volumes:
+      - projects_builds:/app/builds
     restart: always
 
   nginx:
@@ -21,9 +23,13 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - projects_builds:/usr/share/nginx/html/builds:ro
     ports:
       - "80:80"
       - "443:443"
     depends_on:
       - app
     restart: always
+
+volumes:
+  projects_builds:

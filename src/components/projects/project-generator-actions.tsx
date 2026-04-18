@@ -11,9 +11,10 @@ import {
 } from '@/components/ui/dialog'
 import { Code2, Sparkles, Zap, Download, ExternalLink } from 'lucide-react'
 import { WebsiteBuilderConfigurator } from './website-builder-configurator'
-import { generateProjectZip, previewProject } from '@/app/dashboard/projects/builder-actions'
+import { generateProjectZip, previewProject, syncProductionBuild } from '@/app/dashboard/projects/builder-actions'
 import { toast } from 'sonner'
 import { StudioArchitectButton } from './studio-architect-button'
+import { Github, Globe, RefreshCcw } from 'lucide-react'
 
 interface ProjectGeneratorActionsProps {
   project: any
@@ -23,6 +24,7 @@ interface ProjectGeneratorActionsProps {
 export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGeneratorActionsProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPreviewing, setIsPreviewing] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
 
   const handleGenerateZip = async () => {
     setIsGenerating(true)
@@ -80,6 +82,25 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
     }
   }
 
+  const handleSyncGithub = async () => {
+    setIsSyncing(true)
+    const toastId = toast.loading('Synchronizing Production Build...')
+    try {
+      const result = await syncProductionBuild(project.id)
+      if (result.success && result.url) {
+        toast.success(result.message || 'Production Build Deployed', { id: toastId })
+        window.open(result.url, '_blank')
+      } else {
+        toast.error('Sync failed', { id: toastId })
+      }
+    } catch (error: any) {
+      console.error('Sync Error:', error)
+      toast.error('Sync Failed: ' + error.message, { id: toastId })
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -103,7 +124,7 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
 
             <Button
               onClick={handlePreviewNode}
-              disabled={isPreviewing || isGenerating}
+              disabled={isPreviewing || isGenerating || isSyncing}
               className="h-14 px-8 rounded-2xl bg-zinc-950 text-white font-black uppercase tracking-[0.2em] hover:bg-zinc-900 shadow-[4px_4px_0px_0px_rgba(39,39,42,0.2)] transition-all flex items-center justify-center gap-3 text-[11px] group/preview"
             >
               <div className={isPreviewing ? "animate-spin" : ""}>
@@ -111,6 +132,47 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
               </div>
               {isPreviewing ? 'Launching...' : 'Preview Node'}
             </Button>
+          </div>
+
+          <div className="pt-2">
+            {project.dev_config?.[0]?.repo_link ? (
+              <div className="space-y-4">
+                <Button
+                  onClick={handleSyncGithub}
+                  disabled={isSyncing || isPreviewing || isGenerating}
+                  className="w-full h-14 rounded-2xl bg-white border-2 border-emerald-500 text-emerald-600 font-black uppercase tracking-[0.2em] hover:bg-emerald-50 shadow-[4px_4px_0px_0px_rgba(16,185,129,0.1)] transition-all flex items-center justify-center gap-3 text-[11px] group/sync"
+                >
+                  <div className={isSyncing ? "animate-spin" : ""}>
+                    <RefreshCcw className="w-5 h-5" />
+                  </div>
+                  {isSyncing ? 'Syncing...' : 'Sync GitHub Production'}
+                </Button>
+                
+                {project.dev_config?.[0]?.live_preview_url && (
+                  <a 
+                    href={project.dev_config[0].live_preview_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
+                  >
+                    <Globe className="w-3.h-3" />
+                    Live: {project.dev_config[0].live_preview_url.replace('http://', '')}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                ) || (
+                  <p className="text-[10px] text-zinc-400 font-bold text-center uppercase tracking-widest">
+                    Subdomain pending first sync
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 rounded-2xl border-2 border-dashed border-zinc-100 bg-zinc-50/50 flex flex-col items-center gap-2">
+                <Github className="w-6 h-6 text-zinc-300" />
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 text-center">
+                  Link GitHub Repo in Developer Config to enable Production Sync
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

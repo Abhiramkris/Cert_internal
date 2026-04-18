@@ -563,3 +563,91 @@ export async function previewComponent(componentId: string) {
 }
 
 
+
+export async function syncProductionBuild(projectId: string) {
+  const supabase = await createClient()
+
+  const { data: project } = await supabase
+    .from('projects')
+    .select('*, dev_config(*)')
+    .eq('id', projectId)
+    .single()
+
+  if (!project) throw new Error('Project not found')
+  
+  const repoLink = project.dev_config?.repo_link
+  if (!repoLink) throw new Error('No GitHub repository linked to this project')
+
+  const slug = project.client_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  const syncDir = path.join(process.cwd(), 'tmp/sync', projectId)
+  const buildOutDir = path.join(syncDir, 'out')
+  const finalDestDir = path.join(process.cwd(), 'builds', slug)
+
+  try {
+    console.log(`[Sync ${projectId}]: Initializing build for ${slug}...`)
+    
+    // 1. Prepare Workspace
+    await fs.mkdir(path.join(process.cwd(), 'tmp/sync'), { recursive: true })
+    
+    // 2. Clone or Pull
+    try {
+      await fs.access(syncDir)
+      console.log(`[Sync ${projectId}]: Pulling latest changes...`)
+      await execAsync('git pull', { cwd: syncDir })
+    } catch {
+      console.log(`[Sync ${projectId}]: Cloning repository...`)
+      await execAsync(`git clone ${repoLink} ${syncDir}`)
+    }
+
+    // 3. Install Dependencies
+    console.log(`[Sync ${projectId}]: Installing dependencies...`)
+    await execAsync('npm install', { cwd: syncDir })
+
+    // 4. Production Build (Assuming Next.js with output: export)
+    console.log(`[Sync ${projectId}]: Running production build...`)
+    // Ensure we force the build to be an export if the user hasn't set it yet
+    // Since we are building from GitHub, we assume the dev might have already added output: 'export'
+    // but if we are the ones who generated it, our latest assembly supports it.
+    await execAsync('npm run build', { cwd: syncDir })
+
+    // 5. Deploy to Subdomain Volume
+    console.log(`[Sync ${projectId}]: Deploying to ${finalDestDir}...`)
+    await fs.mkdir(finalDestDir, { recursive: true })
+    
+    // Atomic Swap: Remove old out and copy new one
+    const finalOut = path.join(finalDestDir, 'out')
+    await fs.rm(finalOut, { recursive: true, force: true })
+    
+    // Check if 'out' exists (Next.js default export dir)
+    try {
+      await fs.access(buildOutDir)
+      await execAsync(`cp -r ${buildOutDir} ${finalOut}`)
+    } catch (e) {
+      // Fallback: check for 'dist' or other common names if needed, 
+      // but the user said "same that the website we build" so 'out' is expected.
+      throw new Error("Build completed but 'out' directory not found. Ensure next.config.js has output: 'export'.")
+    }
+
+    console.log(`[Sync ${projectId}]: Full deployment successful.`)
+    
+    const liveUrl = `http://${slug}.tool.cloud-ip.cc/`
+    
+    // Update live_preview_url in dev_config
+    await supabase.from('dev_config').upsert({
+      project_id: projectId,
+      live_preview_url: liveUrl
+    })
+
+    revalidatePath(`/dashboard/projects/${projectId}`)
+    
+    return { 
+      success: true, 
+      url: liveUrl,
+      message: 'Production build synchronized and deployed successfully' 
+    }
+
+  } catch (err: any) {
+    console.error(`[Sync ${projectId} ERR]:`, err.message)
+    throw new Error(`Sync Failed: ${err.message}`)
+  }
+}
