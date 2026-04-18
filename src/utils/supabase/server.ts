@@ -41,3 +41,20 @@ export async function createClient() {
     }
   )
 }
+
+/**
+ * Service Role Client
+ * Bypasses RLS. Use ONLY for internal server-side tasks.
+ */
+export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase Service Role environment variables')
+  }
+
+  // Use the standard non-SSR client for service role tasks
+  const { createClient: createSupabaseClient } = require('@supabase/supabase-js')
+  return createSupabaseClient(supabaseUrl, supabaseServiceKey)
+}

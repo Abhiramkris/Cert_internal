@@ -1,11 +1,12 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { logAction } from '@/utils/supabase/logger'
 import { getWorkflowConfig } from '@/utils/supabase/queries'
 import staticQuestions from '@/utils/builder/static-questions.json'
+import { syncProductionBuild } from './builder-actions'
 
 // Helper to route data to correct segments within projects.config and projects.stage_data
 async function routeWorkflowData(supabase: any, projectId: string, stageId: string | undefined, data: Record<string, any>, userId: string) {
@@ -99,6 +100,30 @@ async function routeWorkflowData(supabase: any, projectId: string, stageId: stri
         submitted_by: userId,
         submitted_at: new Date().toISOString()
       }
+    }
+  }
+
+  // AUTOMATION: Bridge github_link to dev_config table
+  if (data.github_link) {
+    const adminSupabase = createAdminClient()
+    const { data: existingDev } = await adminSupabase
+      .from('dev_config')
+      .select('repo_link')
+      .eq('project_id', projectId)
+      .maybeSingle()
+
+    const { error: devSyncError } = await adminSupabase
+      .from('dev_config')
+      .upsert({
+        project_id: projectId,
+        repo_link: data.github_link
+      })
+
+    if (!devSyncError && data.github_link !== existingDev?.repo_link) {
+      console.log(`[Automation]: GitHub link bridge activated for ${projectId}. Triggering background build...`)
+      syncProductionBuild(projectId).catch(err => {
+        console.error(`[Automation ERR]: Bridge build for ${projectId} failed:`, err)
+      })
     }
   }
 
@@ -618,6 +643,12 @@ export async function updateDevConfig(projectId: string, formData: FormData) {
     live_preview_url: formData.get('live_preview_url') as string,
   }
 
+  const { data: existingConfig } = await supabase
+    .from('dev_config')
+    .select('repo_link')
+    .eq('project_id', projectId)
+    .single()
+
   const { error: devError } = await supabase
     .from('dev_config')
     .upsert(devData)
@@ -625,6 +656,15 @@ export async function updateDevConfig(projectId: string, formData: FormData) {
   if (devError) {
     console.error('Dev config error:', devError)
     throw new Error('Failed to update Dev config')
+  }
+
+  // AUTOMATION: Trigger a production build if repo_link is new or changed
+  if (devData.repo_link && devData.repo_link !== existingConfig?.repo_link) {
+    console.log(`[Automation]: Repo link change detected for project ${projectId}. Triggering background build...`)
+    // Fire and forget (don't await so the UI remains snappy)
+    syncProductionBuild(projectId).catch(err => {
+      console.error(`[Automation ERR]: Automated build for ${projectId} failed:`, err)
+    })
   }
 
   // Retrieve Manager ID to Hand off project ownership for QA review
@@ -849,6 +889,16 @@ export async function closeProject(projectId: string) {
 
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
+export async function saveStageData(projectId: string, stageId: string, data: Record<string, any>) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  await routeWorkflowData(supabase, projectId, stageId, data, user.id)
+  revalidatePath(`/dashboard/projects/${projectId}`)
+  return { success: true }
 }
 
 export async function postComment(projectId: string, userId: string, content: string, isInternal: boolean = true) {

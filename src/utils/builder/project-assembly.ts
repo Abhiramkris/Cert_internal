@@ -272,10 +272,96 @@ export default function PrivacyPolicyPage() {
 }
 `.trim();
 
-  // 6. Layout & global CSS
+  // 6. lib/utils.ts
+  files['lib/utils.ts'] = `
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+`.trim();
+
+  // 7. PostCSS Config
+  files['postcss.config.js'] = `
+module.exports = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+    autoprefixer: {},
+  },
+}
+`
+  // 8. Next.js Config (Handles cross-origin security for remote GCP access)
+  const allowedOrigins = [
+    '35.185.199.124', 
+    'http://35.185.199.124',
+    'localhost:3000',
+    'http://localhost:3000',
+    ...(options.currentHost ? [
+      options.currentHost,
+      `http://${options.currentHost}`,
+      `https://${options.currentHost}`
+    ] : []),
+    '35.185.199.124',
+    'localhost',
+    '*.ngrok-free.dev',
+    '*.ngrok.io',
+    ...Array.from({ length: 11 }, (_, i) => `35.185.199.124:${3000 + i}`),
+    ...Array.from({ length: 11 }, (_, i) => `localhost:${3000 + i}`),
+    ...Array.from({ length: 11 }, (_, i) => `http://35.185.199.124:${3000 + i}`),
+    ...Array.from({ length: 11 }, (_, i) => `http://localhost:${3000 + i}`)
+  ];
+
+  // 8. Next.js Config
+  const nextConfig = `
+module.exports = {
+  allowedDevOrigins: ${JSON.stringify(allowedOrigins)},
+  ${options.basePath ? "basePath: '" + options.basePath + "'," : ""}
+  ${options.isProduction ? "output: 'export'," : ""}
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    turbo: {
+      rules: {
+         '*.svg': {
+            loaders: ['@svgr/webpack'],
+            as: 'js',
+         },
+      },
+    },
+  },
+};`.trim();
+  files['next.config.js'] = nextConfig;
+
+  // 9. Layout & Global Styling
   const headingFont = styles.font_family_heading || 'Inter'
   const bodyFont = styles.font_family_body || 'Inter'
   const fontImport = `https://fonts.googleapis.com/css2?family=${headingFont.replace(/\s+/g, '+')}:wght@400;700;900&family=${bodyFont.replace(/\s+/g, '+')}:wght@400;500;700&display=swap`
+
+  const SECURE_CONTEXT_SHIM = `
+    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+      const mockSubtle = {
+        digest: () => new Promise(resolve => resolve(new Uint8Array(32))),
+        generateKey: () => new Promise(resolve => resolve({})),
+        importKey: () => new Promise(resolve => resolve({})),
+        sign: () => new Promise(resolve => resolve(new Uint8Array(32))),
+        verify: () => new Promise(resolve => resolve(true)),
+        encrypt: () => new Promise(resolve => resolve(new Uint8Array(32))),
+        decrypt: () => new Promise(resolve => resolve(new Uint8Array(32)))
+      };
+      if (!window['crypto']) window['crypto'] = {};
+      if (!window['crypto']['subtle']) {
+        Object.defineProperty(window['crypto'], 'subtle', { value: mockSubtle, writable: true });
+      }
+      if (!window['crypto']['randomUUID']) {
+        Object.defineProperty(window['crypto'], 'randomUUID', { 
+          value: () => '00000000-0000-0000-0000-000000000000', 
+          writable: true 
+        });
+      }
+      console.log('Studio Infra: Shim v3 Active (Top-of-Head Execution)');
+    }
+  `.trim();
 
   files['app/layout.tsx'] = `
 import './globals.css';
@@ -285,6 +371,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/* Secure Context Shim (MUST BE FIRST) */}
+        <script dangerouslySetInnerHTML={{ __html: \`${SECURE_CONTEXT_SHIM}\` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="${fontImport}" rel="stylesheet" />
@@ -295,7 +383,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
-`
+`.trim();
 
   files['app/globals.css'] = `
 @import "tailwindcss";
@@ -353,113 +441,7 @@ h1, h2, h3, h4, h5, h6 {
     ${styles.button_padding === 'large' ? 'padding: 1.5rem 3.5rem;' : ''}
   }
 }
-`
-
-  // 6.5. lib/utils.ts
-  files['lib/utils.ts'] = `
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
 `.trim();
-
-  // 7. PostCSS Config (Tailwind 4 uses CSS-first, but Next.js needs PostCSS support for @tailwind)
-  files['postcss.config.js'] = `
-module.exports = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-    autoprefixer: {},
-  },
-}
-`
-  // 8. Next.js Config (Handles cross-origin security for remote GCP access)
-  const allowedOrigins = [
-    '35.185.199.124', 
-    'http://35.185.199.124',
-    'localhost:3000',
-    'http://localhost:3000',
-    ...(options.currentHost ? [
-      options.currentHost,
-      `http://${options.currentHost}`,
-      `https://${options.currentHost}`
-    ] : []),
-    '35.185.199.124',
-    'localhost',
-    '*.ngrok-free.dev',
-    '*.ngrok.io',
-    ...Array.from({ length: 11 }, (_, i) => `35.185.199.124:${3000 + i}`),
-    ...Array.from({ length: 11 }, (_, i) => `localhost:${3000 + i}`),
-    ...Array.from({ length: 11 }, (_, i) => `http://35.185.199.124:${3000 + i}`),
-    ...Array.from({ length: 11 }, (_, i) => `http://localhost:${3000 + i}`)
-  ];
-
-  files['next.config.js'] = `
-module.exports = {
-  allowedDevOrigins: ${JSON.stringify(allowedOrigins)},
-  ${options.basePath ? `basePath: '${options.basePath}',` : ''}
-  ${options.isProduction ? "output: 'export'," : ''}
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
-  experimental: {
-    turbo: {
-      rules: {
-         '*.svg': {
-            loaders: ['@svgr/webpack'],
-            as: 'js',
-         },
-      },
-    },
-  },
-};
-`
-  
-  // 9. Layout with Secure Context Shim
-  files['app/layout.tsx'] = `
-import './globals.css';
-import React from 'react';
-export const metadata = { title: '${project.client_name} | Premium Web' };
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        {/* Secure Context Shim (MUST BE FIRST) */}
-        <script dangerouslySetInnerHTML={{ __html: \`
-          if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-            const mockSubtle = {
-              digest: () => new Promise(resolve => resolve(new Uint8Array(32))),
-              generateKey: () => new Promise(resolve => resolve({})),
-              importKey: () => new Promise(resolve => resolve({})),
-              sign: () => new Promise(resolve => resolve(new Uint8Array(32))),
-              verify: () => new Promise(resolve => resolve(true)),
-              encrypt: () => new Promise(resolve => resolve(new Uint8Array(32))),
-              decrypt: () => new Promise(resolve => resolve(new Uint8Array(32)))
-            };
-            if (!window['crypto']) window['crypto'] = {};
-            if (!window['crypto']['subtle']) {
-              Object.defineProperty(window['crypto'], 'subtle', { value: mockSubtle, writable: true });
-            }
-            if (!window['crypto']['randomUUID']) {
-              Object.defineProperty(window['crypto'], 'randomUUID', { 
-                value: () => '00000000-0000-0000-0000-000000000000', 
-                writable: true 
-              });
-            }
-            console.log('Studio Infra: Shim v3 Active (Top-of-Head Execution)');
-          }
-        \` }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="${fontImport}" rel="stylesheet" />
-      </head>
-      <body className="antialiased text-zinc-900 bg-white">
-        {children}
-      </body>
-    </html>
-  );
-}
-`
 
   // 8. gitignore (Only for Ejected Builds)
   if (!options.isPreview) {

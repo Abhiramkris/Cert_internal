@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import JSZip from 'jszip'
@@ -565,7 +565,8 @@ export async function previewComponent(componentId: string) {
 
 
 export async function syncProductionBuild(projectId: string) {
-  const supabase = await createClient()
+  // Use Admin Client to bypass RLS for background build tasks
+  const supabase = createAdminClient()
 
   const { data: project } = await supabase
     .from('projects')

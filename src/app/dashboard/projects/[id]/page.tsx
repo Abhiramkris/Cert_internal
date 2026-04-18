@@ -13,7 +13,8 @@ import { WebsiteBuilderConfigurator } from '@/components/projects/website-builde
 import { WorkflowForm } from '@/components/workflow/workflow-form'
 import { HandoffOverride } from '@/components/projects/handoff-override'
 import { ProjectGeneratorActions } from '@/components/projects/project-generator-actions'
-import { finalizeProject, selfAssignProject, submitStageData, saveHandoffPreset, closeProject } from '../actions'
+import { finalizeProject, selfAssignProject, submitStageData, saveHandoffPreset, closeProject, saveStageData } from '../actions'
+import staticQuestions from '@/utils/builder/static-questions.json'
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
   const { id } = await params
@@ -135,16 +136,24 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     const dynPrefix = 'dyn_'
                     
                     Object.keys(rawData).forEach(key => {
+                      const isStatic = staticQuestions.some(q => q.key === key)
                       if (key.startsWith(dynPrefix)) {
                         stageData[key.replace(dynPrefix, '')] = rawData[key]
+                      } else if (isStatic) {
+                        stageData[key] = rawData[key]
                       }
                     })
 
+                    const action = fd.get('action') as string
                     const nextStatus = fd.get('status') as string
                     const nextAssignee = fd.get('current_assignee_id') as string
                     const note = fd.get('handoff_note') as string
 
-                    await submitStageData(project.id, currentStage.id, stageData, nextStatus, nextAssignee, note)
+                    if (action === 'save') {
+                      await saveStageData(project.id, currentStage.id, stageData)
+                    } else {
+                      await submitStageData(project.id, currentStage.id, stageData, nextStatus, nextAssignee, note)
+                    }
                   }} className="space-y-6">
                     {canAction && ( 
                       <div className="flex flex-col gap-8 mb-10 overflow-hidden">
@@ -212,8 +221,22 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     />
 
                     {canAction && (
-                        <div className="flex justify-end pt-6 border-t border-zinc-100">
-                          <PendingButton type="submit" className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest hover:bg-zinc-800 shadow-xl transition-all active:scale-95 text-[10px] md:text-sm">
+                        <div className="flex flex-col md:flex-row justify-end gap-3 pt-6 border-t border-zinc-100">
+                          <PendingButton 
+                            type="submit" 
+                            name="action" 
+                            value="save"
+                            variant="outline"
+                            className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-white text-zinc-900 border-zinc-200 font-black uppercase tracking-widest hover:bg-zinc-50 transition-all active:scale-95 text-[10px] md:text-sm"
+                          >
+                            Save Content
+                          </PendingButton>
+                          <PendingButton 
+                            type="submit" 
+                            name="action" 
+                            value="handover"
+                            className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest hover:bg-zinc-800 shadow-xl transition-all active:scale-95 text-[10px] md:text-sm"
+                          >
                             Approve & Handover
                           </PendingButton>
                         </div>
