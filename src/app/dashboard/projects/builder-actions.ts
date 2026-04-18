@@ -404,7 +404,8 @@ export async function previewProject(projectId: string) {
   const requestHost = headerList.get('host')?.split(':')[0]
   const files = assembleProjectFiles(project, config, { 
     isPreview: true,
-    currentHost: requestHost
+    currentHost: requestHost,
+    basePath: `/preview/\${assignedPort}`
   })
 
   // 3. Atomic File Write
@@ -453,7 +454,7 @@ export async function previewProject(projectId: string) {
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost'
     const hostname = new URL(siteUrl).hostname
-    const publicUrl = `http://${hostname}:${assignedPort}`
+    const publicUrl = `http://\${hostname}/preview/\${assignedPort}/`
 
     // Persist only the PORT and the relative status, not the absolute URL
     await supabase.from('projects').update({
@@ -511,7 +512,8 @@ export async function previewComponent(componentId: string) {
   const requestHost = headerList.get('host')?.split(':')[0]
   const files = assembleProjectFiles(mockProject as any, mockConfig as any, { 
     isPreview: true,
-    currentHost: requestHost
+    currentHost: requestHost,
+    basePath: `/preview/\${assignedPort}`
   })
   for (const [relativePath, content] of Object.entries(files)) {
     const fullPath = path.join(previewDir, relativePath)
@@ -547,12 +549,12 @@ export async function previewComponent(componentId: string) {
     const headerList = await headers()
     const host = headerList.get('host') || 'localhost:6565'
     const hostname = host.split(':')[0]
-    const publicUrl = `http://${hostname}:${assignedPort}`
+    const publicUrl = `http://\${hostname}/preview/\${assignedPort}/`
 
     return {
       success: true,
       url: publicUrl,
-      message: `Library Audit: ${componentId} is live.`
+      message: `Library Audit: \${componentId} is live.`
     }
   } catch (err: any) {
     console.error('Library Audit Failed:', err)

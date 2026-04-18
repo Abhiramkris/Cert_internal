@@ -3,16 +3,16 @@ const path = require('path');
 
 const checks = [
   {
-    name: "Docker Port Exposure (3001-3010)",
+    name: "Clean Docker Exposure (No Preview Ports)",
     file: "docker-compose.yml",
-    pattern: /3001-3010:3001-3010/,
-    expected: "3001-3010:3001-3010"
+    pattern: /^((?!3001-3010:3001-3010).)*$/s,
+    expected: "No 3001-3010 mapping"
   },
   {
-    name: "Nginx Port Pooling (3001-3010)",
+    name: "Nginx Route Pooling (/preview/)",
     file: "nginx.conf",
-    pattern: /listen 3010;/,
-    expected: "listen 3010;"
+    pattern: /location ~ \^\\\/preview\\\//,
+    expected: "location ~ ^/preview/"
   },
   {
     name: "Nginx Host Preservation ($http_host)",

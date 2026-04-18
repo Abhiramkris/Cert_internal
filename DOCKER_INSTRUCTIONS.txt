@@ -37,7 +37,7 @@ $ docker-compose logs -f
 
 3. ARCHITECTURAL OVERVIEW
 - App Container (Next.js): Runs the standalone Next.js server on internal port 3000. It runs as a secure non-root `nextjs` user. It also dynamically spawns temporary `/tmp` preview workspaces.
-- NGINX Container: Placed in front of the application to proxy requests. It exposes ports 80, 443, and 3001. Ensure you hook nginx.conf properly if you plan on deploying SSL certificates.
+- NGINX Container: Placed in front of the application as a high-performance reverse proxy. It exposes ports 80 and 443. It is configured for SSL via Let's Encrypt and handles all project previews via path-based routing (/preview/[port]/) on the main HTTPS port.
 
 ---
 

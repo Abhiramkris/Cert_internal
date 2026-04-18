@@ -7,6 +7,7 @@ export interface ProjectFiles {
 export interface AssembleOptions {
   isPreview?: boolean
   currentHost?: string
+  basePath?: string
 }
 
 export function assembleProjectFiles(project: any, config: any, options: AssembleOptions = {}): ProjectFiles {
@@ -395,7 +396,8 @@ module.exports = {
 
   files['next.config.js'] = `
 module.exports = {
-  allowedDevOrigins: ${JSON.stringify(allowedOrigins)},
+  allowedDevOrigins: \${JSON.stringify(allowedOrigins)},
+  \${options.basePath ? \`basePath: '\${options.basePath}',\` : ''}
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   experimental: {
@@ -409,7 +411,7 @@ module.exports = {
     },
   },
 };
-`
+\`
   
   // 9. Layout with Secure Context Shim
   files['app/layout.tsx'] = `
