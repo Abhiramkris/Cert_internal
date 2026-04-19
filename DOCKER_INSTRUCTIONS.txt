@@ -63,3 +63,21 @@ $ docker-compose stop
 To completely tear down the containers and remove the custom network:
 $ docker-compose down
 
+---
+
+7. MAINTENANCE & CLEANUP (NUKE & REBUILD)
+If you encounter disk space issues (common on 30GB VMs) or need a 100% clean start:
+
+# A. Stop everything and wipe project-specific Docker volumes
+$ docker-compose down -v
+
+# B. (Optional) Deep clean unused Docker data (images/cache)
+$ docker system prune -a --volumes -f
+
+# C. Wipe local temporary build workspaces
+$ rm -rf tmp/*
+$ rm -rf builds/*
+
+# D. Fresh build and restart
+$ docker-compose up --build -d
+
