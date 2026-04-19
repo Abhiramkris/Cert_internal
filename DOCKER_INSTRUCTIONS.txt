@@ -41,12 +41,25 @@ $ docker-compose logs -f
 
 ---
 
-4. STOPPING THE CONTAINERS
+4. MANAGING THE WORKER
+The system now includes an independent 'worker' service that handles all production builds. It is decoupled from the main dashboard, meaning your deployed websites will remain online even if the dashboard is stopped.
+
+To monitor the worker's status and logs:
+$ docker-compose logs -f worker
+
+---
+
+5. IDENTITY & AUTHENTICATION
+The worker uses 'Identity Sharing' from your host VM:
+- It automatically uses your VM's SSH keys and Git configuration.
+- To use a different identity, update the volume mounts in docker-compose.yml.
+
+---
+
+6. STOPPING THE CONTAINERS
 To gracefully stop the environment without destroying the containers:
 $ docker-compose stop
 
 To completely tear down the containers and remove the custom network:
 $ docker-compose down
-
-npx tsx src/services/worker.ts
 

@@ -46,14 +46,31 @@ export async function performProductionBuild(projectId: string, repoLink: string
     // 2. Prepare Workspace
     await fs.mkdir(path.join(process.cwd(), 'tmp/sync'), { recursive: true })
     
-    // 3. Clone or Pull
+    // 3. Clone or Pull (Resilient)
+    let isRepo = false
     try {
-      await fs.access(syncDir)
-      log(`Found existing workspace. Pulling latest changes...`)
-      const { stderr } = await execAsync('git pull', { cwd: syncDir })
-      if (stderr && !stderr.includes('Updating')) log(`Git Pulled: ${stderr}`)
+      await fs.access(path.join(syncDir, '.git'))
+      isRepo = true
     } catch {
-      log(`Workspace not found. Cloning repository ${repoLink}...`)
+      isRepo = false
+    }
+
+    if (isRepo) {
+      try {
+        log(`Found existing repository. Pulling latest changes...`)
+        const { stderr } = await execAsync('git pull', { cwd: syncDir })
+        if (stderr && !stderr.includes('Updating')) log(`Git Pulled: ${stderr}`)
+      } catch (pullErr: any) {
+        log(`Git Pull failed (${pullErr.message}). Fallback to clean clone...`)
+        await fs.rm(syncDir, { recursive: true, force: true })
+        isRepo = false
+      }
+    }
+
+    if (!isRepo) {
+      log(`Preparing fresh workspace. Cloning repository ${repoLink}...`)
+      // Ensure parent exists then clone
+      await fs.rm(syncDir, { recursive: true, force: true })
       await execAsync(`git clone ${repoLink} ${syncDir}`)
     }
 
