@@ -31,6 +31,17 @@ async function runWorker() {
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
   console.log('--- 🤖 Build Worker Service Online ---')
+  
+  // Ensure Git identity is set even if .gitconfig mount is missing
+  try {
+    const { execSync } = require('child_process')
+    execSync('git config --global user.name "Studio Architect Bot"')
+    execSync('git config --global user.email "bot@studio-architect.com"')
+    console.log('[Worker] Git identity configured successfully.')
+  } catch (gitErr) {
+    console.warn('[Worker] Warning: Could not set global git config. Pushes might fail.')
+  }
+
   console.log('Listening for recruitment... (Polling deployment_jobs table)')
 
   // Main Loop

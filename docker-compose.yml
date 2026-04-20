@@ -34,9 +34,8 @@ services:
       HOME: /home/nextjs
     volumes:
       - ./builds:/app/builds
-      # Identity Sharing: Use host's Git and SSH credentials
+      # Identity Sharing: Borrow host SSH keys for pushing
       - ~/.ssh:/home/nextjs/.ssh:ro
-      - ~/.gitconfig:/home/nextjs/.gitconfig:ro
     restart: always
 
   nginx:
