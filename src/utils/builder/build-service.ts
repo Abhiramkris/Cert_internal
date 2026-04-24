@@ -164,5 +164,13 @@ export async function performProductionBuild(projectId: string, repoLink: string
       error: errorMsg,
       logs 
     }
+  } finally {
+    // 9. Auto-Cleanup: Prevent disk bloat on small VMs
+    try {
+      log(`Auto-Cleanup: Removing temporary workspace ${syncDir}...`)
+      await fs.rm(syncDir, { recursive: true, force: true })
+    } catch (cleanErr: any) {
+      log(`Cleanup Warning: Could not remove ${syncDir} (${cleanErr.message})`)
+    }
   }
 }

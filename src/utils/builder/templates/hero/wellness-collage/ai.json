@@ -1,0 +1,42 @@
+{
+  "name": "Wellness Collage Hero",
+  "prompt_context": "A premium, calming hero section for a wellness or mental health platform. Features a centered headline, descriptive text, and a heart-shaped or artistic collage of 8 images. The tone is empathetic, professional, and tranquil.",
+  "content_schema": {
+    "eyebrow": "string (Short phrase above title, max 3 words, e.g. 'Your journey starts here')",
+    "h1": "string (Main headline, max 10 words)",
+    "description": "string (Subtext providing more context, max 25 words)",
+    "cta_text": "string (Primary action text, max 3 words)",
+    "images": "array of 8 strings (Unsplash URLs or image paths representing peace, therapy, and mindfulness)"
+  },
+  "settings_schema": [
+    {
+      "id": "background_color",
+      "label": "Background Palette",
+      "type": "select",
+      "options": ["dark-green", "navy", "soft-beige", "pure-white", "lavender"],
+      "default": "dark-green"
+    },
+    {
+      "id": "collage_layout",
+      "label": "Collage Style",
+      "type": "select",
+      "options": ["heart", "grid", "scattered", "cascade"],
+      "default": "heart"
+    },
+    {
+      "id": "animation_intensity",
+      "label": "Interaction Depth",
+      "type": "select",
+      "options": ["subtle", "dynamic", "static"],
+      "default": "dynamic"
+    },
+    {
+      "id": "text_color",
+      "label": "Text Contrast",
+      "type": "select",
+      "options": ["white", "black", "zinc-600"],
+      "default": "white"
+    }
+  ],
+  "image_hints": "Select 8 images that show diverse people in states of mindfulness, therapy, or peaceful reflection. High quality, natural lighting."
+}

@@ -1,0 +1,45 @@
+{
+  "name": "Wellness Experts Grid",
+  "prompt_context": "A section introducing the professionals behind the wellness platform. Features profile images, names, and specialties in a clean grid. The tone is professional and reassuring.",
+  "content_schema": {
+    "h2": "string (Section title, e.g. 'People behind the Healing Path')",
+    "description": "string (Short intro about the team, max 20 words)",
+    "experts": [
+      {
+        "name": "string (Expert's name)",
+        "role": "string (Expert's specialization, e.g. 'Clinical Psychologist')",
+        "image": "string (Relevant profile image URL)"
+      }
+    ]
+  },
+  "settings_schema": [
+    {
+      "id": "image_shape",
+      "label": "Profile Shape",
+      "type": "select",
+      "options": ["circle", "rounded-square", "blob"],
+      "default": "circle"
+    },
+    {
+      "id": "grid_layout",
+      "label": "Expert Density",
+      "type": "select",
+      "options": ["minimal", "detailed"],
+      "default": "minimal"
+    },
+    {
+      "id": "show_role",
+      "label": "Show Specialization",
+      "type": "boolean",
+      "default": true
+    },
+    {
+       "id": "animation_type",
+       "label": "Entry Animation",
+       "type": "select",
+       "options": ["fade", "slide-up", "pop-in"],
+       "default": "slide-up"
+    }
+  ],
+  "image_hints": "Select professional headshots of people with warm, friendly expressions. Natural lighting, clean backgrounds."
+}

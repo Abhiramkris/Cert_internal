@@ -1,0 +1,47 @@
+{
+  "name": "Wellness Services Grid",
+  "prompt_context": "A section displaying various therapy and wellness services in a clean, card-based grid. Each card includes an image, title, price, description, and action button. The tone is informative and caring.",
+  "content_schema": {
+    "h2": "string (Section title, e.g. 'Choose what fits you best')",
+    "description": "string (Introduction text for services, max 20 words)",
+    "services": [
+      {
+        "title": "string (Name of the service, e.g. 'Individual Therapy')",
+        "price": "string (Cost or price range, e.g. '$120 - $150')",
+        "description": "string (Brief description of the service, max 15 words)",
+        "image": "string (Relevant Unsplash URL)",
+        "cta_text": "string (Action button text, e.g. 'Book Now')"
+      }
+    ]
+  },
+  "settings_schema": [
+    {
+      "id": "columns_count",
+      "label": "Grid Density",
+      "type": "select",
+      "options": ["2-cols", "3-cols", "4-cols"],
+      "default": "3-cols"
+    },
+    {
+      "id": "card_hover_effect",
+      "label": "Hover Interaction",
+      "type": "select",
+      "options": ["lift", "glow", "zoom", "none"],
+      "default": "lift"
+    },
+    {
+      "id": "show_prices",
+      "label": "Display Pricing",
+      "type": "boolean",
+      "default": true
+    },
+    {
+       "id": "section_background",
+       "label": "Section Theme",
+       "type": "select",
+       "options": ["light", "dark", "muted"],
+       "default": "muted"
+    }
+  ],
+  "image_hints": "Select high-quality images that depict therapy sessions, group support, or wellness activities with a professional yet warm aesthetic."
+}

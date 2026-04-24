@@ -1,0 +1,46 @@
+{
+  "name": "Wellness Journey Steps",
+  "prompt_context": "A section illustrating the step-by-step process of a mental health journey or service onboarding. Features numbered steps with images and descriptions. The tone is encouraging and structured.",
+  "content_schema": {
+    "h2": "string (Section title, e.g. 'Your Mental Wellness Journey')",
+    "description": "string (Short intro about the process, max 20 words)",
+    "steps": [
+      {
+        "number": "string (Step number, e.g. '01')",
+        "title": "string (Step title, e.g. 'First Insight')",
+        "description": "string (Detailed explanation of the step, max 20 words)",
+        "image": "string (Relevant Unsplash URL)"
+      }
+    ]
+  },
+  "settings_schema": [
+    {
+      "id": "layout_style",
+      "label": "Process Layout",
+      "type": "select",
+      "options": ["vertical-alternating", "horizontal-scroll", "stacked-cards"],
+      "default": "vertical-alternating"
+    },
+    {
+      "id": "accent_color",
+      "label": "Step Accent",
+      "type": "select",
+      "options": ["lime", "white", "dark-green"],
+      "default": "lime"
+    },
+    {
+       "id": "show_images",
+       "label": "Visual Aids",
+       "type": "boolean",
+       "default": true
+    },
+    {
+       "id": "animation_flow",
+       "label": "Sequence Flow",
+       "type": "select",
+       "options": ["gradual", "instant"],
+       "default": "gradual"
+    }
+  ],
+  "image_hints": "Select images that show progression, planning, or milestones: notebooks, nature paths, smiling faces, structured environments."
+}
