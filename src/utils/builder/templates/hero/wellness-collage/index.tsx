@@ -62,9 +62,9 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function WellnessCollageHero() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const bgColor = settings?.background_color === 'dark-green' ? 'bg-[#1A2E1D]' : 
                   settings?.background_color === 'navy' ? 'bg-[#0F172A]' :
@@ -77,17 +77,26 @@ export default function WellnessCollageHero() {
   const accentColor = 'bg-[#DFFF1A]';
   const accentText = 'text-[#1A2E1D]';
 
-  const containerVariants = {
+  const images = content?.images || [
+    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1516589174184-c6858675e3ff?auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1593642532842-98d0fd5ebc1a?auto=format&fit=crop&q=80"
+  ];
+
+  const h1 = content?.h1 || "Empower your mental health journey!";
+
+  const containerVariants: any = {
     initial: { opacity: 0 },
     animate: { opacity: 1, transition: { staggerChildren: 0.15 } }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
   };
 
-  const collageVariants = {
+  const collageVariants: any = {
     initial: { opacity: 0, scale: 0.95 },
     animate: { opacity: 1, scale: 1, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.4 } }
   };
@@ -138,7 +147,7 @@ export default function WellnessCollageHero() {
           <div className="w-10 h-[1px] bg-[#DFFF1A]/40" />
           <Sparkles className="w-4 h-4 text-[#DFFF1A]" />
           <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#DFFF1A]" style={{ fontFamily: global.font_family_body }}>
-            {content.eyebrow}
+            {content?.eyebrow || 'Empower your journey'}
           </span>
           <div className="w-10 h-[1px] bg-[#DFFF1A]/40" />
         </motion.div>
@@ -148,7 +157,7 @@ export default function WellnessCollageHero() {
           className={cn("text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase italic", textColor)}
           style={{ fontFamily: global.font_family_heading }}
         >
-          {content.h1.split(' ').map((word, i) => (
+          {h1.split(' ').map((word: string, i: number) => (
             <span key={i} className="block">{word}</span>
           ))}
         </motion.h1>
@@ -158,12 +167,12 @@ export default function WellnessCollageHero() {
           className={cn("text-xl md:text-2xl opacity-70 max-w-2xl mx-auto font-medium leading-relaxed", textColor)}
           style={{ fontFamily: global.font_family_body }}
         >
-          {content.description}
+          {content?.description || "Find clarity, healing, and peace with our professional community."}
         </motion.p>
 
         <motion.div variants={itemVariants} className="pt-6">
            <button className={cn("group px-10 py-5 rounded-full font-black text-xs uppercase tracking-widest flex items-center gap-3 mx-auto transition-all duration-500 hover:shadow-[0_0_40px_rgba(223,255,26,0.3)]", accentColor, accentText)}>
-              {content.cta_text}
+              {content?.cta_text || 'Book Consultation'}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-500" />
            </button>
         </motion.div>
@@ -180,7 +189,7 @@ export default function WellnessCollageHero() {
           settings?.collage_layout === 'heart' ? "h-[600px]" : "grid grid-cols-2 md:grid-cols-4 gap-4 px-4"
         )}
       >
-        {content.images.map((img: string, i: number) => {
+        {images.map((img: string, i: number) => {
           const style = settings?.collage_layout === 'heart' ? getLayoutStyles(i) : {};
           return (
             <motion.div 

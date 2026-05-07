@@ -135,9 +135,9 @@ const getIcon = (name: string, className: string) => {
 };
 
 export default function ServicesCoreFeatures() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   // Theme Logic
   const theme = settings?.theme || 'primary';
@@ -170,12 +170,12 @@ export default function ServicesCoreFeatures() {
 
   const features = (content?.features && content.features.length >= 4) ? content.features : defaultFeatures;
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0, y: animPreset === 'slide-up' ? 40 : 0, scale: animPreset === 'zoom' ? 0.95 : 1 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, staggerChildren: 0.15 } }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
   };

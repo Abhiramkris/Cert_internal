@@ -543,6 +543,7 @@ export async function selfAssignProject(projectId: string) {
     .eq('id', projectId)
 
   revalidatePath(`/dashboard/projects/${projectId}`)
+  return { success: true }
 }
 
 export async function updateSEOConfig(projectId: string, formData: FormData) {
@@ -865,6 +866,7 @@ export async function finalizeProject(projectId: string) {
 
   revalidatePath(`/dashboard/projects/${projectId}`)
   revalidatePath('/dashboard')
+  return { success: true }
 }
 
 export async function closeProject(projectId: string) {
@@ -889,6 +891,7 @@ export async function closeProject(projectId: string) {
 
   revalidatePath('/dashboard')
   revalidatePath(`/dashboard/projects/${projectId}`)
+  return { success: true }
 }
 
 export async function saveStageData(projectId: string, stageId: string, data: Record<string, any>) {

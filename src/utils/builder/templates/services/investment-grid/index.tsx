@@ -163,9 +163,9 @@ const ArrowButton = ({ className }: { className?: string }) => (
 );
 
 export default function InvestmentGrid() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const accentColor = settings?.accent_color || '#d9f99d';
   const highlightWord = content?.highlight_word || "Opportunity";
@@ -190,12 +190,12 @@ export default function InvestmentGrid() {
     );
   };
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
   };
 
-  const cardVariants = {
+  const cardVariants: any = {
     hidden: { opacity: 0, y: animPreset === 'slide-up' ? 30 : 0, scale: animPreset === 'zoom' ? 0.95 : 1 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: "easeOut" } }
   };

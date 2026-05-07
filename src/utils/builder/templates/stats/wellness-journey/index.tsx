@@ -34,7 +34,7 @@ export const STATS_WELLNESS_JOURNEY = {
                    />
                  </div>
                  <div className="flex-1 space-y-6">
-                    <span className="text-6xl font-black text-white/10">{step?.number || \`0\${i + 1}\`}</span>
+                    <span className="text-6xl font-black text-white/10">{step?.number || `0${i + 1}`}</span>
                     <h3 className="text-2xl font-bold text-white uppercase italic" style={h2Font}>{step?.title || 'Initial Consultation'}</h3>
                     <p className="text-zinc-500 leading-relaxed" style={pFont}>
                       {step?.description || "Start your journey with a personalized session to understand your needs."}
@@ -55,19 +55,25 @@ import { CheckCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function WellnessJourneySteps() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const accentColor = settings?.accent_color === 'lime' ? 'text-[#DFFF1A]' : 
                       settings?.accent_color === 'white' ? 'text-white' : 'text-[#1A2E1D]';
 
-  const containerVariants = {
+  const steps = content?.steps || [
+    { number: "01", title: "Initial Inquiry", description: "Reach out to start your path toward clarity and peace.", image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80" },
+    { number: "02", title: "Holistic Match", description: "We pair you with the guide best suited for your unique story.", image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80" },
+    { number: "03", title: "Guided Growth", description: "Begin your sessions in a safe, judgment-free ecosystem.", image: "https://images.unsplash.com/photo-1516589174184-c6858675e3ff?auto=format&fit=crop&q=80" }
+  ];
+
+  const containerVariants: any = {
     initial: { opacity: 0 },
     animate: { opacity: 1, transition: { staggerChildren: 0.3 } }
   };
 
-  const stepVariants = {
+  const stepVariants: any = {
     initial: { opacity: 0, x: 0, y: 30 },
     animate: { opacity: 1, x: 0, y: 0, transition: { duration: 1, ease: [0.16, 1, 0.3, 1] } }
   };
@@ -86,17 +92,11 @@ export default function WellnessJourneySteps() {
              <span className="text-[11px] font-black uppercase tracking-[0.6em] text-[#DFFF1A]">The Process</span>
              <div className="w-12 h-[1px] bg-white/20" />
           </div>
-          <h2 
-            className="text-5xl md:text-8xl font-black tracking-tighter text-white uppercase italic leading-[0.85]"
-            style={{ fontFamily: global.font_family_heading }}
-          >
-            {content.h2}
+          <h2 className="text-5xl md:text-8xl font-black italic tracking-tighter text-white uppercase leading-[0.8]" style={{ fontFamily: global.font_family_heading }}>
+            {content?.h2 || "The Journey."}
           </h2>
-          <p 
-            className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto font-medium"
-            style={{ fontFamily: global.font_family_body }}
-          >
-            {content.description}
+          <p className="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto leading-relaxed" style={{ fontFamily: global.font_family_body }}>
+            {content?.description || "Structured pathways for architectural personal growth."}
           </p>
         </motion.div>
 
@@ -107,7 +107,7 @@ export default function WellnessJourneySteps() {
           viewport={{ once: true, margin: "-100px" }}
           className="space-y-32 md:space-y-48"
         >
-          {content.steps.map((step: any, i: number) => (
+          {steps.map((step: any, i: number) => (
             <motion.div 
               key={i} 
               variants={stepVariants}
@@ -117,7 +117,7 @@ export default function WellnessJourneySteps() {
               )}
             >
               {/* Connector Line */}
-              {i < content.steps.length - 1 && (
+              {i < steps.length - 1 && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 w-[1px] h-32 md:h-48 bg-gradient-to-b from-white/10 to-transparent hidden md:block" />
               )}
 

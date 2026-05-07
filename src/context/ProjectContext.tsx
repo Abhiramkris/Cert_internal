@@ -28,7 +28,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [projects, setProjects] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [showArchived, setShowArchived] = useState<boolean>(false)
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
 
   const activeProject = useMemo(() => 
     projects.find(p => p.id === activeProjectId) || null

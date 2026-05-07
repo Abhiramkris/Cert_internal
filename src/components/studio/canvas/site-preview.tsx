@@ -7,13 +7,51 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Maximize2, Hash, Layers, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export function SitePreview() {
+const ModuleItem = React.memo(({ 
+  templateKey, 
+  index, 
+  activeComponentId, 
+  setActiveComponentId, 
+  globalStyles, 
+  contentOverrides, 
+  settings, 
+  pages 
+}: any) => {
+  const template = (COMPONENT_TEMPLATES as any)[templateKey]
+  if (!template || !template.preview) return null
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className={cn(
+        "relative group/module cursor-pointer transition-all",
+        activeComponentId === templateKey ? "ring-2 ring-zinc-950 ring-offset-4 ring-offset-white" : ""
+      )}
+      onClick={() => setActiveComponentId(templateKey)}
+    >
+      {/* Module Precision Overlay */}
+      <div className="absolute top-8 right-8 z-20 opacity-0 group-hover/module:opacity-100 transition-all">
+          <div className="bg-zinc-950 text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl shadow-black/20 scale-90 group-hover/module:scale-100 transition-transform">
+              <Hash className="w-3 h-3 text-zinc-500" />
+              <span className="text-[9px] font-black uppercase tracking-widest">{templateKey.split('_')[0]}</span>
+          </div>
+      </div>
+
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-zinc-100/50 to-transparent opacity-0 group-hover/module:opacity-100 transition-opacity" />
+      
+      {template.preview(globalStyles, contentOverrides, settings, pages)}
+    </motion.div>
+  )
+})
+
+export const SitePreview = React.memo(function SitePreview() {
   const { 
     selectedComponents, 
     globalStyles, 
     componentSettings, 
     contentOverrides,
-    isArchitectureVerified,
     activeComponentId,
     setActiveComponentId,
     currentPage,
@@ -46,40 +84,21 @@ export function SitePreview() {
       <div className="relative shadow-2xl shadow-black/[0.08] rounded-[2.5rem] overflow-hidden border border-zinc-200/60 bg-white min-h-[80vh] origin-top transition-all duration-700">
         {/* Component Stream */}
         <div className={cn("flex flex-col", hasNavbarAtTop && "pt-20")}>
-          {currentStack.map((templateKey, index) => {
-            const template = (COMPONENT_TEMPLATES as any)[templateKey]
-            if (!template || !template.preview) return null
-
-            const settings = componentSettings[templateKey] || {}
-            
-            return (
-              <motion.div
-                key={`${templateKey}-${index}`}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className={cn(
-                  "relative group/module cursor-pointer transition-all",
-                  activeComponentId === templateKey ? "ring-2 ring-zinc-950 ring-offset-4 ring-offset-white" : ""
-                )}
-                onClick={() => setActiveComponentId(templateKey)}
-              >
-                {/* Module Precision Overlay */}
-                <div className="absolute top-8 right-8 z-20 opacity-0 group-hover/module:opacity-100 transition-all">
-                    <div className="bg-zinc-950 text-white px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl shadow-black/20 scale-90 group-hover/module:scale-100 transition-transform">
-                        <Hash className="w-3 h-3 text-zinc-500" />
-                        <span className="text-[9px] font-black uppercase tracking-widest">{templateKey.split('_')[0]}</span>
-                    </div>
-                </div>
-
-                <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-zinc-100/50 to-transparent opacity-0 group-hover/module:opacity-100 transition-opacity" />
-                
-                {template.preview(globalStyles, contentOverrides, settings, pages)}
-              </motion.div>
-            )
-          })}
+          {currentStack.map((templateKey, index) => (
+            <ModuleItem
+              key={`${templateKey}-${index}`}
+              templateKey={templateKey}
+              index={index}
+              activeComponentId={activeComponentId}
+              setActiveComponentId={setActiveComponentId}
+              globalStyles={globalStyles}
+              contentOverrides={contentOverrides}
+              settings={componentSettings[templateKey] || {}}
+              pages={pages}
+            />
+          ))}
         </div>
       </div>
     </div>
   )
-}
+})

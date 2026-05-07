@@ -3,19 +3,17 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  BarChart3,
   Briefcase,
   Settings,
   Users,
-  CheckCircle2,
   CreditCard,
-  PlusCircle,
-  Search,
   LayoutDashboard,
   LogOut,
   Calendar,
   ShieldCheck,
-  Library
+  Library,
+  MessageSquare,
+  Activity
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AGENCY_CONFIG } from '@/utils/agency-config'
@@ -27,6 +25,16 @@ interface SidebarProps {
     email: string | null
   }
   isMobile?: boolean
+}
+
+const ROLE_DISPLAY_NAMES: Record<string, string> = {
+  'Admin': 'Administrator',
+  'Manager': 'Manager',
+  'SEO': 'SEO Specialist',
+  'Developer': 'Developer',
+  'Sales': 'Sales',
+  'HR': 'Human Resources',
+  'Designer': 'Designer'
 }
 
 export function Sidebar({ user, isMobile = false }: SidebarProps) {
@@ -56,153 +64,151 @@ export function Sidebar({ user, isMobile = false }: SidebarProps) {
       : "w-[84px] hover:w-72 hidden md:flex"
   )
 
+  const renderNavItem = (item: typeof navItems[0]) => {
+    const isActive = pathname === item.href
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={cn(
+          "flex items-center gap-4 transition-all rounded-xl group/item relative mx-2",
+          isActive
+            ? "bg-[#67A708] text-white font-semibold shadow-lg shadow-[#67A708]/20"
+            : "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200/50 font-semibold",
+          isMobile ? "h-12 px-4 justify-start" : "h-11 justify-center group-hover:justify-start group-hover:px-4"
+        )}
+      >
+        <item.icon className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? "text-white" : "text-zinc-600 group-hover/item:text-zinc-600")} />
+        <span className={cn(
+          "transition-all duration-300 whitespace-nowrap overflow-hidden text-[13px] tracking-tight",
+          isMobile ? "opacity-100 w-auto" : "opacity-0 group-hover:opacity-100 w-0 group-hover:w-auto",
+          isActive ? "text-white" : "text-inherit"
+        )}>{item.name}</span>
+        {isActive && !isMobile && (
+          <div className="absolute left-[-16px] w-1 h-5 bg-[#67A708] rounded-r-full hidden group-hover:block" />
+        )}
+      </Link>
+    )
+  }
+
   return (
     <div className={sidebarClasses}>
-      <div className="p-6 flex-1 overflow-y-auto no-scrollbar">
+      <div className={cn(
+        "p-3 flex-1 overflow-y-auto no-scrollbar flex flex-col transition-all duration-300",
+        isMobile ? "items-start px-4" : "items-center group-hover:items-start"
+      )}>
         {!isMobile && (
-          <div className="flex items-center gap-4 mb-12 px-2">
-            <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-lg shrink-0">
+          <div className="flex items-center gap-4 mb-6 w-full px-4 mt-2">
+            <div className="w-14 h-14 rounded-2xl bg-white border border-zinc-100 flex items-center justify-center shadow-md shrink-0 transition-transform group-hover:scale-110">
               {AGENCY_CONFIG.logo_url ? (
-                <img src={AGENCY_CONFIG.logo_url} alt={AGENCY_CONFIG.name} className="w-6 h-6 object-contain" />
+                <img src={AGENCY_CONFIG.logo_url} alt={AGENCY_CONFIG.name} className="w-10 h-10 object-contain" />
               ) : (
-                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                <ShieldCheck className="w-10 h-10 text-[#67A708]" />
               )}
             </div>
-            <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-              <span className="text-sm font-black tracking-tight text-zinc-900 uppercase">
+            <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap overflow-hidden translate-x-[-10px] group-hover:translate-x-0">
+              <span className="text-[14px] font-semibold tracking-tighter text-zinc-900 uppercase leading-none mb-1">
                 {AGENCY_CONFIG.name.split(' ')[0]}
-              </span>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                {AGENCY_CONFIG.name.split(' ').slice(1).join(' ') || 'Workflow'}
               </span>
             </div>
           </div>
         )}
 
-        <div className="space-y-10">
+        <div className="space-y-6 w-full">
           <div>
             <h3 className={cn(
-              "px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-5 whitespace-nowrap transition-opacity",
-              !isMobile && "opacity-0 group-hover:opacity-100"
-            )}>Menu</h3>
-            <nav className="space-y-1.5">
-              {navItems.filter(item => !['Admin Panel', 'Team Management', 'Payments', 'New Project'].includes(item.name)).map((item) => {
-                const isActive = pathname === item.href
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-4 px-3 py-3 text-[13px] transition-all rounded-2xl group/item relative",
-                      isActive
-                        ? "bg-[#10B981] text-white font-bold shadow-xl shadow-emerald-500/20"
-                        : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 font-medium",
-                      !isMobile && "justify-start"
-                    )}
-                  >
-                    <item.icon className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? "text-white" : "text-zinc-400 group-hover/item:text-zinc-600")} />
-                    <span className={cn(
-                      "transition-opacity duration-300 whitespace-nowrap",
-                      !isMobile && "opacity-0 group-hover:opacity-100"
-                    )}>{item.name}</span>
-                    {isActive && !isMobile && (
-                      <div className="absolute left-[-24px] w-1.5 h-6 bg-[#10B981] rounded-r-full" />
-                    )}
-                  </Link>
-                )
-              })}
+              "px-6 text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600 mb-4 whitespace-nowrap transition-opacity",
+              isMobile ? "text-left opacity-100" : "text-center group-hover:text-left opacity-0 group-hover:opacity-100"
+            )}>Main Menu</h3>
+            <nav className="space-y-1">
+              {navItems.filter(item => !['Admin Panel', 'Team Management', 'Payments', 'Studio Library'].includes(item.name)).map(renderNavItem)}
             </nav>
           </div>
 
           <div>
             <h3 className={cn(
-              "px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-5 whitespace-nowrap transition-opacity",
-              !isMobile && "opacity-0 group-hover:opacity-100"
-            )}>Workflow</h3>
-            <nav className="space-y-1.5">
-              {navItems.filter(item => ['New Project', 'Team Management', 'Payments'].includes(item.name)).map((item) => {
-                const isActive = pathname === item.href
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-4 px-3 py-3 text-[13px] transition-all rounded-2xl group/item",
-                      isActive
-                        ? "bg-[#10B981] text-white font-bold shadow-xl shadow-emerald-500/20"
-                        : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 font-medium"
-                    )}
-                  >
-                    <item.icon className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? "text-white" : "text-zinc-400 group-hover/item:text-zinc-600")} />
-                    <span className={cn(
-                      "transition-opacity duration-300 whitespace-nowrap",
-                      !isMobile && "opacity-0 group-hover:opacity-100"
-                    )}>{item.name}</span>
-                  </Link>
-                )
-              })}
+              "px-6 text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600 mb-4 whitespace-nowrap transition-opacity",
+              isMobile ? "text-left opacity-100" : "text-center group-hover:text-left opacity-0 group-hover:opacity-100"
+            )}>Operations</h3>
+            <nav className="space-y-1">
+              {navItems.filter(item => ['Studio Library', 'Team Management', 'Payments'].includes(item.name)).map(renderNavItem)}
             </nav>
           </div>
 
           {user?.role === 'Admin' && (
             <div>
               <h3 className={cn(
-                "px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-5 whitespace-nowrap transition-opacity",
-                !isMobile && "opacity-0 group-hover:opacity-100"
-              )}>General</h3>
-              <nav className="space-y-1.5">
-                {navItems.filter(item => item.name === 'Admin Panel').map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-4 px-3 py-3 text-[13px] transition-all rounded-2xl group/item",
-                        isActive
-                          ? "bg-zinc-900 text-white font-bold shadow-xl shadow-zinc-900/10"
-                          : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 font-medium"
-                      )}
-                    >
-                      <item.icon className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? "text-white" : "text-zinc-400 group-hover/item:text-zinc-600")} />
-                      <span className={cn(
-                        "transition-opacity duration-300 whitespace-nowrap",
-                        !isMobile && "opacity-0 group-hover:opacity-100"
-                      )}>{item.name}</span>
-                    </Link>
-                  )
-                })}
+                "px-6 text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600 mb-4 whitespace-nowrap transition-opacity",
+                isMobile ? "text-left opacity-100" : "text-center group-hover:text-left opacity-0 group-hover:opacity-100"
+              )}>System</h3>
+              <nav className="space-y-1">
+                {navItems.filter(item => item.name === 'Admin Panel').map(renderNavItem)}
               </nav>
             </div>
           )}
         </div>
       </div>
 
-      <div className="p-4 hidden md:flex flex-col gap-2 bg-white rounded-t-2xl shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.05)] border-t border-zinc-100 z-10 shrink-0">
-        <div className="bg-white border border-zinc-100 p-2 rounded-2xl flex items-center justify-center overflow-hidden h-14 w-full">
-          <div className="flex items-center gap-3 w-full justify-center group-hover:justify-start group-hover:px-2 transition-all">
-            <div className="w-9 h-9 shrink-0 rounded-[10px] bg-zinc-50 border border-zinc-100 flex items-center justify-center overflow-hidden">
-              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`} alt="Avatar" className="w-full h-full object-cover" />
+      <div className={cn(
+        "p-4 border-t border-zinc-100 z-10 shrink-0",
+        isMobile ? "bg-white flex flex-col gap-4" : "flex flex-col gap-2 bg-white/50 backdrop-blur-sm hidden md:flex"
+      )}>
+        {/* Quick Actions Dock */}
+        <div className={cn(
+          "flex items-center gap-2 mb-2 transition-all duration-300",
+          isMobile ? "flex" : "opacity-0 group-hover:opacity-100 hidden group-hover:flex"
+        )}>
+          <button 
+            onClick={() => window.dispatchEvent(new CustomEvent('toggle-floating-chat'))}
+            className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-zinc-950 text-white text-[9px] font-black uppercase tracking-widest shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className={cn(isMobile ? "block" : "hidden group-hover:block")}>Support</span>
+          </button>
+          <button 
+            onClick={() => document.getElementById('mobile-activity-timeline')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-zinc-50 text-zinc-950 border border-zinc-100 text-[9px] font-black uppercase tracking-widest shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span className={cn(isMobile ? "block" : "hidden group-hover:block")}>Pulse</span>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 group-hover:px-2 transition-all">
+            <div className="w-10 h-10 shrink-0 rounded-2xl bg-zinc-950 flex items-center justify-center text-white text-[12px] font-semibold shadow-sm border border-white/10">
+              {user?.full_name?.charAt(0) || 'U'}
             </div>
-            <div className="flex-col min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
-              <span className="text-[13px] font-bold text-zinc-900 block truncate tracking-tight">{user?.full_name}</span>
-              <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">
-                {{ 'Admin': 'Administrator', 'Manager': 'Manager', 'SEO': 'SEO Specialist', 'Developer': 'Developer', 'Sales': 'Sales', 'HR': 'Human Resources', 'Designer': 'Designer' }[user?.role as string] || user?.role}
+            <div className={cn(
+              "flex flex-col min-w-0 transition-all duration-300 overflow-hidden",
+              isMobile ? "opacity-100 w-auto" : "opacity-0 group-hover:opacity-100 w-0 group-hover:w-auto translate-x-[-10px] group-hover:translate-x-0"
+            )}>
+              <span className="text-[12px] font-semibold text-zinc-900 block truncate tracking-tight uppercase leading-none mb-1">{user?.full_name}</span>
+              <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em] block leading-none">
+                {ROLE_DISPLAY_NAMES[user?.role as string] || user?.role}
               </span>
             </div>
           </div>
-        </div>
 
-        <button
-          onClick={async () => {
-            const { signOut } = await import('@/app/login/actions')
-            await signOut()
-          }}
-          className="flex items-center justify-center gap-3 w-full h-11 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 transition-all font-bold text-[13px] group-hover:justify-start group-hover:px-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-100"
-        >
-          <LogOut className="w-4 h-4 shrink-0 transition-transform" />
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden whitespace-nowrap">Log Out</span>
-        </button>
+          <button
+            onClick={async () => {
+              const { signOut } = await import('@/app/login/actions')
+              await signOut()
+            }}
+            className={cn(
+              "flex items-center justify-center gap-3 transition-all font-bold text-[10px] uppercase tracking-widest cursor-pointer focus:outline-none",
+              isMobile 
+                ? "h-10 px-4 rounded-xl bg-rose-50 text-rose-600 border border-rose-100" 
+                : "w-full h-11 rounded-xl text-zinc-600 hover:text-rose-500 hover:bg-rose-50 group-hover:justify-start group-hover:px-6"
+            )}
+          >
+            <LogOut className="w-4 h-4 shrink-0 transition-transform" />
+            <span className={cn(
+              "transition-all duration-300 overflow-hidden whitespace-nowrap",
+              isMobile ? "opacity-100 w-auto" : "opacity-0 group-hover:opacity-100 w-0 group-hover:w-auto"
+            )}>Exit</span>
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -7,7 +7,7 @@ import { RealtimeDMs } from './realtime-dms'
 export default async function DirectMessagesPage({ params }: { params: { id: string } }) {
   const { id: receiverId } = await params
   const user = await getUserProfile()
-  if (!user) return <div className="p-8 text-zinc-400">Not authenticated</div>
+  if (!user) return <div className="p-8 text-zinc-600">Not authenticated</div>
 
   const supabase = await createClient()
   
@@ -19,7 +19,7 @@ export default async function DirectMessagesPage({ params }: { params: { id: str
     .single()
 
   if (!receiverProfile) {
-    return <div className="p-8 text-zinc-400">Target user not found</div>
+    return <div className="p-8 text-zinc-600">Target user not found</div>
   }
 
   // Fetch initial messages between these two users
@@ -38,7 +38,7 @@ export default async function DirectMessagesPage({ params }: { params: { id: str
       <div className="flex items-center gap-6 border-b border-zinc-200 pb-8">
         <Link 
           href="/dashboard"
-          className="flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl h-12 w-12 transition-all border border-zinc-100 shadow-sm shrink-0"
+          className="flex items-center justify-center text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl h-12 w-12 transition-all border border-zinc-100 shadow-sm shrink-0"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
@@ -47,13 +47,13 @@ export default async function DirectMessagesPage({ params }: { params: { id: str
             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${receiverProfile.full_name}`} alt={receiverProfile.full_name} className="w-full h-full object-cover" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
               {receiverProfile.full_name}
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-lg border border-zinc-200">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-lg border border-zinc-200">
                 {receiverProfile.role}
               </span>
             </h1>
-            <p className="text-[12px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+            <p className="text-[12px] font-semibold text-emerald-500 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Secure Internal Chat
             </p>
           </div>

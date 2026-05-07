@@ -106,9 +106,13 @@ export function AddProjectModal({ staff = [] }: AddProjectModalProps) {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <button onClick={() => setOpen(true)} type="button" className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-bold gap-2 px-6 py-4 transition-all flex items-center text-[13px] shadow-sm mt-3 md:mt-0">
-        <PlusCircle className="w-4 h-4 mr-2" />
-        Add project
+      <button 
+        onClick={() => setOpen(true)} 
+        type="button" 
+        className="h-11 bg-gradient-to-r from-[#67A708] to-[#B1F00B] text-black hover:opacity-90 rounded-none font-bold text-[10px] uppercase tracking-[0.2em] px-8 transition-all flex items-center justify-center gap-3 shadow-md border-none"
+      >
+        <PlusCircle className="w-3.5 h-3.5" />
+        New Project
       </button>
       <SheetContent side="right" className="!w-full sm:!min-w-[60vw] lg:!min-w-[50vw] overflow-hidden flex flex-col p-0 border-l border-zinc-200">
         <SheetHeader className="px-8 py-6 border-b border-zinc-100 bg-zinc-50/50 shrink-0">

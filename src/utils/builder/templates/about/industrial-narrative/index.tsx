@@ -91,24 +91,29 @@ import { Target, Cpu, Boxes, ArrowRight, CornerRightDown, Hexagon } from 'lucide
 import { cn } from '@/lib/utils';
 
 export default function IndustrialNarrative() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const imageSide = settings?.image_side || 'right';
   const intensity = settings?.animation_intensity || 'dynamic';
+
+  const points = content?.points || [
+    { label: "Precision Engineering", desc: "Multi-layered solution architecture." },
+    { label: "Digital Performance", desc: "Elastic infrastructure nodes." }
+  ];
 
   const staggerContainer = {
     initial: {},
     animate: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
   };
 
-  const textVariants = {
+  const textVariants: any = {
     initial: { opacity: 0, x: imageSide === 'right' ? -30 : 30 },
     animate: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
   };
 
-  const imageVariants = {
+  const imageVariants: any = {
     initial: { opacity: 0, scale: 0.9, rotate: imageSide === 'right' ? 2 : -2 },
     animate: { opacity: 1, scale: 1, rotate: 0, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } }
   };
@@ -135,7 +140,7 @@ export default function IndustrialNarrative() {
                    className="text-[11px] font-black uppercase tracking-[0.5em] text-zinc-400"
                    style={{ fontFamily: global.font_family_body }}
                  >
-                    {content.eyebrow}
+                    {content?.eyebrow || 'Architecture'}
                  </span>
               </motion.div>
               
@@ -144,7 +149,7 @@ export default function IndustrialNarrative() {
                 className="text-5xl md:text-7xl font-black italic tracking-tighter text-zinc-950 leading-[0.85] uppercase"
                 style={{ fontFamily: global.font_family_heading }}
               >
-                {content.h2}
+                {content?.h2 || "Industrial Narrative."}
               </motion.h2>
             </div>
             
@@ -153,11 +158,11 @@ export default function IndustrialNarrative() {
               className="text-xl md:text-2xl text-zinc-500 leading-relaxed max-w-xl"
               style={{ fontFamily: global.font_family_body }}
             >
-              {content.description}
+              {content?.description || "Bridges the gap between engineering and digital experience."}
             </motion.p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
-               {content.points.map((point: any, i: number) => (
+                {points.map((point: any, i: number) => (
                  <motion.div 
                    key={i} 
                    variants={textVariants}
@@ -197,7 +202,7 @@ export default function IndustrialNarrative() {
                 <motion.img 
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 1 }}
-                  src={content.image}
+                  src={content?.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200"}
                   alt="Industrial Architecture"
                   className="w-full h-full object-cover"
                 />

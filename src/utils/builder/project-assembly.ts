@@ -1,3 +1,4 @@
+// Assembly Reload: 2026-05-06T11:20:07Z
 import { COMPONENT_TEMPLATES } from './templates'
 
 export interface ProjectFiles {
@@ -282,15 +283,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 `.trim();
 
-  // 7. PostCSS Config
-  files['postcss.config.js'] = `
-module.exports = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-    autoprefixer: {},
-  },
-}
-`
   // 8. Next.js Config (Handles cross-origin security for remote GCP access)
   const allowedOrigins = [
     '35.185.199.124', 

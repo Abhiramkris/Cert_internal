@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Sparkles, Sliders, Type, Box } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export function InspectorPanel() {
+export const InspectorPanel = React.memo(function InspectorPanel() {
   const { 
     activeComponentId, 
     contentOverrides, 
@@ -40,23 +40,49 @@ export function InspectorPanel() {
   const template = (COMPONENT_TEMPLATES as any)[activeComponentId]
   if (!template) return null
 
-  const schema = template.content_schema || {}
+  const [localContent, setLocalContent] = React.useState(contentOverrides)
+  const [localSettings, setLocalSettings] = React.useState(componentSettings)
+  const syncTimer = React.useRef<NodeJS.Timeout | null>(null)
+  const settingsSyncTimer = React.useRef<NodeJS.Timeout | null>(null)
+
+  // Sync local state when global state changes (e.g. AI generation)
+  React.useEffect(() => {
+    setLocalContent(contentOverrides)
+  }, [contentOverrides])
+
+  React.useEffect(() => {
+    setLocalSettings(componentSettings)
+  }, [componentSettings])
 
   const updateContent = (key: string, value: any) => {
-    setContentOverrides({
-      ...contentOverrides,
-      [key]: value
-    })
+    const nextContent = { ...localContent, [key]: value }
+    setLocalContent(nextContent)
+
+    if (syncTimer.current) clearTimeout(syncTimer.current)
+    syncTimer.current = setTimeout(() => {
+      setContentOverrides(nextContent)
+    }, 400) // 400ms debounce
   }
 
-  const updateSetting = (key: string, value: any) => {
-    setComponentSettings({
-      ...componentSettings,
+  const updateSetting = (key: string, value: any, immediate = false) => {
+    const nextSettings = {
+      ...localSettings,
       [activeComponentId]: {
-        ...(componentSettings[activeComponentId] || {}),
+        ...(localSettings[activeComponentId] || {}),
         [key]: value
       }
-    })
+    }
+    setLocalSettings(nextSettings)
+
+    if (settingsSyncTimer.current) clearTimeout(settingsSyncTimer.current)
+    
+    if (immediate) {
+      setComponentSettings(nextSettings)
+    } else {
+      settingsSyncTimer.current = setTimeout(() => {
+        setComponentSettings(nextSettings)
+      }, 150) // 150ms debounce for settings/sliders
+    }
   }
 
   return (
@@ -78,8 +104,8 @@ export function InspectorPanel() {
             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Content Overrides</span>
          </div>
 
-         {Object.keys(schema).map((key) => {
-            const value = contentOverrides[key] || ''
+         {Object.keys(template.content_schema || {}).map((key) => {
+            const value = localContent[key] || ''
             const label = key.replace(/_/g, ' ').toUpperCase()
             const isLong = key.includes('description') || key.includes('text') || key.includes('content')
 
@@ -114,7 +140,7 @@ export function InspectorPanel() {
          </div>
 
          {(template.settings_schema || []).map((field: any) => {
-            const currentValue = componentSettings[activeComponentId]?.[field.id] ?? (field.default ?? '')
+            const currentValue = localSettings[activeComponentId]?.[field.id] ?? (field.default ?? '')
             
             return (
               <div key={field.id} className="space-y-4">
@@ -131,7 +157,7 @@ export function InspectorPanel() {
                        {field.options.map((opt: string) => (
                          <button
                             key={opt}
-                            onClick={() => updateSetting(field.id, opt)}
+                            onClick={() => updateSetting(field.id, opt, true)}
                             className={cn(
                               "flex-1 px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all",
                               currentValue === opt 
@@ -167,7 +193,7 @@ export function InspectorPanel() {
                  {/* 3c. Boolean Toggle */}
                  {field.type === 'boolean' && (
                     <button 
-                      onClick={() => updateSetting(field.id, !currentValue)}
+                      onClick={() => updateSetting(field.id, !currentValue, true)}
                       className={cn(
                         "w-full h-12 flex items-center justify-between px-6 rounded-2xl border transition-all group",
                         currentValue ? "bg-zinc-950 border-zinc-950 text-white shadow-xl shadow-black/10" : "bg-white border-zinc-100 text-zinc-400"
@@ -201,4 +227,4 @@ export function InspectorPanel() {
       </div>
     </div>
   )
-}
+})

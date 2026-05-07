@@ -44,8 +44,15 @@ async function runWorker() {
 
   console.log('Listening for recruitment... (Polling deployment_jobs table)')
 
+  let jobCount = 0
   // Main Loop
   while (true) {
+    // Memory Hygiene: Restart worker after 100 jobs to clear dependency bloat
+    if (jobCount >= 100) {
+      console.log('[Worker] Job limit reached (100). Restarting for memory hygiene...')
+      process.exit(0)
+    }
+
     try {
       // 1. Fetch next PENDING job
       const { data: job, error } = await supabase
@@ -59,7 +66,8 @@ async function runWorker() {
       if (error) throw error
 
       if (job) {
-        console.log(`[Worker] Picking up job ${job.id} for Project ${job.projects?.client_name}`)
+        jobCount++
+        console.log(`[Worker] Picking up job ${job.id} for Project ${job.projects?.client_name} (Job #${jobCount})`)
 
         // 2. Mark as RUNNING
         await supabase
@@ -87,7 +95,7 @@ async function runWorker() {
         }
 
         // 3. Execute Build
-        const result = await performProductionBuild(
+        let result: any = await performProductionBuild(
           job.project_id,
           repoLink,
           job.projects.client_name
@@ -104,6 +112,9 @@ async function runWorker() {
           .eq('id', job.id)
 
         console.log(`[Worker] Job ${job.id} finished with status: ${result.success ? 'COMPLETED' : 'FAILED'}`)
+        
+        // Manual cleanup to assist GC
+        result = null
       }
 
     } catch (err: any) {

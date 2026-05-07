@@ -65,11 +65,10 @@ export function ProjectGeneratorActions({ project, websiteConfig }: ProjectGener
     const toastId = toast.loading('Initializing Preview Node...')
     try {
       const result = await previewProject(project.id)
-      if (result.success && result.url) {
+      if (result.success && (result.url || result.port)) {
         toast.success(result.message || 'System Operational', { id: toastId })
         // Construct the URL dynamically based on where the browser is standing
-        const previewUrl = new URL(result.url)
-        const finalUrl = `http://${window.location.hostname}:${previewUrl.port}`
+        const finalUrl = `http://${window.location.hostname}:${result.port || 3001}${result.url}`
         window.open(finalUrl, '_blank')
       } else {
         toast.error('Preview node failed to initialize', { id: toastId })

@@ -10,18 +10,30 @@ export interface OpenRouterResponse {
 }
 
 function cleanJSON(text: string) {
-  // Remove markdown code fences if present
-  const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  // 1. Remove DeepSeek <think> blocks if they exist
+  let cleaned = text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+  // 2. Try to find JSON in markdown code blocks
+  const jsonMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
   if (jsonMatch) {
     return jsonMatch[1].trim();
   }
-  return text.trim();
+
+  // 3. If no backticks, find the first '{' and last '}'
+  const firstBrace = cleaned.indexOf('{');
+  const lastBrace = cleaned.lastIndexOf('}');
+  
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return cleaned.substring(firstBrace, lastBrace + 1);
+  }
+
+  return cleaned;
 }
 
 /**
  * OpenRouter AI Engine (DeepSeek-R1)
  */
-export async function promptAI(prompt: string, systemPrompt?: string) {
+export async function promptAI(prompt: string, systemPrompt?: string, maxTokens = 2000) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error('OPENROUTER_API_KEY is not defined in environment variables');
@@ -41,6 +53,7 @@ export async function promptAI(prompt: string, systemPrompt?: string) {
         ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
         { role: 'user', content: prompt },
       ],
+      max_tokens: maxTokens,
     }),
   });
 

@@ -169,27 +169,34 @@ export function StudioProvider({
     persistenceLoaded.current = true
   }, [projectId])
 
-  // Save changes (only if loaded)
+  // Save changes (only if loaded) - Debounced to prevent memory/CPU bloat
   useEffect(() => {
     if (!persistenceLoaded.current) return
 
-    const storageKey = `studio_project_${projectId}`
-    const data = {
-      pages,
-      currentPage,
-      flowMode,
-      wizardStep,
-      globalStyles,
-      selectedComponents,
-      componentSettings,
-      contentOverrides,
-      seo
-    }
-    localStorage.setItem(storageKey, JSON.stringify(data))
+    const timer = setTimeout(() => {
+      const storageKey = `studio_project_${projectId}`
+      const data = {
+        pages,
+        currentPage,
+        flowMode,
+        wizardStep,
+        globalStyles,
+        selectedComponents,
+        componentSettings,
+        contentOverrides,
+        seo
+      }
+      localStorage.setItem(storageKey, JSON.stringify(data))
+    }, 1000)
+
+    return () => clearTimeout(timer)
   }, [projectId, pages, currentPage, flowMode, wizardStep, globalStyles, selectedComponents, componentSettings, contentOverrides, seo])
 
-  // Dual-Vector Font Injection Effect
+  // Dual-Vector Font Injection Effect - With proper cleanup
   useEffect(() => {
+    const head = document.head
+    const links: HTMLLinkElement[] = []
+
     // 1. Headline Injection
     if (globalStyles.font_head_cdn_url) {
       const existingLink = document.getElementById('custom-head-font')
@@ -198,7 +205,8 @@ export function StudioProvider({
       link.id = 'custom-head-font'
       link.rel = 'stylesheet'
       link.href = globalStyles.font_head_cdn_url
-      document.head.appendChild(link)
+      head.appendChild(link)
+      links.push(link)
     }
 
     // 2. Body Injection
@@ -209,7 +217,12 @@ export function StudioProvider({
       link.id = 'custom-body-font'
       link.rel = 'stylesheet'
       link.href = globalStyles.font_body_cdn_url
-      document.head.appendChild(link)
+      head.appendChild(link)
+      links.push(link)
+    }
+
+    return () => {
+      links.forEach(l => l.remove())
     }
   }, [globalStyles.font_head_cdn_url, globalStyles.font_body_cdn_url])
 

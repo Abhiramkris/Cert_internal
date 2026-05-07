@@ -35,12 +35,12 @@ export function StudioArchitectButton({
           onOpen?.()
         }}
         className={cn(
-          "h-14 px-8 bg-[#1ada91] text-zinc-950 border-2 border-zinc-950 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-[#15b87a] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all flex items-center justify-center gap-3 active:scale-95",
+          "h-10 md:h-12 px-6 md:px-8 bg-gradient-to-r from-[#67A708] to-[#B1F00B] text-black rounded-none font-bold text-[9px] md:text-[10px] uppercase tracking-[0.2em] hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-3 active:scale-95 border-none",
           className
         )}
         size={size}
       >
-        <Code2 className="w-5 h-5 text-zinc-950" />
+        <Code2 className="w-4 h-4 md:w-5 md:h-5 text-black" />
         Launch Studio Architect
       </Button>
 

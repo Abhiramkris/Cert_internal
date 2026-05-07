@@ -67,8 +67,8 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
       icon: IndianRupee,
       trend: stats.leadGrowth > 0 ? 'up' : 'down',
       trendValue: `${Math.abs(Math.round(stats.leadGrowth))}%`,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50'
+      color: 'text-[#67A708]',
+      bg: 'bg-[#67A708]/10'
     },
     {
       title: 'Closed Sales',
@@ -77,8 +77,8 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
       icon: Target,
       trend: 'none',
       trendValue: '',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50'
+      color: 'text-[#67A708]',
+      bg: 'bg-[#B1F00B]/20'
     },
     {
       title: 'Outstanding',
@@ -97,8 +97,8 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
       icon: BarChart3,
       trend: stats.leadGrowth > 0 ? 'up' : 'down',
       trendValue: `${Math.abs(Math.round(stats.leadGrowth))}%`,
-      color: 'text-purple-600',
-      bg: 'bg-purple-50'
+      color: 'text-[#67A708]',
+      bg: 'bg-[#67A708]/5'
     }
   ]
 
@@ -112,8 +112,8 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
             </div>
             {m.trend !== 'none' && (
               <div className={cn(
-                "hidden sm:flex items-center gap-1 text-[8px] md:text-[9px] font-black px-2 py-1 rounded-none border border-zinc-200",
-                m.trend === 'up' ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"
+                "hidden sm:flex items-center gap-1 text-[8px] md:text-[9px] font-semibold px-2 py-1 rounded-none border border-zinc-200",
+                m.trend === 'up' ? "bg-[#67A708]/10 text-[#67A708] border-[#67A708]/20" : "bg-rose-50 text-rose-600 border-rose-200"
               )}>
                 {m.trend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {m.trendValue}
@@ -122,12 +122,12 @@ export function AdminStats({ projects, staff }: AdminStatsProps) {
           </div>
 
           <div className="space-y-0.5 md:space-y-1 relative z-10">
-            <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 truncate">{m.title}</p>
+            <p className="text-[8px] md:text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-600 truncate">{m.title}</p>
             <div className="flex items-baseline gap-1 md:gap-2">
-              <h3 className="text-lg md:text-2xl font-black text-zinc-900 tracking-tighter leading-none">{m.value}</h3>
-              <ArrowUpRight className="hidden sm:block w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
+              <h3 className="text-lg md:text-2xl font-semibold text-zinc-900 tracking-tighter leading-none">{m.value}</h3>
+              <ArrowUpRight className="hidden sm:block w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-900 transition-colors" />
             </div>
-            <p className="text-[8px] md:text-[9px] font-black text-zinc-300 uppercase tracking-widest leading-none mt-1 truncate">{m.description}</p>
+            <p className="text-[8px] md:text-[9px] font-semibold text-zinc-500 uppercase tracking-widest leading-none mt-1 truncate">{m.description}</p>
           </div>
         </Card>
       ))}

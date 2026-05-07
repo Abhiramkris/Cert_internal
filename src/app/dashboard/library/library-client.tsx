@@ -25,7 +25,7 @@ export function LibraryClient({ components }: LibraryClientProps) {
   return (
     <div className="space-y-6">
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
         <input 
           type="text"
           placeholder="Filter components..."
@@ -48,7 +48,7 @@ export function LibraryClient({ components }: LibraryClientProps) {
                   <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mx-auto backdrop-blur-xl border border-white/10">
                      <Play className="w-5 h-5 text-white fill-current" />
                   </div>
-                  <div className="text-[10px] font-black text-white/40 uppercase tracking-[.3em]">
+                  <div className="text-[10px] font-semibold text-white/40 uppercase tracking-[.3em]">
                      Unit Identifier: {component.id}
                   </div>
                </div>
@@ -57,31 +57,31 @@ export function LibraryClient({ components }: LibraryClientProps) {
             {/* Info Section */}
             <div className="p-6 flex-1 flex flex-col gap-4">
               <div className="space-y-1">
-                <h3 className="text-xl font-black text-zinc-950 tracking-tight italic uppercase leading-none">
+                <h3 className="text-xl font-semibold text-zinc-950 tracking-tight italic uppercase leading-none">
                   {component.name || component.id.replace(/_/g, ' ')}
                 </h3>
-                <p className="text-zinc-500 text-xs font-medium line-clamp-2">
+                <p className="text-zinc-700 text-xs font-medium line-clamp-2">
                   {component.description || "High-fidelity production component ready for AI deployment."}
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 {(component.industry_relevance || ['general']).map((tag: string) => (
-                  <span key={tag} className="text-[9px] font-bold px-2 py-0.5 bg-zinc-100 text-zinc-500 rounded-full uppercase tracking-widest">
+                  <span key={tag} className="text-[9px] font-semibold px-2 py-0.5 bg-zinc-100 text-zinc-700 rounded-full uppercase tracking-widest">
                     {tag}
                   </span>
                 ))}
               </div>
 
               <div className="mt-auto pt-4 border-t border-zinc-100 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">
                   <Info className="w-3.5 h-3.5" />
                   {Object.keys(component.content_schema || {}).length || component.content_fields?.length || 0} Fields
                 </div>
 
                 <button 
                   onClick={() => handlePreview(component.id)}
-                  className="flex items-center gap-2 px-4 py-2 bg-zinc-950 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all"
+                  className="flex items-center gap-2 px-4 py-2 bg-zinc-950 text-white rounded-full text-[10px] font-semibold uppercase tracking-widest hover:bg-blue-600 transition-all"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Local Preview
@@ -100,17 +100,17 @@ export function LibraryClient({ components }: LibraryClientProps) {
               <div className="h-16 border-b border-zinc-200 bg-white flex items-center justify-between px-6 shrink-0 relative z-10 shadow-sm">
                  <div className="flex items-center gap-4">
                     <div className="bg-zinc-950 text-white px-3 py-1.5 rounded-full flex items-center gap-2">
-                       <Hash className="w-3 h-3 text-zinc-500" />
-                       <span className="text-[10px] font-black uppercase tracking-widest">{previewId.split('_')[0]}</span>
+                       <Hash className="w-3 h-3 text-zinc-700" />
+                       <span className="text-[10px] font-semibold uppercase tracking-widest">{previewId.split('_')[0]}</span>
                     </div>
                     <div className="h-4 w-[1px] bg-zinc-200" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
                        Local Module Render
                     </span>
                  </div>
                  <button 
                    onClick={() => setPreviewId(null)}
-                   className="w-10 h-10 flex items-center justify-center bg-zinc-100 hover:bg-red-50 hover:text-red-500 rounded-full text-zinc-500 transition-all cursor-pointer"
+                   className="w-10 h-10 flex items-center justify-center bg-zinc-100 hover:bg-red-50 hover:text-red-500 rounded-full text-zinc-700 transition-all cursor-pointer"
                  >
                     <X className="w-4 h-4" />
                  </button>
@@ -121,7 +121,7 @@ export function LibraryClient({ components }: LibraryClientProps) {
                     {(() => {
                        const template = (COMPONENT_TEMPLATES as any)[previewId];
                        if (!template || !template.preview) return (
-                          <div className="h-full min-h-[400px] flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                          <div className="h-full min-h-[400px] flex items-center justify-center text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
                              Preview Block Not Yielded
                           </div>
                        );

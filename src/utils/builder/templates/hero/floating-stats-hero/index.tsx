@@ -161,9 +161,9 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 
 export default function FloatingStatsHero() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const showBadge = settings?.show_top_badge ?? true;
   const isDarkStats = settings?.stats_card_style !== 'light';
@@ -175,7 +175,7 @@ export default function FloatingStatsHero() {
   const textMargin = settings?.hero_text_margin || "mb-8";
   const flexAlignment = textAlignment === 'text-left' ? 'items-start' : textAlignment === 'text-right' ? 'items-end' : 'items-center';
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { 
       opacity: 0, 
       y: containerAnimPreset === 'fade-up' ? 40 : 0, 
@@ -198,7 +198,7 @@ export default function FloatingStatsHero() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { 
       opacity: 0, 
       y: textAnimPreset === 'slide-up' ? 20 : textAnimPreset === 'spring-up' ? 40 : 0,

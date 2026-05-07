@@ -19,10 +19,10 @@ export function TeamChatCard({ staff, currentUserId }: TeamChatCardProps) {
     <Card className="rounded-[2.5rem] border-none bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative flex flex-col hide-scrollbar h-[350px]">
       <div className="flex items-center justify-between mb-4 px-2">
         <div>
-          <h3 className="text-[18px] font-bold text-zinc-900 tracking-tight">Team Chat</h3>
-          <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Direct Messages</p>
+          <h3 className="text-[18px] font-semibold text-zinc-900 tracking-tight">Team Chat</h3>
+          <p className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">Direct Messages</p>
         </div>
-        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full bg-zinc-50 hover:bg-zinc-100 text-zinc-500">
+        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full bg-zinc-50 hover:bg-zinc-100 text-zinc-700">
           <PlusCircle className="w-4 h-4" />
         </Button>
       </div>
@@ -40,8 +40,8 @@ export function TeamChatCard({ staff, currentUserId }: TeamChatCardProps) {
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[13px] font-bold text-zinc-900 tracking-tight">{member.full_name?.split(' ')[0]}</span>
-                <span className="text-[11px] font-semibold text-zinc-500 leading-none">
+                <span className="text-[13px] font-semibold text-zinc-900 tracking-tight">{member.full_name?.split(' ')[0]}</span>
+                <span className="text-[11px] font-semibold text-zinc-700 leading-none">
                   {{'Admin': 'Administrator', 'Manager': 'Manager', 'SEO': 'SEO Specialist', 'Developer': 'Developer', 'Sales': 'Sales', 'HR': 'HR'}[member.role as string] || member.role}
                 </span>
               </div>

@@ -83,9 +83,9 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 export default function IndustrialCommandFooter() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const links = content?.links || [
     { label: "Solutions", links: ["Global Ledger", "Neural Audit", "Quantum Mesh"] },
@@ -113,7 +113,7 @@ export default function IndustrialCommandFooter() {
               <div className="w-12 h-12 bg-white flex items-center justify-center rounded-2xl shadow-2xl shadow-white/5">
                  <Globe className="w-7 h-7 text-zinc-950" />
               </div>
-              <span style={{ fontFamily: global.font_family_heading }}>{content.brand_name}</span>
+              <span style={{ fontFamily: global.font_family_heading }}>{content?.brand_name || 'Agency'}</span>
             </motion.div>
             
             <motion.p 
@@ -124,7 +124,7 @@ export default function IndustrialCommandFooter() {
               className="text-zinc-500 text-xl leading-relaxed max-w-md"
               style={{ fontFamily: global.font_family_body }}
             >
-              {content.bio}
+              {content?.bio || "Architecting the infrastructure of the digital future."}
             </motion.p>
             
             <motion.div 
@@ -189,7 +189,7 @@ export default function IndustrialCommandFooter() {
           className="pt-16 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-10"
         >
            <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700">
-              <span className="hover:text-zinc-400 transition-colors cursor-pointer">© {new Date().getFullYear()} {content.brand_name}</span>
+              <span className="hover:text-zinc-400 transition-colors cursor-pointer">© {new Date().getFullYear()} {content?.brand_name || 'Agency'}</span>
               <span className="hidden md:block w-1.5 h-1.5 bg-zinc-800 rounded-full" />
               <span className="hover:text-zinc-400 transition-colors cursor-pointer">Privileges Reserved</span>
               <span className="hidden md:block w-1.5 h-1.5 bg-zinc-800 rounded-full" />
@@ -210,7 +210,7 @@ export default function IndustrialCommandFooter() {
                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Live Feedback Active</span>
               </motion.div>
            )}
-        </div >
+        </motion.div>
       </div>
     </footer>
   );

@@ -71,9 +71,9 @@ import { ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function WellnessServicesGrid() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const bgColor = settings?.section_background === 'dark' ? 'bg-[#1A2E1D]' : 
                   settings?.section_background === 'muted' ? 'bg-[#F8F9F8]' : 'bg-white';
@@ -84,12 +84,12 @@ export default function WellnessServicesGrid() {
   const columns = settings?.columns_count === '2-cols' ? 'md:grid-cols-2' :
                   settings?.columns_count === '4-cols' ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2 lg:grid-cols-3';
 
-  const containerVariants = {
+  const containerVariants: any = {
     initial: { opacity: 0 },
     animate: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
-  const cardVariants = {
+  const cardVariants: any = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
   };

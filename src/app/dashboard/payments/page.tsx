@@ -9,7 +9,7 @@ export default async function PaymentsDashboard() {
   const { data: projects } = await getProjects(user?.profile.role, user?.id || '')
   
   if (!user || (user.profile.role !== 'Admin' && user.profile.role !== 'Manager')) {
-    return <div className="p-8 text-zinc-400">Unauthorized access. Financial records are restricted to management.</div>
+    return <div className="p-8 text-zinc-600">Unauthorized access. Financial records are restricted to management.</div>
   }
 
   const allPayments = projects?.flatMap(p => (p.payments || []).map((pay: any) => ({
@@ -33,24 +33,24 @@ export default async function PaymentsDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-zinc-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight flex items-center gap-3">
             Financial Dashboard
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1">Live</Badge>
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-none font-semibold text-[10px] uppercase tracking-widest px-3 py-1">Live</Badge>
           </h1>
-          <p className="text-zinc-500 font-bold text-sm uppercase tracking-widest mt-1 opacity-60">Global Payment Reconciliation & Revenue Tracking</p>
+          <p className="text-zinc-700 font-semibold text-sm uppercase tracking-widest mt-1 opacity-60">Global Payment Reconciliation & Revenue Tracking</p>
         </div>
         
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-hover:text-zinc-900 transition-colors" />
             <input 
               type="text" 
               placeholder="Search clients..." 
-              className="pl-11 pr-6 py-3 bg-white border border-zinc-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-zinc-900/5 transition-all outline-none w-64 shadow-sm"
+              className="pl-11 pr-6 py-3 bg-white border border-zinc-200 rounded-2xl text-sm font-semibold focus:ring-4 focus:ring-zinc-900/5 transition-all outline-none w-64 shadow-sm"
             />
           </div>
           <button className="h-12 w-12 flex items-center justify-center bg-white border border-zinc-200 rounded-2xl hover:bg-zinc-50 transition-all shadow-sm">
-            <Filter className="w-4 h-4 text-zinc-500" />
+            <Filter className="w-4 h-4 text-zinc-700" />
           </button>
         </div>
       </div>
@@ -65,10 +65,10 @@ export default async function PaymentsDashboard() {
                 <s.icon className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">{s.label}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-600 mb-1">{s.label}</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black text-zinc-900 tracking-tighter">₹{s.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
-                  <ArrowUpRight className="w-4 h-4 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
+                  <h3 className="text-3xl font-semibold text-zinc-900 tracking-tighter">₹{s.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+                  <ArrowUpRight className="w-4 h-4 text-zinc-500 group-hover:text-zinc-900 transition-colors" />
                 </div>
               </div>
             </div>
@@ -80,19 +80,19 @@ export default async function PaymentsDashboard() {
       <Card className="rounded-[2.5rem] border-none bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
         <CardHeader className="p-8 border-b border-zinc-50 flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-xl font-black text-zinc-900 tracking-tight flex items-center gap-2">
-              <History className="w-5 h-5 text-zinc-400" />
+            <CardTitle className="text-xl font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
+              <History className="w-5 h-5 text-zinc-600" />
               Transaction History
             </CardTitle>
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-1">Audit Log of All Settled Payments</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600 mt-1">Audit Log of All Settled Payments</p>
           </div>
-          <button className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors">Export CSV</button>
+          <button className="text-[10px] font-semibold uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors">Export CSV</button>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="bg-zinc-50/50 border-b border-zinc-100 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <tr className="bg-zinc-50/50 border-b border-zinc-100 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
                   <th className="px-8 py-6 text-left">Date</th>
                   <th className="px-8 py-6 text-left">Client / Project</th>
                   <th className="px-8 py-6 text-left">Method</th>
@@ -109,10 +109,10 @@ export default async function PaymentsDashboard() {
                         const isValid = !isNaN(date.getTime());
                         return (
                           <div className="flex flex-col">
-                            <span className="font-black text-zinc-900">
+                            <span className="font-semibold text-zinc-900">
                               {isValid ? date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Invalid Date'}
                             </span>
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">
+                            <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-tighter">
                               {isValid ? date.getFullYear() : '—'}
                             </span>
                           </div>
@@ -121,20 +121,20 @@ export default async function PaymentsDashboard() {
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col">
-                        <span className="font-bold text-zinc-800 text-sm group-hover:text-blue-600 transition-colors">{p.project_name}</span>
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">ID: {p.project_id.split('-')[0]}</span>
+                        <span className="font-semibold text-zinc-800 text-sm group-hover:text-blue-600 transition-colors">{p.project_name}</span>
+                        <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">ID: {p.project_id.split('-')[0]}</span>
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <Badge variant="outline" className="bg-zinc-50 text-zinc-600 border-none font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-lg">
+                      <Badge variant="outline" className="bg-zinc-50 text-zinc-600 border-none font-semibold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-lg">
                         {(p.payment_method || '-').replace(/_/g, ' ')}
                       </Badge>
                     </td>
                     <td className="px-8 py-6 max-w-[200px]">
-                      <span className="text-zinc-500 font-medium text-xs truncate block">{p.notes || '-'}</span>
+                      <span className="text-zinc-700 font-medium text-xs truncate block">{p.notes || '-'}</span>
                     </td>
                     <td className="px-8 py-6 text-right">
-                      <span className="text-lg font-black text-zinc-900 tracking-tighter">
+                      <span className="text-lg font-semibold text-zinc-900 tracking-tighter">
                         ₹{(p.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </td>
@@ -144,7 +144,7 @@ export default async function PaymentsDashboard() {
                     <td colSpan={5} className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center gap-2 opacity-20">
                         <Wallet className="w-12 h-12 text-zinc-900" />
-                        <span className="text-xs font-black uppercase tracking-widest">No financial records detected</span>
+                        <span className="text-xs font-semibold uppercase tracking-widest">No financial records detected</span>
                       </div>
                     </td>
                   </tr>

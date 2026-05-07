@@ -18,8 +18,8 @@ export default async function LibraryPage() {
         <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
           <ShieldAlert className="w-10 h-10 text-red-500" />
         </div>
-        <h1 className="text-3xl font-black text-zinc-950 mb-2">Restricted Access</h1>
-        <p className="text-zinc-500 max-w-md">
+        <h1 className="text-3xl font-semibold text-zinc-950 mb-2">Restricted Access</h1>
+        <p className="text-zinc-700 max-w-md">
           The Studio Library is a high-fidelity design vault reserved for Administrators and Developers.
         </p>
       </div>
@@ -47,10 +47,10 @@ export default async function LibraryPage() {
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-3 text-blue-600 mb-2">
           <Cpu className="w-5 h-5" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em]">Design Intelligence</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.3em]">Design Intelligence</span>
         </div>
-        <h1 className="text-5xl font-black text-zinc-950 tracking-tighter italic uppercase">Studio Library</h1>
-        <p className="text-zinc-500 max-w-2xl text-lg font-medium">
+        <h1 className="text-5xl font-semibold text-zinc-950 tracking-tighter italic uppercase">Studio Library</h1>
+        <p className="text-zinc-700 max-w-2xl text-lg font-medium">
           Audit and verify all high-fidelity components in real-world scenarios using the synchronous Live Preview Node.
         </p>
       </header>
@@ -62,8 +62,8 @@ export default async function LibraryPage() {
                <div className="p-2 bg-zinc-100 rounded-lg">
                   {key === 'hero' ? <Layout className="w-5 h-5 text-zinc-900" /> : <Box className="w-5 h-5 text-zinc-900" />}
                </div>
-               <h2 className="text-xl font-black text-zinc-950 uppercase tracking-widest">{key}s</h2>
-               <span className="ml-auto text-[10px] font-bold px-3 py-1 bg-zinc-100 rounded-full text-zinc-500 uppercase tracking-widest">
+               <h2 className="text-xl font-semibold text-zinc-950 uppercase tracking-widest">{key}s</h2>
+               <span className="ml-auto text-[10px] font-semibold px-3 py-1 bg-zinc-100 rounded-full text-zinc-700 uppercase tracking-widest">
                   {items.length} Units
                </span>
             </div>

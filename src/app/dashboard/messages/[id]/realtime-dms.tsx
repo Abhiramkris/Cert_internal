@@ -202,10 +202,10 @@ export function RealtimeDMs({ senderId, receiverId, initialMessages, projects = 
               )}>
                 <div className={cn("space-y-1.5 max-w-[70%]", isMe ? "items-end flex flex-col" : "")}>
                   <div className={cn("flex items-center gap-3", isMe ? "flex-row-reverse" : "")}>
-                    <span className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-[9px] text-zinc-500 font-semibold uppercase tracking-widest">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                   <div className={cn(
-                    "p-5 rounded-2xl border transition-all text-[13px] leading-relaxed font-bold shadow-sm whitespace-pre-wrap",
+                    "p-5 rounded-2xl border transition-all text-[13px] leading-relaxed font-semibold shadow-sm whitespace-pre-wrap",
                     isMe
                       ? "bg-zinc-900 border-zinc-900 text-white rounded-tr-none shadow-lg shadow-zinc-950/20" 
                       : "bg-white border-zinc-100 text-zinc-900 rounded-tl-none shadow-sm"
@@ -222,12 +222,12 @@ export function RealtimeDMs({ senderId, receiverId, initialMessages, projects = 
             )
           })
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center p-12 text-zinc-300">
+          <div className="h-full flex flex-col items-center justify-center text-center p-12 text-zinc-500">
             <div className="w-16 h-16 bg-zinc-100 rounded-3xl flex items-center justify-center mb-6">
               <MessageSquare className="w-8 h-8 opacity-20 text-zinc-800" />
             </div>
-            <p className="text-sm font-bold uppercase tracking-widest opacity-60 text-zinc-500">No Chat History</p>
-            <p className="text-[10px] font-bold mt-2 opacity-40 uppercase tracking-tight text-zinc-400">Say hello to get this timeline started</p>
+            <p className="text-sm font-semibold uppercase tracking-widest opacity-60 text-zinc-700">No Chat History</p>
+            <p className="text-[10px] font-semibold mt-2 opacity-40 uppercase tracking-tight text-zinc-600">Say hello to get this timeline started</p>
           </div>
         )}
       </CardContent>
@@ -238,7 +238,7 @@ export function RealtimeDMs({ senderId, receiverId, initialMessages, projects = 
           <div className="absolute bottom-[80%] mb-4 left-8 w-64 bg-white border border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden z-50">
             {filteredProjects.length > 0 ? (
               <div className="flex flex-col">
-                <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-100 text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-100 text-[9px] font-semibold uppercase tracking-widest text-zinc-600">
                   Tag Project Reference
                 </div>
                 {filteredProjects.map((p, idx) => (
@@ -250,13 +250,13 @@ export function RealtimeDMs({ senderId, receiverId, initialMessages, projects = 
                       idx === selectedIndex ? "bg-zinc-100" : "hover:bg-zinc-50"
                     )}
                   >
-                    <span className="text-[12px] font-bold text-zinc-900 tracking-tight">{p.client_name}</span>
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">{p.status.replace(/_/g, ' ')}</span>
+                    <span className="text-[12px] font-semibold text-zinc-900 tracking-tight">{p.client_name}</span>
+                    <span className="text-[9px] font-semibold text-zinc-600 uppercase tracking-widest mt-0.5">{p.status.replace(/_/g, ' ')}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="px-5 py-4 text-[11px] font-bold uppercase tracking-wider text-zinc-400">No matching projects.</div>
+              <div className="px-5 py-4 text-[11px] font-semibold uppercase tracking-wider text-zinc-600">No matching projects.</div>
             )}
           </div>
         )}
@@ -266,7 +266,7 @@ export function RealtimeDMs({ senderId, receiverId, initialMessages, projects = 
             value={newMessage}
             onChange={handleInputChange}
             placeholder="Type your message here... (Use @ to tag active projects)"
-            className="min-h-[70px] bg-zinc-50 border-zinc-100 rounded-3xl pr-16 pl-6 py-5 focus:ring-4 focus:ring-[#10B981]/10 focus:border-[#10B981]/50 text-[13px] font-bold transition-all resize-none placeholder:text-zinc-400 text-zinc-900 shadow-inner"
+            className="min-h-[70px] bg-zinc-50 border-zinc-100 rounded-3xl pr-16 pl-6 py-5 focus:ring-4 focus:ring-[#10B981]/10 focus:border-[#10B981]/50 text-[13px] font-semibold transition-all resize-none placeholder:text-zinc-600 text-zinc-900 shadow-inner"
             onKeyDown={handleKeyDown}
           />
           <Button 

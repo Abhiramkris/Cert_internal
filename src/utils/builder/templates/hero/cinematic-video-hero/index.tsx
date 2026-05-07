@@ -151,9 +151,9 @@ import { ArrowRight, Play, MousePointer2 } from 'lucide-react';
 const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
 
 export default function CinematicHero() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const blurLevel = settings?.blur_intensity ?? 20;
   const overlayOpacity = (settings?.overlay_opacity ?? 40) / 100;
@@ -166,7 +166,7 @@ export default function CinematicHero() {
   const containerAnimationPreset = settings?.container_animation ?? 'fade-up';
   const textAnimationPreset = settings?.text_animation ?? 'slide-up';
 
-  const containerVariants = {
+  const containerVariants: any = {
     'fade-up': { initial: { opacity: 1, y: 40, scale: 0.95 }, animate: { opacity: 1, y: 0, scale: 1 } },
     'scale-up': { initial: { opacity: 1, scale: 0.8 }, animate: { opacity: 1, scale: 1 } },
     'blur-in': { initial: { opacity: 1, filter: 'blur(20px)' }, animate: { opacity: 1, filter: 'blur(0px)' } },
@@ -177,7 +177,7 @@ export default function CinematicHero() {
   };
   const selectedContainerVariant = containerVariants[containerAnimationPreset as keyof typeof containerVariants] || containerVariants['fade-up'];
 
-  const textVariants = {
+  const textVariants: any = {
     'slide-up': { initial: { opacity: 1, y: 20 }, animate: { opacity: 1, y: 0 } },
     'fade': { initial: { opacity: 1 }, animate: { opacity: 1 } },
     'scale': { initial: { opacity: 1, scale: 0.9 }, animate: { opacity: 1, scale: 1 } },
@@ -272,7 +272,7 @@ export default function CinematicHero() {
               className={cn("font-black text-white tracking-tighter leading-[0.8] uppercase italic", heroTextSize, heroTextMargin)}
               style={{ fontFamily: global.font_family_heading }}
             >
-              {content.h1}
+              {content?.h1 || "Redefining the Future."}
             </motion.h1>
 
             <motion.p 
@@ -281,7 +281,7 @@ export default function CinematicHero() {
               className="text-xl md:text-2xl text-zinc-400 font-medium max-w-2xl leading-relaxed" 
               style={{ fontFamily: global.font_family_body }}
             >
-              {content.description}
+              {content?.description || "Experience the next generation of digital excellence with our cinematic AI orchestrations."}
             </motion.p>
 
             <motion.div 
@@ -300,7 +300,7 @@ export default function CinematicHero() {
                 )}
                 style={global.button_style === 'solid' || !global.button_style ? { backgroundColor: global.accent_color || '#ffffff' } : {}}
               >
-                {content.cta_primary}
+                {content?.cta_primary || "Explore Vision"}
                 <ArrowRight className="w-4 h-4" />
               </motion.button>
               <button 
@@ -310,7 +310,7 @@ export default function CinematicHero() {
                   global.button_radius === 'none' ? 'rounded-none' : global.button_radius === 'md' ? 'rounded-xl' : 'rounded-full'
                 )}
               >
-                {content.cta_secondary}
+                {content?.cta_secondary || "Our Story"}
               </button>
             </motion.div>
           </motion.div>

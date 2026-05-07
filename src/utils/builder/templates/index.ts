@@ -1,3 +1,4 @@
+// Registry Reload: 2026-05-06T11:15:29Z
 import { NAV_COMPONENTS } from './nav';
 import { HERO_COMPONENTS } from './hero';
 import { FOOTER_COMPONENTS } from './footer';

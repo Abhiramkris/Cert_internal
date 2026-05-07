@@ -18,21 +18,16 @@ export default async function LoginPage({
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#fafafa] relative overflow-hidden font-sans">
       <div className="w-full max-w-[440px] px-6 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {/* Branding */}
-        <div className="mb-12 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-none bg-zinc-950 border border-zinc-200 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)] mb-8 transition-transform">
-            {AGENCY_CONFIG.logo_url ? (
-              <img src={AGENCY_CONFIG.logo_url} alt="Logo" className="w-12 h-12 object-contain invert" />
-            ) : (
-              <ShieldCheck className="w-10 h-10 text-white" />
-            )}
-          </div>
-          <h1 className="text-4xl font-black tracking-tighter text-zinc-950 mb-2">
-            {AGENCY_CONFIG.name.split(' ')[0]} <span className="text-zinc-400">{AGENCY_CONFIG.name.split(' ').slice(1).join(' ') || 'Workflow'}</span>
-          </h1>
+        <div className="mb-8 text-center flex flex-col items-center">
+          <img
+            src="/assets/certifyied_logo.png"
+            alt="Certified Logo"
+            className="w-32 h-32 object-contain"
+          />
         </div>
 
         {/* Login Card */}
-        <Card className="rounded-none border-2 border-zinc-200 bg-white shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <Card className="rounded-none border border-zinc-200 bg-white shadow-sm overflow-hidden">
           <CardHeader className="p-8 pb-4 border-b border-zinc-100">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-black text-zinc-950 tracking-tight flex items-center gap-2">
@@ -53,7 +48,7 @@ export default async function LoginPage({
                     type="email"
                     placeholder="identity@agency.com"
                     required
-                    className="h-14 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-950 text-zinc-950 font-black rounded-none pl-12 transition-all outline-none ring-0 focus:ring-0 placeholder:text-zinc-200 text-sm tracking-tight"
+                    className="h-14 bg-zinc-50 border border-zinc-200 focus:border-zinc-950 text-zinc-950 font-semibold rounded-none pl-12 transition-all outline-none ring-0 focus:ring-0 placeholder:text-zinc-200 text-sm tracking-tight"
                   />
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-950 font-black text-xs">@</div>
                 </div>
@@ -68,7 +63,7 @@ export default async function LoginPage({
                     type="password"
                     placeholder="••••••••"
                     required
-                    className="h-14 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-950 text-zinc-950 font-black rounded-none pl-12 transition-all outline-none ring-0 focus:ring-0"
+                    className="h-14 bg-zinc-50 border border-zinc-200 focus:border-zinc-950 text-zinc-950 font-semibold rounded-none pl-12 transition-all outline-none ring-0 focus:ring-0"
                   />
                   <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-950" />
                 </div>
@@ -82,7 +77,7 @@ export default async function LoginPage({
             </CardContent>
 
             <CardFooter className="p-8 pt-0">
-              <Button type="submit" className="w-full h-14 bg-zinc-950 text-white hover:bg-zinc-800 font-black rounded-none transition-all active:scale-[0.98] flex items-center justify-center gap-3 tracking-tight text-sm">
+              <Button type="submit" className="w-full h-14 bg-gradient-to-r from-[#67A708] to-[#86D015] text-white hover:brightness-110 font-black rounded-none transition-all active:scale-[0.98] flex items-center justify-center gap-3 tracking-tight text-sm shadow-xl shadow-[#67A708]/20 border-0">
                 Authorize Access
                 <ArrowRight className="w-4 h-4" />
               </Button>

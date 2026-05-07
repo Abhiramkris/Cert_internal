@@ -83,9 +83,9 @@ const getIcon = (name: string, className: string) => {
 };
 
 export default function IndustrialFeaturesGrid() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const services = content?.services || [
     { title: "Neural Orchestration", desc: "Advanced AI kernels integrated into your core architecture.", icon: "Cpu" },
@@ -94,7 +94,7 @@ export default function IndustrialFeaturesGrid() {
     { title: "Global Logistics", desc: "Distributed network nodes for zero-latency delivery.", icon: "Globe" }
   ];
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1, 
@@ -102,7 +102,7 @@ export default function IndustrialFeaturesGrid() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 30 },
     visible: { 
       opacity: 1, 

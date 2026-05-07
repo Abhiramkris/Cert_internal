@@ -58,9 +58,9 @@ import { ArrowRight, Zap, Target, MousePointer2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function IndustrialGlowCTA() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const glowColor = settings?.glow_color || 'emerald';
   const glowClasses = 

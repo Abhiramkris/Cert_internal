@@ -79,9 +79,9 @@ const getIcon = (name: string, className: string) => {
 };
 
 export default function IndustrialStatsMonitor() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const stats = content?.stats || [
     { label: "Systems Verified", value: "2.4k+", icon: "Shield" },
@@ -90,7 +90,7 @@ export default function IndustrialStatsMonitor() {
     { label: "Cities Reached", value: "480", icon: "Globe" }
   ];
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1, 
@@ -98,7 +98,7 @@ export default function IndustrialStatsMonitor() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, scale: 0.9, y: 20 },
     visible: { 
       opacity: 1, 

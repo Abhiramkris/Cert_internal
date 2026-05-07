@@ -6,6 +6,7 @@ import { headers } from 'next/headers'
 import JSZip from 'jszip'
 import fs from 'fs/promises'
 import path from 'path'
+// Registry Refresh: 2026-05-05T23:13:24Z
 import { COMPONENT_TEMPLATES } from '@/utils/builder/templates'
 import { promptAI, generateSystemPrompt } from '@/utils/ai/ai-client'
 
@@ -300,29 +301,41 @@ const execAsync = promisify(exec)
 // Global store for active preview processes
 const activePreviews: Record<string, any> = {}
 
-async function killExistingPreview(projectId: string) {
+async function killExistingPreview(projectId: string, port?: number) {
+  // 1. Kill via tracked process tree
   if (activePreviews[projectId]) {
-    return new Promise<void>((resolve) => {
+    await new Promise<void>((resolve) => {
       const child = activePreviews[projectId]
       const pid = child.pid
       if (pid) {
         console.log(`[Preview ${projectId}]: Terminating existing process tree ${pid}...`)
-
-        // Suppress logs from dying process to prevent harmless scandir/cache panic logs
         child.stdout?.removeAllListeners('data')
         child.stderr?.removeAllListeners('data')
-
         treeKill(pid, 'SIGKILL', (err) => {
           if (err) console.warn(`[Preview ${projectId}]: Kill error:`, err)
           delete activePreviews[projectId]
-          // Extended grace period for port release (1.5s)
-          setTimeout(resolve, 1500)
+          resolve()
         })
       } else {
         delete activePreviews[projectId]
         resolve()
       }
     })
+  }
+
+  // 2. Aggressive port cleanup (for orphans)
+  if (port) {
+    try {
+      const { stdout } = await execAsync(`lsof -t -i:${port}`)
+      if (stdout.trim()) {
+        const pids = stdout.trim().split('\n')
+        for (const pid of pids) {
+          console.log(`[Preview ${projectId}]: Killing orphan process ${pid} on port ${port}...`)
+          await execAsync(`kill -9 ${pid}`).catch(() => {})
+        }
+        await new Promise(r => setTimeout(r, 800))
+      }
+    } catch (e) {}
   }
 }
 
@@ -391,11 +404,24 @@ export async function previewProject(projectId: string) {
 
   const previewDir = path.join(process.cwd(), 'tmp/previews', projectId)
 
-  // 1. Cleanup existing process tree
-  await killExistingPreview(projectId)
+  // 1. Cleanup existing process tree & orphans
+  const existingPort = project.dev_config?.port
+  await killExistingPreview(projectId, existingPort)
 
-  // 2. Reserve a port early so we can inject it into the basePath
+  // 2. Reserve a port early
   const assignedPort = await getAvailablePort(3001, 3010)
+  
+  // Final safeguard: Ensure the assigned port is REALLY free
+  await execAsync(`lsof -t -i:${assignedPort}`).then(async ({ stdout }) => {
+    if (stdout.trim()) {
+      console.log(`[Preview ${projectId}]: Assigned port ${assignedPort} is busy, force cleaning...`)
+      const pids = stdout.trim().split('\n')
+      for (const pid of pids) {
+        await execAsync(`kill -9 ${pid}`).catch(() => {})
+      }
+      await new Promise(r => setTimeout(r, 500))
+    }
+  }).catch(() => {})
 
   // 3. Zero-Cache Purge (Keep node_modules)
   console.log(`[Preview ${projectId}]: Purging stale cache...`)
@@ -405,34 +431,23 @@ export async function previewProject(projectId: string) {
   // 4. Assemble and Write Files
   const headerList = await headers()
   const currentHost = headerList.get('host') || 'localhost'
-  const isCloud = currentHost.includes('cloud-ip.cc')
-  const protocol = isCloud ? 'https' : 'http'
   
   const files = assembleProjectFiles(project, config, { 
     isPreview: true,
-    currentHost: currentHost.split(':')[0],
-    basePath: `/preview/${projectId}`
+    currentHost: currentHost.split(':')[0]
   })
 
   // 5. Atomic File Write
   for (const [filePath, content] of Object.entries(files)) {
     const fullPath = path.join(previewDir, filePath)
     await fs.mkdir(path.dirname(fullPath), { recursive: true })
-
-    // For app/page.tsx, we append a timestamp to force HMR if reusing modules
-    if (filePath === 'app/page.tsx') {
-      const timestampComment = `\n\n// Studio Sync: ${new Date().toISOString()}\n`
-      await fs.writeFile(fullPath, content + timestampComment)
-    } else {
-      await fs.writeFile(fullPath, content)
-    }
+    await fs.writeFile(fullPath, content)
   }
 
-  // 4. Force data config fresh
-  const configPath = path.join(previewDir, 'data/config.json')
-  await fs.utimes(configPath, new Date(), new Date())
+  // 6. Startup Delay (Prevents Next.js config change detection race)
+  await new Promise(resolve => setTimeout(resolve, 1000))
 
-  // 6. Build/Run Lifecycle
+  // 7. Build/Run Lifecycle
   try {
     console.log(`[Preview ${projectId}]: Launching Live Preview Node on port ${assignedPort}...`)
 
@@ -452,7 +467,7 @@ export async function previewProject(projectId: string) {
 
     activePreviews[projectId] = child
 
-    const publicUrl = `/preview/${projectId}/`
+    const publicUrl = `/`
 
     // Persist only the PORT
     await supabase.from('projects').update({
@@ -465,6 +480,7 @@ export async function previewProject(projectId: string) {
     return {
       success: true,
       url: publicUrl,
+      port: assignedPort,
       message: 'Preview Node synchronized successfully'
     }
   } catch (err: any) {
@@ -496,56 +512,49 @@ export async function previewComponent(componentId: string) {
   const previewId = 'library-audit-preview'
   const previewDir = path.join(process.cwd(), 'tmp/previews', previewId)
 
+  // 1. Cleanup existing process tree
   await killExistingPreview(previewId)
-  await purgeDirectory(previewDir)
-  await fs.mkdir(previewDir, { recursive: true })
-
-  // 1. Assemble Mock Project Files
-  const mockProject = {
-    client_name: 'Studio Library Audit',
-    description: `Real-world verification of component: ${componentId}`
-  }
-
-  const headerList = await headers()
-  const requestHost = headerList.get('host')?.split(':')[0]
-  const files = assembleProjectFiles(mockProject as any, mockConfig as any, { 
-    isPreview: true,
-    currentHost: requestHost,
-    basePath: `/preview/\${assignedPort}`
-  })
-  for (const [relativePath, content] of Object.entries(files)) {
-    const fullPath = path.join(previewDir, relativePath)
-    await fs.mkdir(path.dirname(fullPath), { recursive: true })
-
-    if (relativePath === 'app/page.tsx' || relativePath.endsWith('.tsx')) {
-      const timestampComment = `\n\n// Library Audit: ${new Date().toISOString()}\n`
-      await fs.writeFile(fullPath, content + timestampComment)
-    } else {
-      await fs.writeFile(fullPath, content)
-    }
-  }
 
   // 2. Launch Preview Node
   try {
     const assignedPort = await getAvailablePort(3001, 3010)
     
-    // RE-ASSEMBLE with the correct basePath
+    // Final safeguard: Ensure the assigned port is REALLY free
+    await execAsync(`lsof -t -i:${assignedPort}`).then(async ({ stdout }) => {
+      if (stdout.trim()) {
+        const pids = stdout.trim().split('\n')
+        for (const pid of pids) {
+          await execAsync(`kill -9 ${pid}`).catch(() => {})
+        }
+        await new Promise(r => setTimeout(r, 500))
+      }
+    }).catch(() => {})
+
+    // 3. Assemble Mock Project Files
+    const mockProject = {
+      client_name: 'Studio Library Audit',
+      description: `Real-world verification of component: ${componentId}`
+    }
+
     const headerList = await headers()
     const currentHost = headerList.get('host') || 'localhost'
-    const isCloud = currentHost.includes('cloud-ip.cc')
-    const protocol = isCloud ? 'https' : 'http'
 
     const files = assembleProjectFiles(mockProject as any, mockConfig as any, { 
       isPreview: true,
-      currentHost: currentHost.split(':')[0],
-      basePath: `/preview/${previewId}`
+      currentHost: currentHost.split(':')[0]
     })
+
+    await purgeDirectory(previewDir)
+    await fs.mkdir(previewDir, { recursive: true })
 
     for (const [relativePath, content] of Object.entries(files)) {
       const fullPath = path.join(previewDir, relativePath)
       await fs.mkdir(path.dirname(fullPath), { recursive: true })
       await fs.writeFile(fullPath, content)
     }
+
+    // 4. Startup Delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
     console.log(`[Library Audit]: Launching Preview Node for ${componentId} on port ${assignedPort}...`)
 
@@ -563,11 +572,12 @@ export async function previewComponent(componentId: string) {
 
     activePreviews[previewId] = child
 
-    const publicUrl = `/preview/${previewId}/`
+    const publicUrl = `/`
 
     return {
       success: true,
       url: publicUrl,
+      port: assignedPort,
       message: `Library Audit: ${componentId} is live.`
     }
   } catch (err: any) {

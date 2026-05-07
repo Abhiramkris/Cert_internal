@@ -31,7 +31,7 @@ export const ABOUT_WELLNESS_TEAM = {
               <div key={i} className="space-y-4 group">
                 <div className={cn("aspect-square bg-zinc-100 overflow-hidden relative border border-zinc-50 shadow-sm", imageClass)}>
                    <img 
-                     src={expert?.image || \`https://i.pravatar.cc/300?u=\${i}\`} 
+                     src={expert?.image || `https://i.pravatar.cc/300?u=${i}`} 
                      className="w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-500" 
                      alt="Expert"
                    />
@@ -59,19 +59,26 @@ import { Linkedin, Mail, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function WellnessTeamGrid() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
   const imageClass = settings?.image_shape === 'circle' ? 'rounded-full' : 
                      settings?.image_shape === 'blob' ? 'rounded-[3rem] rotate-3 group-hover:rotate-0' : 'rounded-[2.5rem]';
 
-  const containerVariants = {
+  const experts = content?.experts || [
+    { name: "Sarah J.", role: "Lead Architect", image: "https://i.pravatar.cc/300?u=1" },
+    { name: "Mark D.", role: "Safety Node", image: "https://i.pravatar.cc/300?u=2" },
+    { name: "Elena K.", role: "Flow Engineer", image: "https://i.pravatar.cc/300?u=3" },
+    { name: "Tom R.", role: "Structuralist", image: "https://i.pravatar.cc/300?u=4" }
+  ];
+
+  const containerVariants: any = {
     initial: { opacity: 0 },
     animate: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     initial: { 
       opacity: 0, 
       y: settings?.animation_type === 'slide-up' ? 30 : 0,
@@ -97,25 +104,25 @@ export default function WellnessTeamGrid() {
            >
              divider
            </motion.div>
-           <motion.h2 
-             initial={{ y: 20, opacity: 0 }}
-             whileInView={{ y: 0, opacity: 1 }}
-             viewport={{ once: true }}
-             className="text-4xl md:text-6xl font-black tracking-tighter text-[#1A2E1D] uppercase bg-clip-text"
-             style={{ fontFamily: global.font_family_heading }}
-           >
-             {content.h2}
-           </motion.h2>
-           <motion.p 
-             initial={{ y: 20, opacity: 0 }}
-             whileInView={{ y: 0, opacity: 1 }}
-             viewport={{ once: true }}
-             transition={{ delay: 0.1 }}
-             className="text-xl text-zinc-500 max-w-2xl mx-auto font-medium"
-             style={{ fontFamily: global.font_family_body }}
-           >
-             {content.description}
-           </motion.p>
+            <motion.h2 
+              initial={{ y: 20, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-5xl md:text-8xl font-black italic tracking-tighter text-zinc-950 uppercase leading-[0.8]"
+              style={{ fontFamily: global.font_family_heading }}
+            >
+              {content?.h2 || "The Experts."}
+            </motion.h2>
+            <motion.p 
+              initial={{ y: 20, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-xl text-zinc-500 max-w-2xl mx-auto font-medium"
+              style={{ fontFamily: global.font_family_body }}
+            >
+              {content?.description || "A specialized unit of architectural wellness engineers."}
+            </motion.p>
         </div>
 
         <motion.div 
@@ -125,7 +132,7 @@ export default function WellnessTeamGrid() {
           viewport={{ once: true, margin: "-50px" }}
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 md:gap-12"
         >
-          {content.experts.map((expert: any, i: number) => (
+          {experts.map((expert: any, i: number) => (
             <motion.div 
               key={i} 
               variants={itemVariants}

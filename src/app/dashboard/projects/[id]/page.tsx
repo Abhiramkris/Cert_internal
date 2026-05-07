@@ -23,7 +23,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
   const { data: staff } = await getStaff()
   const { data: websiteConfig } = await getWebsiteConfig(id)
 
-  if (!user || !project) return <div className="p-8 text-zinc-400">Project not found</div>
+  if (!user || !project) return <div className="p-8 text-zinc-600">Project not found</div>
 
   // Resilient status matching for legacy data (TEAM_ASSIGNED vs TEAM_ASSIGNMENT)
   const isStatusEquivalent = (s1: string, s2: string) => {
@@ -73,34 +73,34 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
-            className="flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl h-12 w-12 transition-all border border-zinc-100 shadow-sm shrink-0"
+            className="flex items-center justify-center text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl h-12 w-12 transition-all border border-zinc-100 shadow-sm shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-              <h1 className="text-xl font-bold text-zinc-900 tracking-tight">
+              <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">
                 {project.client_name}
               </h1>
               <Badge variant="outline" className={cn(
-                "rounded-lg font-bold text-[10px] px-2 py-0.5 border-none uppercase tracking-tight bg-zinc-100 text-zinc-600"
+                "rounded-lg font-semibold text-[10px] px-2 py-0.5 border-none uppercase tracking-tight bg-zinc-100 text-zinc-600"
               )}>
                 {currentStage?.display_name || project.status.replace(/_/g, ' ')}
               </Badge>
               {project.current_assignee_id ? (
                 <div className="flex items-center gap-1.5 ml-2 border border-zinc-200 rounded-lg px-2 py-0.5 bg-white shadow-sm">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  <span className="text-[10px] font-semibold text-zinc-700 uppercase tracking-widest">
                     Owner: {staff?.find(s => s.id === project.current_assignee_id)?.full_name || 'Active'}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 ml-2 border border-amber-200 rounded-lg px-2 py-0.5 bg-amber-50 shadow-sm">
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Unassigned</span>
+                  <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-widest">Unassigned</span>
                   {(isAdmin || isManager || isCorrectRole) && (
                     <form action={selfAssignProject.bind(null, project.id)} className="ml-2">
-                      <PendingButton type="submit" variant="outline" className="h-7 px-3 text-[9px] font-black uppercase tracking-tighter border-amber-200 text-amber-700 bg-white hover:bg-amber-100 rounded-lg transition-all">
+                      <PendingButton type="submit" variant="outline" className="h-7 px-3 text-[9px] font-semibold uppercase tracking-tighter border-amber-200 text-amber-700 bg-white hover:bg-amber-100 rounded-lg transition-all">
                         Self-Assign
                       </PendingButton>
                     </form>
@@ -117,7 +117,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           {['overview', 'workflow', 'generator', 'finances', 'comments'].map((tab) => {
             if (tab === 'finances' && !canManagePayments) return null
             return (
-              <TabsTrigger key={tab} value={tab} className="rounded-none bg-transparent px-0 py-3 text-sm font-bold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-400 transition-all uppercase tracking-wider mb-2 lg:mb-0">
+              <TabsTrigger key={tab} value={tab} className="rounded-none bg-transparent px-0 py-3 text-sm font-semibold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-600 transition-all uppercase tracking-wider mb-2 lg:mb-0">
                 {tab === 'generator' ? 'Studio' : tab}
               </TabsTrigger>
             )
@@ -164,9 +164,9 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                                 <div className="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center text-white shadow-sm">
                                    <Users className="w-5 h-5" />
                                 </div>
-                                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-900">Workflow Logistics</h3>
+                                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-900">Workflow Logistics</h3>
                              </div>
-                             <Badge variant="outline" className="bg-zinc-950 text-white border-zinc-950 font-black px-4 py-1.5 rounded-xl text-[10px] uppercase tracking-widest">
+                             <Badge variant="outline" className="bg-zinc-950 text-white border-zinc-950 font-semibold px-4 py-1.5 rounded-xl text-[10px] uppercase tracking-widest">
                                 Active: {currentStage?.display_name || project.status}
                              </Badge>
                           </div>
@@ -186,7 +186,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                              <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-sm">
                                 <Sparkles className="w-5 h-5" />
                              </div>
-                             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-900 leading-none relative top-0.5">Production Hub</h3>
+                             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-900 leading-none relative top-0.5">Production Hub</h3>
                           </div>
                           <div className="p-1.5 border border-dashed border-zinc-100 rounded-2xl bg-zinc-50/30 relative z-10">
                             {user.profile.role?.toLowerCase() === 'developer' || isManager || isAdmin ? (
@@ -196,7 +196,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                               />
                             ) : (
                               <div className="py-8 text-center">
-                                <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] leading-relaxed px-4">Architect clearance required.</p>
+                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.2em] leading-relaxed px-4">Architect clearance required.</p>
                               </div>
                             )}
                           </div>
@@ -227,7 +227,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                             name="action" 
                             value="save"
                             variant="outline"
-                            className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-white text-zinc-900 border-zinc-200 font-black uppercase tracking-widest hover:bg-zinc-50 transition-all active:scale-95 text-[10px] md:text-sm"
+                            className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-white text-zinc-900 border-zinc-200 font-semibold uppercase tracking-widest hover:bg-zinc-50 transition-all active:scale-95 text-[10px] md:text-sm"
                           >
                             Save Content
                           </PendingButton>
@@ -235,7 +235,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                             type="submit" 
                             name="action" 
                             value="handover"
-                            className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest hover:bg-zinc-800 shadow-xl transition-all active:scale-95 text-[10px] md:text-sm"
+                            className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest hover:bg-zinc-800 shadow-xl transition-all active:scale-95 text-[10px] md:text-sm"
                           >
                             Approve & Handover
                           </PendingButton>
@@ -269,27 +269,27 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                       "flex items-center justify-center w-14 h-14 rounded-full border-2 shrink-0 transition-all duration-300 z-10",
                       isActive ? "bg-zinc-950 border-zinc-950 text-white shadow-lg scale-110" :
                         isCompleted ? "bg-white border-zinc-950 text-zinc-950 shadow-sm" :
-                          "bg-white border-zinc-100 text-zinc-300"
+                          "bg-white border-zinc-100 text-zinc-500"
                     )}>
                       {isCompleted && !isActive ? <CheckCircle className="w-6 h-6 text-emerald-500" /> : <Settings className="w-6 h-6" />}
                     </div>
                     <div className="ml-10 pt-2 flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className={cn("text-sm font-black uppercase tracking-widest transition-colors", isPending ? "text-zinc-400" : "text-zinc-950")}>{step.display_name}</h4>
-                        <span className={cn("text-[9px] font-black px-3 py-1 rounded-xl border-2 tracking-widest uppercase",
-                          isCompleted && !isActive ? "bg-zinc-50 border-zinc-100 text-zinc-400" :
-                            isActive ? "bg-zinc-950 border-zinc-950 text-white" : "bg-transparent border-zinc-100 text-zinc-300"
+                        <h4 className={cn("text-sm font-semibold uppercase tracking-widest transition-colors", isPending ? "text-zinc-600" : "text-zinc-950")}>{step.display_name}</h4>
+                        <span className={cn("text-[9px] font-semibold px-3 py-1 rounded-xl border-2 tracking-widest uppercase",
+                          isCompleted && !isActive ? "bg-zinc-50 border-zinc-100 text-zinc-600" :
+                            isActive ? "bg-zinc-950 border-zinc-950 text-white" : "bg-transparent border-zinc-100 text-zinc-500"
                         )}>{step.acting_role}</span>
                       </div>
                       
                       {isCompleted && audit && (
                         <div className="space-y-6 mt-4">
-                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 w-fit px-4 py-2 rounded-xl border-2 border-zinc-950/5">
-                             <User className="w-3 h-3 text-zinc-400" />
-                             <span className="text-zinc-600 font-black">{submitter?.full_name || 'System'}</span>
+                          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-600 bg-zinc-50 w-fit px-4 py-2 rounded-xl border-2 border-zinc-950/5">
+                             <User className="w-3 h-3 text-zinc-600" />
+                             <span className="text-zinc-600 font-semibold">{submitter?.full_name || 'System'}</span>
                              <span className="mx-2 opacity-20">•</span>
-                             <Clock className="w-3 h-3 text-zinc-400" />
-                             <span className="font-black text-zinc-500">{new Date(audit.submitted_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                             <Clock className="w-3 h-3 text-zinc-600" />
+                             <span className="font-semibold text-zinc-700">{new Date(audit.submitted_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                           {audit.data && Object.keys(audit.data).length > 0 && (
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 p-6 bg-white rounded-2xl border-2 border-zinc-950 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] relative overflow-hidden group/data">
@@ -298,8 +298,8 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                               </div>
                               {Object.entries(audit.data).map(([key, value]) => (
                                 <div key={key} className="space-y-2 relative z-10">
-                                  <span className="text-[9px] text-zinc-400 font-black uppercase block tracking-widest truncate">{key.replace(/_/g, ' ')}</span>
-                                  <span className="text-xs text-zinc-950 font-black break-words leading-tight">{String(value)}</span>
+                                  <span className="text-[9px] text-zinc-600 font-semibold uppercase block tracking-widest truncate">{key.replace(/_/g, ' ')}</span>
+                                  <span className="text-xs text-zinc-950 font-semibold break-words leading-tight">{String(value)}</span>
                                 </div>
                               ))}
                             </div>
@@ -307,7 +307,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                         </div>
                       )}
 
-                      <p className="text-[11px] text-zinc-500 font-bold leading-relaxed max-w-xl mt-3 tracking-tight">
+                      <p className="text-[11px] text-zinc-700 font-semibold leading-relaxed max-w-xl mt-3 tracking-tight">
                         {isActive ? `Currently being handled by ${step.acting_role}.` :
                           isCompleted ? `Phase verified and handoff completed.` : `Awaiting previous stages.`}
                       </p>
@@ -325,8 +325,8 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     <TrendingUp className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black uppercase tracking-[0.15em] text-zinc-900 leading-none mb-1">Directional Logs</h3>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Recorded workflow changes</p>
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-zinc-900 leading-none mb-1">Directional Logs</h3>
+                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Recorded workflow changes</p>
                   </div>
                 </div>
                 
@@ -346,20 +346,20 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                         <div className="absolute left-0 top-2.5 w-4 h-4 bg-white border-2 border-zinc-100 rounded-full z-10 group-hover:border-zinc-900 transition-colors duration-300" />
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
                               {new Date(comment.created_at).toLocaleDateString('en-GB')}
                             </span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-200">•</span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-200">•</span>
+                            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
                               {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
-                          <Badge variant="outline" className="bg-zinc-50/50 border-zinc-100 text-[8px] font-black text-zinc-400 uppercase tracking-widest rounded-lg py-0.5 px-2 h-5">
+                          <Badge variant="outline" className="bg-zinc-50/50 border-zinc-100 text-[8px] font-semibold text-zinc-600 uppercase tracking-widest rounded-lg py-0.5 px-2 h-5">
                             System Event
                           </Badge>
                         </div>
                         <div className="bg-white border border-zinc-100 p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300">
-                          <p className="text-xs font-bold text-zinc-800 leading-relaxed tracking-tight">
+                          <p className="text-xs font-semibold text-zinc-800 leading-relaxed tracking-tight">
                             {comment.content.replace('Handoff Note: ', '').replace('Workflow Changed: ', '')}
                           </p>
                         </div>

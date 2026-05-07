@@ -19,20 +19,24 @@ export function MobileFloatingControls() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 flex flex-col gap-3 md:hidden z-[100]">
-      <Button 
-        onClick={openChat}
-        className="w-14 h-14 rounded-full bg-zinc-950 text-white shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:scale-110 active:scale-95 transition-all flex items-center justify-center border-2 border-white/10"
-      >
-        <MessageSquare className="w-6 h-6" />
-      </Button>
-      
-      <Button 
-        onClick={scrollToTimeline}
-        className="w-14 h-14 rounded-full bg-white text-zinc-950 shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:scale-110 active:scale-95 transition-all flex items-center justify-center border border-zinc-200"
-      >
-        <Activity className="w-6 h-6" />
-      </Button>
+    <div className="fixed bottom-6 left-6 right-6 flex items-center justify-between gap-4 md:hidden z-[100]">
+      <div className="flex-1 flex items-center gap-2 p-2 bg-white/80 backdrop-blur-2xl border border-zinc-200 rounded-[2rem] shadow-2xl shadow-black/10">
+        <button 
+          onClick={openChat}
+          className="flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl bg-zinc-950 text-white hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Support</span>
+        </button>
+        
+        <button 
+          onClick={scrollToTimeline}
+          className="flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl bg-white text-zinc-950 border border-zinc-100 hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
+        >
+          <Activity className="w-5 h-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Pulse</span>
+        </button>
+      </div>
     </div>
   )
 }

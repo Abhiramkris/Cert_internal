@@ -92,13 +92,13 @@ export function WeeklyTimeline({ projects, userRole, currentUserId }: WeeklyTime
           return (
             <div key={i} className="text-center group">
               <span className={cn(
-                "text-[10px] font-black uppercase tracking-tighter block mb-1",
-                isToday ? "text-blue-600" : "text-zinc-400"
+                "text-[10px] font-semibold uppercase tracking-tighter block mb-1",
+                isToday ? "text-blue-600" : "text-zinc-600"
               )}>
                 {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
               </span>
               <div className={cn(
-                "text-[12px] font-black h-6 w-6 rounded-full flex items-center justify-center mx-auto transition-all",
+                "text-[12px] font-semibold h-6 w-6 rounded-full flex items-center justify-center mx-auto transition-all",
                 isToday ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-zinc-900"
               )}>
                 {d.getDate()}
@@ -122,10 +122,10 @@ export function WeeklyTimeline({ projects, userRole, currentUserId }: WeeklyTime
           activeProjects.map((p) => (
             <div key={p.id} className="relative group/row">
               <div className="flex items-center justify-between mb-1 px-1">
-                <span className="text-[10px] font-bold text-zinc-900 truncate max-w-[80px]" title={p.client_name}>
+                <span className="text-[10px] font-semibold text-zinc-900 truncate max-w-[80px]" title={p.client_name}>
                   {p.client_name}
                 </span>
-                <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest leading-none">
+                <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-widest leading-none">
                   {p.status.split('_').pop()}
                 </span>
               </div>
@@ -155,14 +155,14 @@ export function WeeklyTimeline({ projects, userRole, currentUserId }: WeeklyTime
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center py-6">
             <Calendar className="w-8 h-8 text-zinc-200 mb-2" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-300">No deadlines this week</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">No deadlines this week</p>
           </div>
         )}
       </div>
 
       {/* View All Button */}
       <div className="mt-4 pt-4 border-t border-zinc-50 flex items-center justify-between">
-        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Week View</span>
+        <span className="text-[9px] font-semibold text-zinc-600 uppercase tracking-widest">Week View</span>
         <div className="flex items-center gap-1">
            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />

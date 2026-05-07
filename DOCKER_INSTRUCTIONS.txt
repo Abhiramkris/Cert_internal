@@ -13,7 +13,8 @@ Ensure your `.env` file contains the following critical keys:
 # Frontend build variables
 NEXT_PUBLIC_SUPABASE_URL="your-supabase-project-url"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
-NEXT_PUBLIC_SITE_URL="your-production-url"
+NEXT_PUBLIC_SITE_URL="https://your-production-url.com"
+DOMAIN="your-production-url.com" # Required for Nginx and SSL
 
 # Backend server variables
 SUPABASE_SERVICE_ROLE_KEY="your-supabase-service-role-key"

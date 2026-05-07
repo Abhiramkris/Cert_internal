@@ -45,6 +45,15 @@ export function StudioShell() {
     projectId, setWizardStep
   } = useStudio()
 
+  const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timers on unmount
+  React.useEffect(() => {
+    return () => {
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    }
+  }, []);
+
   if (flowMode === 'wizard') {
     return <WizardShell />
   }
@@ -102,15 +111,20 @@ export function StudioShell() {
                >
                   {(selectedComponents[currentPage] || []).map((key, index) => {
                     // Simple long press detection
-                    let timer: any;
                     const handleTouchStart = () => {
-                      timer = setTimeout(() => {
+                      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                      longPressTimer.current = setTimeout(() => {
                         setPickerCategory(key.split('_')[0].toLowerCase());
                         setPickerSlotIndex(index);
                         setIsPickerOpen(true);
                       }, 500);
                     };
-                    const handleTouchEnd = () => clearTimeout(timer);
+                    const handleTouchEnd = () => {
+                      if (longPressTimer.current) {
+                        clearTimeout(longPressTimer.current);
+                        longPressTimer.current = null;
+                      }
+                    };
 
                     return (
                       <Reorder.Item 

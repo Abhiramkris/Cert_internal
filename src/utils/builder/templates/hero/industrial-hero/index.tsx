@@ -126,11 +126,11 @@ import { ArrowRight, MoveRight } from 'lucide-react';
 const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
 
 export default function HeroStats() {
-  const global = ${JSON.stringify(config)};
-  const content = ${JSON.stringify(content)};
-  const settings = ${JSON.stringify(settings)};
+  const global: any = ${JSON.stringify(config)};
+  const content: any = ${JSON.stringify(content)};
+  const settings: any = ${JSON.stringify(settings)};
   
-  const stats = content.stats || [
+  const stats = content?.stats || [
     { label: 'Project Success', value: '98%' },
     { label: 'Years Experience', value: '15+' },
     { label: 'Global Clients', value: '250+' }
@@ -143,7 +143,7 @@ export default function HeroStats() {
   const textMargin = settings?.hero_text_margin || "mb-8";
   const flexAlignment = textAlignment === 'text-center' ? 'items-center' : textAlignment === 'text-right' ? 'items-end' : 'items-start';
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { 
       opacity: 0, 
       y: containerAnimPreset === 'fade-up' ? 40 : 0, 
@@ -166,7 +166,7 @@ export default function HeroStats() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { 
       opacity: 0, 
       y: textAnimPreset === 'slide-up' ? 20 : textAnimPreset === 'spring-up' ? 40 : 0,
@@ -203,7 +203,7 @@ export default function HeroStats() {
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          src={content.image_url || "https://images.unsplash.com/photo-1519067793744-1618217bd501?auto=format&fit=crop&q=80"} 
+          src={content?.image_url || "https://images.unsplash.com/photo-1519067793744-1618217bd501?auto=format&fit=crop&q=80"} 
           className="w-full h-full object-cover grayscale brightness-50"
         />
         <div 
@@ -229,17 +229,17 @@ export default function HeroStats() {
           className={\`\${textSize} \${textMargin} font-black text-white tracking-[1.2px] leading-[0.85] uppercase italic\`}
           style={{ fontFamily: global.font_family_heading }}
         >
-          {content.h1 || "Precision Logistics."}
+          {content?.h1 || "Precision Logistics."}
         </motion.h1>
         <motion.p 
           variants={textAnimPreset === 'none' ? {} : itemVariants}
           className={cn("text-lg md:text-xl text-zinc-300 font-medium max-w-2xl mb-16 leading-relaxed", textAlignment === 'text-center' ? 'mx-auto' : "")}
         >
-          {content.description}
+          {content?.description || "Advanced architectural engineering for the digital age."}
         </motion.p>
         <motion.div variants={textAnimPreset === 'none' ? {} : itemVariants} className={cn("flex flex-wrap items-center gap-10", textAlignment === 'text-center' ? 'justify-center' : textAlignment === 'text-right' ? 'justify-end' : "")}>
            <button className="h-20 px-14 bg-white text-zinc-950 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-2xl hover:opacity-90 transition-all">
-              {content.cta_primary}
+              {content?.cta_primary || "Get Started"}
            </button>
         </motion.div>
       </motion.div>
