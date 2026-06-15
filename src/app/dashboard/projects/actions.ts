@@ -235,8 +235,9 @@ export async function submitStageData(
   if (updateError) throw updateError
 
   // 5. Notify new assignee
+  const adminClient = await createAdminClient()
   if (nextAssigneeId && nextAssigneeId !== user.id) {
-    await supabase.from('notifications').insert({
+    await adminClient.from('notifications').insert({
       user_id: nextAssigneeId,
       project_id: projectId,
       type: 'HANDOFF_RECEIVED',
@@ -245,83 +246,7 @@ export async function submitStageData(
   }
   
   if (note && note.trim()) {
-    await supabase.from('comments').insert({
-      project_id: projectId,
-      user_id: user.id,
-      content: `Handoff Note: ${note}`,
-      is_internal: true
-    })
-  }
-
-  revalidatePath(`/dashboard/projects/${projectId}`)
-}
-
-export async function handoffProject(projectId: string, assigneeId: string, status?: string, note?: string, stageData?: { stageId: string, data: any }, targetStageId?: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-
-  // 1. Verify Authorization: Only current assignee or Manager/Admin can handoff
-  const { data: project, error: pError } = await supabase
-    .from('projects')
-    .select('current_assignee_id, workflow_template_id')
-    .eq('id', projectId)
-    .single()
-
-  if (pError || !project) throw new Error('Project not found')
-
-
-  // 1. Process and route stage data
-  if (stageData?.data) {
-    await routeWorkflowData(supabase, projectId, stageData.stageId, stageData.data, user.id)
-  }
-  
-  const updateData: any = { current_assignee_id: assigneeId }
-  if (status || targetStageId) {
-    const { data: targetStage } = await supabase.from('workflow_stages')
-      .select('id, status_key, next_status_key')
-      .eq('template_id', project.workflow_template_id)
-      .eq(targetStageId ? 'id' : 'status_key', targetStageId || status)
-      .maybeSingle()
-      
-    if (targetStage) {
-      updateData.status = targetStage.status_key
-      updateData.current_stage_id = targetStage.id
-      if (targetStage.next_status_key) {
-        const { data: nextStage } = await supabase.from('workflow_stages')
-          .select('id')
-          .eq('template_id', project.workflow_template_id)
-          .eq('status_key', targetStage.next_status_key)
-          .maybeSingle()
-        if (nextStage) updateData.next_stage_id = nextStage.id
-      } else {
-        updateData.next_stage_id = null
-      }
-    }
-  }
-
-  const { error } = await supabase
-    .from('projects')
-    .update(updateData)
-    .eq('id', projectId)
-
-  if (error) {
-    console.error('Handoff error:', error)
-    throw new Error('Failed to handoff project')
-  }
-
-  // 2. Notify new assignee
-  if (assigneeId && assigneeId !== user.id) {
-    await supabase.from('notifications').insert({
-      user_id: assigneeId,
-      project_id: projectId,
-      type: 'HANDOFF_RECEIVED',
-      message: `Mission Assignment: You have been designated as the successor unit for a project transition.`
-    })
-  }
-
-  if (note && note.trim()) {
-    await supabase.from('comments').insert({
+    await adminClient.from('comments').insert({
       project_id: projectId,
       user_id: user.id,
       content: `Handoff Note: ${note}`,

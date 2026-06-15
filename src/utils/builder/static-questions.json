@@ -164,25 +164,16 @@
   {
     "key": "logo_main",
     "label": "Main Logo (URL/Path)",
-    "role": "Branding",
+    "role": "SEO",
     "required": false,
     "type": "text",
     "category": "global_styles",
     "placeholder": "/logos/main.svg"
   },
   {
-    "key": "logo_favicon",
-    "label": "Favicon (URL/Path)",
-    "role": "Branding",
-    "required": false,
-    "type": "text",
-    "category": "global_styles",
-    "placeholder": "/favicon.ico"
-  },
-  {
     "key": "brand_voice",
     "label": "Architectural Brand Voice",
-    "role": "Branding",
+    "role": "SEO",
     "required": false,
     "type": "select",
     "options": ["Formal", "Playful", "Techy", "Luxurious"],
@@ -191,7 +182,7 @@
   {
     "key": "primary_color",
     "label": "Brand Primary Color (HEX)",
-    "role": "Branding",
+    "role": "SEO",
     "required": false,
     "type": "text",
     "category": "global_styles",
@@ -200,47 +191,11 @@
   {
     "key": "accent_color",
     "label": "Brand Accent Color (HEX)",
-    "role": "Branding",
+    "role": "SEO",
     "required": false,
     "type": "text",
     "category": "global_styles",
     "placeholder": "#3b82f6"
-  },
-  {
-    "key": "google_analytics_id",
-    "label": "Google Analytics ID",
-    "role": "Technical",
-    "required": false,
-    "type": "text",
-    "category": "technical_metadata",
-    "placeholder": "G-XXXXXXXXXX"
-  },
-  {
-    "key": "privacy_policy_url",
-    "label": "Privacy Policy URL",
-    "role": "Technical",
-    "required": false,
-    "type": "text",
-    "category": "technical_metadata",
-    "placeholder": "/privacy"
-  },
-  {
-    "key": "terms_url",
-    "label": "Terms of Service URL",
-    "role": "Technical",
-    "required": false,
-    "type": "text",
-    "category": "technical_metadata",
-    "placeholder": "/terms"
-  },
-  {
-    "key": "github_link",
-    "label": "GitHub Repository URL",
-    "role": "Technical",
-    "required": false,
-    "type": "text",
-    "category": "technical_metadata",
-    "placeholder": "https://github.com/organization/project"
   },
   {
     "key": "footer_copy",

@@ -26,6 +26,7 @@ interface WorkflowFormProps {
   prefix?: string // e.g. "dyn_" or "static_"
   userRole?: string // for visibility filtering
   financials?: { totalPaid: number, balance: number }
+  excludeKeys?: string[] // Keys to skip rendering
 }
 
 const getDisplayValue = (val: any) => {
@@ -52,7 +53,8 @@ export function WorkflowForm({
   readOnly = false,
   prefix = '',
   userRole = 'Sales',
-  financials
+  financials,
+  excludeKeys
 }: WorkflowFormProps) {
   const [dbFields, setDbFields] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -97,6 +99,7 @@ export function WorkflowForm({
     
     // 1. Add Static Fields (Global Strategic Registry)
     staticQuestions.forEach(q => {
+      if (excludeKeys?.includes(q.key)) return
       const role = q.role || 'Sales'
       if (!groups[role]) groups[role] = []
       groups[role].push({ ...q, isStatic: true })
@@ -139,25 +142,10 @@ export function WorkflowForm({
         })
         .map(([role, roleFields]) => (
         <div key={role} className={cn(
-          "bg-white border-b border-zinc-50 last:border-0 pb-6 mb-12",
+          "bg-white border-b border-zinc-50 last:border-0 pb-4 mb-6",
         )}>
-          <div className="flex items-center gap-4 mb-12 translate-x-1">
-            <div className={cn(
-               "w-12 h-12 border flex items-center justify-center rounded-xl shadow-sm",
-               role.toLowerCase() === 'sales' ? 'bg-amber-50 border-amber-100 text-zinc-900' :
-               role.toLowerCase() === 'seo' ? 'bg-emerald-50 border-emerald-100 text-zinc-900' :
-               role.toLowerCase() === 'design' || role.toLowerCase() === 'designer' ? 'bg-blue-50 border-blue-100 text-zinc-900' :
-               'bg-zinc-50 border-zinc-100 text-zinc-900'
-            )}>
-               {role.toLowerCase() === 'sales' ? <Sparkles className="w-6 h-6" /> :
-                role.toLowerCase() === 'seo' ? <Globe className="w-6 h-6" /> :
-                role.toLowerCase() === 'design' || role.toLowerCase() === 'designer' ? <Palette className="w-6 h-6" /> :
-                <LayoutTemplate className="w-6 h-6" />}
-            </div>
-            <div className="flex flex-col">
-               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1 italic">Unit // Protocol</span>
-               <h3 className="text-xl font-black text-zinc-950 tracking-tight leading-none italic uppercase">{role} Architecture</h3>
-            </div>
+          <div className="flex flex-col mb-6 translate-x-1">
+             <h3 className="text-xl font-black text-zinc-950 tracking-tight leading-none italic uppercase">{role} Architecture</h3>
           </div>
 
           <div className="space-y-4">
@@ -174,7 +162,7 @@ export function WorkflowForm({
                </div>
              )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
               {roleFields.map((f: any) => {
                 const fieldName = f.isStatic ? f.key : `${prefix}${f.name}`
                 const fieldType = (f.isStatic ? f.type : f.field_type) || 'text'
@@ -190,11 +178,11 @@ export function WorkflowForm({
 
                 return (
                    <div key={f.isStatic ? f.key : f.id} className={cn(
-                     "flex flex-col gap-3 py-6 group/field transition-all",
+                     "flex flex-col gap-2 py-2 group/field transition-all",
                      fieldReadOnly && "opacity-60 grayscale-[0.5]",
                      fieldType === 'textarea' && "md:col-span-2"
                    )}>
-                    <Label htmlFor={fieldName} className="text-[11px] font-black uppercase tracking-[0.15em] text-zinc-400 group-hover/field:text-zinc-950 transition-colors ml-1">
+                    <Label htmlFor={fieldName} className="text-[11px] font-black uppercase tracking-[0.15em] text-zinc-700 group-hover/field:text-zinc-950 transition-colors ml-1">
                       {displayLabel}
                     </Label>
                     <div className="w-full">
@@ -229,7 +217,7 @@ export function WorkflowForm({
                            key={`${fieldName}-${getDisplayValue(initialData[f.isStatic ? f.key : f.name])}`}
                            defaultValue={getDisplayValue(initialData[f.isStatic ? f.key : f.name])}
                            readOnly={fieldReadOnly}
-                           className="h-14 w-full bg-white border border-zinc-200 px-6 text-[14px] font-bold tracking-tight text-zinc-950 focus:ring-4 focus:ring-zinc-950/5 transition-all placeholder:text-zinc-300 rounded-none shadow-none" 
+                           className="h-14 w-full bg-white border border-zinc-200 px-6 text-[14px] font-bold tracking-tight text-zinc-950 focus:ring-4 focus:ring-zinc-950/5 transition-all placeholder:text-zinc-400 rounded-none shadow-none" 
                          />
                        )}
                      </div>

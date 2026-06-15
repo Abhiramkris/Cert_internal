@@ -46,10 +46,12 @@ export function Sidebar({ user, isMobile = false }: SidebarProps) {
     { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
   ]
  
+  navItems.push({ name: 'Team Management', href: '/dashboard/teams', icon: Users })
+  navItems.push({ name: 'My Attendance', href: '/dashboard/attendance', icon: ShieldCheck })
+
   // Role-specific navigation  
   if (user?.role === 'Manager' || user?.role === 'Admin' || user?.role === 'Developer') {
     navItems.push({ name: 'Studio Library', href: '/dashboard/library', icon: Library })
-    navItems.push({ name: 'Team Management', href: '/dashboard/teams', icon: Users })
     navItems.push({ name: 'Payments', href: '/dashboard/payments', icon: CreditCard })
   }
 
@@ -121,7 +123,7 @@ export function Sidebar({ user, isMobile = false }: SidebarProps) {
               isMobile ? "text-left opacity-100" : "text-center group-hover:text-left opacity-0 group-hover:opacity-100"
             )}>Main Menu</h3>
             <nav className="space-y-1">
-              {navItems.filter(item => !['Admin Panel', 'Team Management', 'Payments', 'Studio Library'].includes(item.name)).map(renderNavItem)}
+              {navItems.filter(item => !['Admin Panel', 'Team Management', 'Payments', 'Studio Library', 'My Attendance'].includes(item.name)).map(renderNavItem)}
             </nav>
           </div>
 
@@ -131,7 +133,7 @@ export function Sidebar({ user, isMobile = false }: SidebarProps) {
               isMobile ? "text-left opacity-100" : "text-center group-hover:text-left opacity-0 group-hover:opacity-100"
             )}>Operations</h3>
             <nav className="space-y-1">
-              {navItems.filter(item => ['Studio Library', 'Team Management', 'Payments'].includes(item.name)).map(renderNavItem)}
+              {navItems.filter(item => ['Studio Library', 'Team Management', 'Payments', 'My Attendance'].includes(item.name)).map(renderNavItem)}
             </nav>
           </div>
 
@@ -159,18 +161,18 @@ export function Sidebar({ user, isMobile = false }: SidebarProps) {
           isMobile ? "flex" : "opacity-0 group-hover:opacity-100 hidden group-hover:flex"
         )}>
           <button 
-            onClick={() => window.dispatchEvent(new CustomEvent('toggle-floating-chat'))}
-            className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-zinc-950 text-white text-[9px] font-black uppercase tracking-widest shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-checkin'))}
+            className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-[#67A708] text-white text-[9px] font-black uppercase tracking-widest shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
           >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span className={cn(isMobile ? "block" : "hidden group-hover:block")}>Support</span>
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span className={cn(isMobile ? "block" : "hidden group-hover:block")}>In</span>
           </button>
           <button 
-            onClick={() => document.getElementById('mobile-activity-timeline')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-zinc-50 text-zinc-950 border border-zinc-100 text-[9px] font-black uppercase tracking-widest shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+            onClick={() => window.location.href = '/dashboard/attendance'}
+            className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-zinc-950 text-white border border-zinc-100 text-[9px] font-black uppercase tracking-widest shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
           >
-            <Activity className="w-3.5 h-3.5" />
-            <span className={cn(isMobile ? "block" : "hidden group-hover:block")}>Pulse</span>
+            <LogOut className="w-3.5 h-3.5" />
+            <span className={cn(isMobile ? "block" : "hidden group-hover:block")}>Out</span>
           </button>
         </div>
 

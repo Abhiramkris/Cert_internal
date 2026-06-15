@@ -28,7 +28,7 @@ import {
 import { generateProjectZip, saveWebsiteConfig } from '@/app/dashboard/projects/builder-actions'
 import { WebsiteBuilderConfigurator } from '@/components/projects/website-builder-configurator'
 import { COMPONENT_TEMPLATES } from '@/utils/builder/templates'
-import { finalizeProject, selfAssignProject, saveHandoffPreset, closeProject, handoffProject } from '@/app/dashboard/projects/actions'
+import { finalizeProject, selfAssignProject, saveHandoffPreset, closeProject, submitStageData } from '@/app/dashboard/projects/actions'
 import { toast } from 'sonner'
 import { AdminStats } from './admin-stats'
 import { PipelineDMButton } from './pipeline-dm-button'
@@ -130,8 +130,10 @@ function HandoffTerminalContent({
     stages[0]
 
   const currentStageIndex = stages.findIndex((s: any) => s.id === currentStage?.id)
-  const nextStageId = handoffStatusOverrides[project.id] || project.next_stage_id || stages[currentStageIndex + 1]?.id || currentStage?.id
+  const defaultNextStageId = stages[currentStageIndex + 1]?.id || currentStage?.id
+  const nextStageId = handoffStatusOverrides[project.id] || project.next_stage_id || defaultNextStageId
   const nextStageObj = stages?.find((s: any) => s.id === nextStageId)
+  const isFlowOverridden = nextStageId !== defaultNextStageId
 
   const filteredStaff = staff?.filter((s: any) => {
     if (!nextStageObj) return true
@@ -148,7 +150,7 @@ function HandoffTerminalContent({
       <div className="px-6 md:px-8 py-4 md:py-6 border-b border-zinc-200 flex-shrink-0 flex items-center justify-between bg-[#fafafa]/80 backdrop-blur-md sticky top-0 z-20">
         <div className="flex items-center gap-3 md:gap-4">
           <div className="space-y-0">
-            <DialogTitle className="text-lg md:text-xl font-semibold text-zinc-900 tracking-tighter italic leading-none">{project.client_name}</DialogTitle>
+            <h3 className="text-lg md:text-xl font-semibold text-zinc-900 tracking-tighter italic leading-none">{project.client_name}</h3>
             <p className="text-[12px] md:text-[14px] font-semibold text-[#67A708] tracking-[0.05em] mt-1">Handoff Protocol</p>
           </div>
         </div>
@@ -177,45 +179,88 @@ function HandoffTerminalContent({
             />
 
             <div className="border-t border-zinc-100/50">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-zinc-100/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-zinc-100/50 pt-8">
                 <div className="space-y-2 group/field">
-                  <label className="text-[13px] font-semibold tracking-[0.05em] text-zinc-700 group-hover/field:text-zinc-950 transition-colors">Destination Phase</label>
-                  <div className="w-full h-11 bg-zinc-50 border border-zinc-950 px-4 text-[13px] font-semibold text-zinc-900 flex items-center rounded-none opacity-60">
-                    {nextStageObj?.display_name || 'Project Finalization'}
+                  <div className="flex items-center justify-between">
+                    <label className="text-[13px] font-semibold tracking-[0.05em] text-zinc-700 group-hover/field:text-zinc-950 transition-colors">Destination Phase</label>
+                    {isFlowOverridden && <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest animate-pulse">Flow Overridden</span>}
+                  </div>
+                  <div className="relative group">
+                    <select
+                      id={`handoff-stage-${project.id}`}
+                      className="w-full h-11 bg-white border border-zinc-950 px-4 text-[13px] font-semibold text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all appearance-none cursor-pointer outline-none rounded-none shadow-sm"
+                      defaultValue={nextStageId || ''}
+                      onChange={async (e) => {
+                        const targetStageId = e.target.value
+                        setHandoffStatusOverrides((prev: any) => ({ ...prev, [project.id]: targetStageId }))
+                        const targetStage = stages.find((s: any) => s.id === targetStageId)
+                        
+                        // Auto-update assignee if team member found
+                        if (targetStage && project.project_team) {
+                          const team = project.project_team[0] || {}
+                          const roleToKey: any = { 'SEO': 'seo_id', 'Developer': 'developer_id', 'Manager': 'manager_id', 'Sales': 'sales_id', 'Designer': 'designer_id' }
+                          const key = roleToKey[targetStage.acting_role]
+                          const targetAssigneeId = team[key] || ''
+                          const assigneeSelect = document.getElementById(`handoff-assignee-${project.id}`) as HTMLSelectElement
+                          if (assigneeSelect && targetAssigneeId) {
+                            assigneeSelect.value = targetAssigneeId
+                          }
+                        }
+                        
+                        await saveHandoffPreset(project.id, targetStage?.status_key || '', (document.getElementById(`handoff-assignee-${project.id}`) as HTMLSelectElement)?.value || '')
+                      }}
+                    >
+                      {stages.map((s: any) => (
+                        <option key={s.id} value={s.id}>{s.display_name}</option>
+                      ))}
+                      {stages.length > 0 && !stages[currentStageIndex + 1] && (
+                        <option value="COMPLETED">Project Finalization</option>
+                      )}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2 group/field">
                   <label className="text-[13px] font-semibold tracking-[0.05em] text-zinc-700 group-hover/field:text-zinc-950 transition-colors">Successor Unit</label>
-                  <select
-                    id={`handoff-assignee-${project.id}`}
-                    className="w-full h-11 bg-white border border-zinc-950 px-4 text-[13px] font-semibold text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all appearance-none cursor-pointer outline-none rounded-none shadow-sm"
-                    defaultValue={project.current_assignee_id || ''}
-                    onChange={async (e) => {
-                      const targetStage = stages.find((s: any) => s.id === nextStageId)
-                      await saveHandoffPreset(project.id, targetStage?.status_key || '', e.target.value)
-                    }}
-                  >
-                    <option value="">Select Personnel</option>
-                    {filteredStaff?.map((s: any) => (
-                      <option key={s.id} value={s.id}>{s.full_name} ({s.role})</option>
-                    ))}
-                  </select>
+                  <div className="relative group">
+                    <select
+                      id={`handoff-assignee-${project.id}`}
+                      className="w-full h-11 bg-white border border-zinc-950 px-4 text-[13px] font-semibold text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all appearance-none cursor-pointer outline-none rounded-none shadow-sm"
+                      defaultValue={project.current_assignee_id || ''}
+                      onChange={async (e) => {
+                        const targetStage = stages.find((s: any) => s.id === nextStageId)
+                        await saveHandoffPreset(project.id, targetStage?.status_key || '', e.target.value)
+                      }}
+                    >
+                      <option value="">Auto-Assigned</option>
+                      {filteredStaff?.map((s: any) => (
+                        <option key={s.id} value={s.id}>{s.full_name} ({s.role})</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {isManager && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8 group/field">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8 group/field">
+                <div className="flex flex-col gap-1">
                   <label className="text-[13px] font-semibold tracking-[0.05em] text-zinc-700 group-hover/field:text-zinc-950 transition-colors pt-1">Strategic Note</label>
-                  <div className="md:col-span-2">
-                    <textarea
-                      id={`handoff-note-${project.id}`}
-                      className="w-full min-h-[120px] bg-white border border-zinc-950 p-4 text-[13px] font-semibold tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all outline-none resize-none placeholder:text-zinc-500 leading-relaxed rounded-none shadow-sm"
-                      placeholder="Add context for successor..."
-                    />
-                  </div>
+                  {isFlowOverridden && <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest animate-pulse">* Required for override</span>}
                 </div>
-              )}
+                <div className="md:col-span-2">
+                  <textarea
+                    id={`handoff-note-${project.id}`}
+                    required={isFlowOverridden}
+                    className="w-full min-h-[120px] bg-white border border-zinc-950 p-4 text-[13px] font-semibold tracking-tight text-zinc-900 focus:bg-white focus:border-zinc-950 transition-all outline-none resize-none placeholder:text-zinc-500 leading-relaxed rounded-none shadow-sm"
+                    placeholder={isFlowOverridden ? "Workflow direction modified. Explain why..." : "Add context for successor..."}
+                  />
+                </div>
+              </div>
             </div>
           </form>
         </div>
@@ -243,10 +288,11 @@ function HandoffTerminalContent({
           loading={isSubmitting}
           form={`handoff-form-${project.id}`}
           onClick={async () => {
-            setIsSubmitting(true)
-            const formElement = document.getElementById(`handoff-form-${project.id}`)
+            const formElement = document.getElementById(`handoff-form-${project.id}`) as HTMLFormElement
             if (formElement) {
-              const formData = new FormData(formElement as HTMLFormElement)
+              if (!formElement.reportValidity()) return;
+              setIsSubmitting(true)
+              const formData = new FormData(formElement)
               const stageDataValues: Record<string, any> = {}
               formData.forEach((value, key) => key.startsWith('dyn_') && (stageDataValues[key.replace('dyn_', '')] = value))
 
@@ -262,9 +308,10 @@ function HandoffTerminalContent({
               try {
                 const note = (document.getElementById(`handoff-note-${project.id}`) as HTMLTextAreaElement)?.value || ""
                 const targetStageId = nextStageId
+                const targetStage = stages.find((s: any) => s.id === targetStageId)
                 const targetAssigneeId = (document.getElementById(`handoff-assignee-${project.id}`) as HTMLSelectElement).value
 
-                const result = await handoffProject(project.id, targetAssigneeId, undefined, note, { stageId: currentStage?.id, data: stageDataValues }, targetStageId)
+                const result = await submitStageData(project.id, currentStage?.id || '', stageDataValues, targetStage?.status_key, targetAssigneeId, note)
                 if (result.success) {
                   toast.success("Stage Authorization Complete")
                   setActiveProjectId(null)
@@ -549,7 +596,7 @@ export function ProjectPipelineTracker({
                             >
                               Claim
                             </Button>
-                          ) : (
+                          ) : (isAssignedToMe || currentUserRole === 'Admin' || currentUserRole === 'Manager') ? (
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -558,7 +605,7 @@ export function ProjectPipelineTracker({
                             >
                               Handoff
                             </Button>
-                          )}
+                          ) : null}
                           
                           <Link 
                             href={`/dashboard/projects/${project.id}`}

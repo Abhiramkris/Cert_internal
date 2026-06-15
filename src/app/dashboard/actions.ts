@@ -11,11 +11,11 @@ export async function getAIGreeting(userName: string) {
        MANDATORY: Return ONLY a JSON object: { "greeting": "..." }. 
        No conversational text, no explanations.`,
       "You are a futuristic AI assistant for the Certifyied Intelligence Portal. Be creative, professional, and slightly mysterious.",
-      200
+      50
     )
-    return aiResponse?.greeting || `Welcome back, ${userName}`
+    return aiResponse?.greeting || null
   } catch (e) {
     console.error('AI Greeting action failed:', e)
-    return `Welcome back, ${userName}`
+    return null
   }
 }

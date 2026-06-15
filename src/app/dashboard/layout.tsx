@@ -6,6 +6,7 @@ import { RefreshHandler } from '@/components/layout/refresh-handler'
 import { ProjectProvider } from '@/context/ProjectContext'
 import { MobileFloatingControls } from '@/components/dashboard/mobile-floating-controls'
 import { NotificationProvider } from '@/context/NotificationContext'
+import { AttendancePopup } from '@/components/dashboard/attendance-popup'
 
 export default async function DashboardLayout({
   children,
@@ -32,7 +33,7 @@ export default async function DashboardLayout({
             </main>
           </div>
           <RefreshHandler />
-          
+          <AttendancePopup userId={user.profile.id} userRole={user.profile.role as string} />
         </div>
       </ProjectProvider>
     </NotificationProvider>

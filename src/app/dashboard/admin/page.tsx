@@ -1,4 +1,5 @@
 import { WorkflowManager } from '@/components/admin/workflow-manager'
+import { OfficeLocationManager } from '@/components/admin/office-location-manager'
 import { getUserProfile } from '@/utils/supabase/queries'
 import { redirect } from 'next/navigation'
 
@@ -20,6 +21,7 @@ export default async function AdminPage() {
       </div>
 
       <WorkflowManager />
+      <OfficeLocationManager />
     </div>
   )
 }

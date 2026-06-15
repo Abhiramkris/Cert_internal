@@ -34,10 +34,11 @@ function cleanJSON(text: string) {
  * OpenRouter AI Engine (DeepSeek-R1)
  */
 export async function promptAI(prompt: string, systemPrompt?: string, maxTokens = 2000) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY
   if (!apiKey) {
-    throw new Error('OPENROUTER_API_KEY is not defined in environment variables');
+    throw new Error('OPENROUTER_API_KEY is not defined in environment variables')
   }
+  const model = process.env.OPENROUTER_MODEL || 'openrouter/free'
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -48,30 +49,34 @@ export async function promptAI(prompt: string, systemPrompt?: string, maxTokens 
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'deepseek/deepseek-r1', // DeepSeek-R1 via OpenRouter
+      model: model,
       messages: [
         ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
         { role: 'user', content: prompt },
       ],
       max_tokens: maxTokens,
     }),
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error('AI Error:', errorData);
-    const errorMessage = errorData?.error?.message || response.statusText;
-    throw new Error(`AI API failed: ${errorMessage}`);
+    const errorData = await response.json().catch(() => ({}))
+    if (response.status === 402) {
+      console.warn('AI API Warning: Insufficient credits. Returning null for graceful fallback.')
+      return null
+    }
+    console.error('OpenRouter Error:', errorData)
+    const errorMessage = errorData?.error?.message || response.statusText
+    throw new Error(`OpenRouter API failed: ${errorMessage}`)
   }
 
-  const data: OpenRouterResponse = await response.json();
-  const content = data.choices[0].message.content;
+  const data: OpenRouterResponse = await response.json()
+  const content = data.choices[0].message.content
   
   try {
-    return JSON.parse(cleanJSON(content));
+    return JSON.parse(cleanJSON(content))
   } catch (e) {
-    console.error('Failed to parse AI JSON:', content);
-    throw new Error('AI returned an invalid JSON format. Please try again.');
+    console.error('Failed to parse OpenRouter JSON:', content)
+    throw new Error('OpenRouter returned an invalid JSON format. Please try again.')
   }
 }
 

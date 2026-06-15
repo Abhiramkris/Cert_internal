@@ -1,10 +1,10 @@
 import { getProjectDetail, getUserProfile, getStaff, getProjectsMinimal, getWorkflowConfig, getWebsiteConfig } from '@/utils/supabase/queries'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { PendingButton } from '@/components/ui/pending-button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Users, FileText, Code, Code2, CheckCircle, MessageSquare, Globe, Search, Settings, Sparkles, TrendingUp, Clock, User, ArrowRight, Archive, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, User, Clock, FileText, CheckCircle, Settings, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { PaymentForm } from './payment-form'
@@ -13,7 +13,7 @@ import { WebsiteBuilderConfigurator } from '@/components/projects/website-builde
 import { WorkflowForm } from '@/components/workflow/workflow-form'
 import { HandoffOverride } from '@/components/projects/handoff-override'
 import { ProjectGeneratorActions } from '@/components/projects/project-generator-actions'
-import { finalizeProject, selfAssignProject, submitStageData, saveHandoffPreset, closeProject, saveStageData } from '../actions'
+import { selfAssignProject, submitStageData, saveStageData } from '../actions'
 import staticQuestions from '@/utils/builder/static-questions.json'
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
@@ -23,16 +23,18 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
   const { data: staff } = await getStaff()
   const { data: websiteConfig } = await getWebsiteConfig(id)
 
-  if (!user || !project) return <div className="p-8 text-zinc-600">Project not found</div>
+  if (!user || !project) return <div className="p-12 text-zinc-600 font-bold uppercase tracking-widest text-center">Project not found</div>
 
-  // Resilient status matching for legacy data (TEAM_ASSIGNED vs TEAM_ASSIGNMENT)
+  const mazzardFont = '"Mazzard H Bold", "Mazzard H Bold Placeholder", sans-serif'
+
+  // Resilient status matching
   const isStatusEquivalent = (s1: string, s2: string) => {
     if (!s1 || !s2) return false
     const normalize = (s: string) => s.toLowerCase().replace(/_/g, '').replace('assigned', 'assignment')
     return normalize(s1) === normalize(s2)
   }
 
-  // Fetch ALL stages for this template to determine index mapping
+  // Fetch ALL stages
   const { data: templateStagesData } = await getWorkflowConfig(undefined, project.workflow_template_id)
   const templateStages = templateStagesData || []
   
@@ -43,360 +45,371 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
   const currentStageIndex = templateStages.findIndex((s: any) => s.id === currentStage?.id)
   const currentStageData = project.stage_data?.[currentStage?.id]?.data || {}
   
-  const stagesProgress = project.stage_data ? Object.keys(project.stage_data) : []
-  const progressPercentage = templateStages.length > 0 ? (Math.max(0, currentStageIndex + 1) / templateStages.length) * 100 : 0
-
   const isManager = user.profile.role === 'Manager'
   const isAdmin = user.profile.role === 'Admin'
   const isAssigned = user.id === project.current_assignee_id
   const isCorrectRole = user.profile.role === currentStage?.acting_role
 
-  // Manager/Admin can always action. Others only if assigned or correctly role-matched if project is held by a manager or unassigned.
   const currentAssigneeRole = staff?.find(s => s.id === project.current_assignee_id)?.role
   const isHeldByManager = currentAssigneeRole === 'Manager' || currentAssigneeRole === 'Admin'
 
   const canAction = isManager || isAdmin || isAssigned || (isCorrectRole && (!project.current_assignee_id || isHeldByManager))
 
   const { data: allProjects } = await getProjectsMinimal()
-
-  const canAssign = user.profile.role === 'Manager' || user.profile.role === 'Admin'
-  // Strict restrictions for managers/admin
   const canManagePayments = user.profile.role === 'Admin' || user.profile.role === 'Manager'
 
   const totalPaid = project.payments?.reduce((sum: number, p: any) => sum + p.amount, 0) || 0
   const balance = project.budget - totalPaid
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-20">
-      {/* Header */}
-      <div className="flex flex-col gap-6 border-b border-zinc-200 pb-8">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl h-12 w-12 transition-all border border-zinc-100 shadow-sm shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-              <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">
+    <div className="space-y-0 pb-20 bg-[#fafafa] min-h-screen">
+      
+      {/* Studio Header */}
+      <div className="px-6 md:px-12 py-8 border-b border-zinc-200 bg-white sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex items-start gap-6">
+            <Link
+              href="/dashboard"
+              className="flex items-center justify-center bg-zinc-50 hover:bg-zinc-950 text-zinc-900 hover:text-white rounded-none h-14 w-14 transition-all border border-zinc-200 shadow-sm shrink-0"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </Link>
+            <div className="space-y-2">
+              <h1 style={{ fontFamily: mazzardFont }} className="text-3xl md:text-5xl font-black text-zinc-950 tracking-tighter italic uppercase leading-none">
                 {project.client_name}
               </h1>
-              <Badge variant="outline" className={cn(
-                "rounded-lg font-semibold text-[10px] px-2 py-0.5 border-none uppercase tracking-tight bg-zinc-100 text-zinc-600"
-              )}>
-                {currentStage?.display_name || project.status.replace(/_/g, ' ')}
-              </Badge>
-              {project.current_assignee_id ? (
-                <div className="flex items-center gap-1.5 ml-2 border border-zinc-200 rounded-lg px-2 py-0.5 bg-white shadow-sm">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-semibold text-zinc-700 uppercase tracking-widest">
-                    Owner: {staff?.find(s => s.id === project.current_assignee_id)?.full_name || 'Active'}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 ml-2 border border-amber-200 rounded-lg px-2 py-0.5 bg-amber-50 shadow-sm">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-widest">Unassigned</span>
-                  {(isAdmin || isManager || isCorrectRole) && (
-                    <form action={selfAssignProject.bind(null, project.id)} className="ml-2">
-                      <PendingButton type="submit" variant="outline" className="h-7 px-3 text-[9px] font-semibold uppercase tracking-tighter border-amber-200 text-amber-700 bg-white hover:bg-amber-100 rounded-lg transition-all">
-                        Self-Assign
-                      </PendingButton>
-                    </form>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center gap-3 flex-wrap">
+                <Badge variant="outline" className="rounded-none font-bold text-[10px] px-3 py-1 border-zinc-950 uppercase tracking-[0.2em] bg-zinc-950 text-white">
+                  {currentStage?.display_name || project.status.replace(/_/g, ' ')}
+                </Badge>
+                
+                {project.current_assignee_id ? (
+                  <div className="flex items-center gap-2 border border-zinc-200 rounded-none px-3 py-1 bg-white">
+                    <div className="w-2 h-2 bg-[#67A708] animate-pulse rounded-none" />
+                    <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest">
+                      {staff?.find(s => s.id === project.current_assignee_id)?.full_name || 'Active'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 border border-rose-200 rounded-none px-3 py-1 bg-rose-50">
+                    <div className="w-2 h-2 bg-rose-500 animate-pulse rounded-none" />
+                    <span className="text-[10px] font-bold text-rose-700 uppercase tracking-widest">Unassigned</span>
+                    {(isAdmin || isManager || isCorrectRole) && (
+                      <form action={selfAssignProject.bind(null, project.id)} className="ml-2">
+                        <PendingButton type="submit" variant="outline" className="h-6 px-3 text-[9px] font-bold uppercase tracking-widest border-rose-200 text-rose-700 bg-white hover:bg-rose-100 rounded-none transition-all">
+                          Claim Action
+                        </PendingButton>
+                      </form>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="bg-transparent border-b border-zinc-200 p-0 rounded-none h-auto mb-8 w-full justify-start gap-8 flex-wrap">
-          {['overview', 'workflow', 'generator', 'finances', 'comments'].map((tab) => {
-            if (tab === 'finances' && !canManagePayments) return null
-            return (
-              <TabsTrigger key={tab} value={tab} className="rounded-none bg-transparent px-0 py-3 text-sm font-semibold border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 text-zinc-600 transition-all uppercase tracking-wider mb-2 lg:mb-0">
-                {tab === 'generator' ? 'Studio' : tab}
-              </TabsTrigger>
-            )
-          })}
-        </TabsList>
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-12">
+        <Tabs defaultValue="overview" className="w-full">
+          {/* Architectural Tabs */}
+          <TabsList className="bg-transparent border-b border-zinc-200 p-0 rounded-none h-auto mb-12 w-full justify-start gap-0 md:gap-2 flex-wrap">
+            {['overview', 'details', 'workflow', 'finances', 'comments'].map((tab) => {
+              if (tab === 'finances' && !canManagePayments) return null
+              return (
+                <TabsTrigger 
+                  key={tab} 
+                  value={tab} 
+                  style={{ fontFamily: mazzardFont }}
+                  className="rounded-none bg-transparent px-6 py-4 text-[12px] md:text-[14px] font-bold border-b-2 border-transparent data-[state=active]:bg-zinc-950 data-[state=active]:border-zinc-950 data-[state=active]:text-white hover:bg-zinc-100 text-zinc-500 transition-all uppercase tracking-[0.2em] mb-2 lg:mb-0"
+                >
+                  {tab === 'generator' ? 'Studio Architect' : tab}
+                </TabsTrigger>
+              )
+            })}
+          </TabsList>
 
-        <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="flex flex-col gap-8 max-w-5xl">
-            <div className="space-y-8">
-              <Card className="border border-zinc-200 shadow-sm rounded-[2.5rem] overflow-hidden bg-white">
-                <CardContent className="p-10">
-                  <form action={async (fd) => {
-                    'use server'
-                    const rawData = Object.fromEntries(fd.entries())
-                    const stageData: Record<string, any> = {}
-                    const dynPrefix = 'dyn_'
-                    
-                    Object.keys(rawData).forEach(key => {
-                      const isStatic = staticQuestions.some(q => q.key === key)
-                      if (key.startsWith(dynPrefix)) {
-                        stageData[key.replace(dynPrefix, '')] = rawData[key]
-                      } else if (isStatic) {
-                        stageData[key] = rawData[key]
-                      }
-                    })
-
-                    const action = fd.get('action') as string
-                    const nextStatus = fd.get('status') as string
-                    const nextAssignee = fd.get('current_assignee_id') as string
-                    const note = fd.get('handoff_note') as string
-
-                    if (action === 'save') {
-                      await saveStageData(project.id, currentStage.id, stageData)
-                    } else {
-                      await submitStageData(project.id, currentStage.id, stageData, nextStatus, nextAssignee, note)
-                    }
-                  }} className="space-y-6">
-                    {canAction && ( 
-                      <div className="flex flex-col gap-8 mb-10 overflow-hidden">
-                        {/* Section 1: Workflow Logistics */}
-                        <div className="w-full space-y-6 bg-white rounded-[2rem] p-10 border border-zinc-100 shadow-sm">
-                          <div className="flex items-center justify-between mb-2">
-                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center text-white shadow-sm">
-                                   <Users className="w-5 h-5" />
-                                </div>
-                                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-900">Workflow Logistics</h3>
-                             </div>
-                             <Badge variant="outline" className="bg-zinc-950 text-white border-zinc-950 font-semibold px-4 py-1.5 rounded-xl text-[10px] uppercase tracking-widest">
-                                Active: {currentStage?.display_name || project.status}
-                             </Badge>
-                          </div>
-                          <HandoffOverride 
-                            project={project}
-                            templateStages={templateStages}
-                            currentStageIndex={currentStageIndex}
-                            staff={staff || []}
-                            isManager={isManager}
-                          />
-                        </div>
-
-                        {/* Section 2: Studio & Production Tools */}
-                        <div className="w-full space-y-6 bg-white border border-zinc-100 rounded-[2rem] p-10 shadow-sm relative flex flex-col justify-center overflow-hidden group/hub">
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(16,185,129,0.05),transparent)] pointer-events-none" />
-                          <div className="flex items-center gap-3 mb-2 relative z-10">
-                             <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-sm">
-                                <Sparkles className="w-5 h-5" />
-                             </div>
-                             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-900 leading-none relative top-0.5">Production Hub</h3>
-                          </div>
-                          <div className="p-1.5 border border-dashed border-zinc-100 rounded-2xl bg-zinc-50/30 relative z-10">
-                            {user.profile.role?.toLowerCase() === 'developer' || isManager || isAdmin ? (
-                              <ProjectGeneratorActions 
-                                project={project}
-                                websiteConfig={websiteConfig}
-                              />
-                            ) : (
-                              <div className="py-8 text-center">
-                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.2em] leading-relaxed px-4">Architect clearance required.</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <WorkflowForm 
-                      key={`${project.id}-active-${currentStage?.id || 'none'}`}
-                      workflowId={project.workflow_template_id} 
-                      stageId={currentStage?.id}
-                      initialData={{
-                        ...(currentStageData || {}),
-                        ...(project.config?.builder?.content_overrides || {}),
-                        ...(project.config?.builder?.global_styles || {}),
-                        ...(project.config?.seo || {})
-                      }}
-                      financials={{ totalPaid, balance }}
-                      userRole={user.profile.role}
-                      readOnly={!canAction}
-                      prefix="dyn_"
-                    />
-
-                    {canAction && (
-                        <div className="flex flex-col md:flex-row justify-end gap-3 pt-6 border-t border-zinc-100">
-                          <PendingButton 
-                            type="submit" 
-                            name="action" 
-                            value="save"
-                            variant="outline"
-                            className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-white text-zinc-900 border-zinc-200 font-semibold uppercase tracking-widest hover:bg-zinc-50 transition-all active:scale-95 text-[10px] md:text-sm"
-                          >
-                            Save Content
-                          </PendingButton>
-                          <PendingButton 
-                            type="submit" 
-                            name="action" 
-                            value="handover"
-                            className="w-full md:w-auto h-10 md:h-12 px-6 md:px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest hover:bg-zinc-800 shadow-xl transition-all active:scale-95 text-[10px] md:text-sm"
-                          >
-                            Approve & Handover
-                          </PendingButton>
-                        </div>
-                    )}
-                  </form>
-                </CardContent>
-              </Card>
-
-              
-            </div>
-
-  
-          </div>
-        </TabsContent>
-
-        <TabsContent value="workflow" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <Card className="bg-white border-2 border-zinc-950 text-zinc-900 rounded-2xl p-10 max-w-4xl mx-auto shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)]">
-            <div className="space-y-12 relative before:absolute before:inset-0 before:ml-7 before:-translate-x-px before:h-full before:w-[2px] before:bg-zinc-100">
-              {project.workflow_template?.workflow_stages?.map((step: any, i: number) => {
-                const isCompleted = (project.stage_data && project.stage_data[step.id]) || project.status === step.status_key
-                const isActive = project.status === step.status_key
-                const isPending = !isCompleted && !isActive
+          <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="max-w-5xl">
+              <form action={async (fd) => {
+                'use server'
+                const rawData = Object.fromEntries(fd.entries())
+                const stageData: Record<string, any> = {}
+                const dynPrefix = 'dyn_'
                 
-                const audit = project.stage_data?.[step.id]
-                const submitter = staff?.find(s => s.id === audit?.submitted_by)
+                Object.keys(rawData).forEach(key => {
+                  const isStatic = staticQuestions.some(q => q.key === key)
+                  if (key.startsWith(dynPrefix)) {
+                    stageData[key.replace(dynPrefix, '')] = rawData[key]
+                  } else if (isStatic) {
+                    stageData[key] = rawData[key]
+                  }
+                })
 
-                return (
-                   <div key={i} className="relative flex items-start group">
-                    <div className={cn(
-                      "flex items-center justify-center w-14 h-14 rounded-full border-2 shrink-0 transition-all duration-300 z-10",
-                      isActive ? "bg-zinc-950 border-zinc-950 text-white shadow-lg scale-110" :
-                        isCompleted ? "bg-white border-zinc-950 text-zinc-950 shadow-sm" :
-                          "bg-white border-zinc-100 text-zinc-500"
-                    )}>
-                      {isCompleted && !isActive ? <CheckCircle className="w-6 h-6 text-emerald-500" /> : <Settings className="w-6 h-6" />}
-                    </div>
-                    <div className="ml-10 pt-2 flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className={cn("text-sm font-semibold uppercase tracking-widest transition-colors", isPending ? "text-zinc-600" : "text-zinc-950")}>{step.display_name}</h4>
-                        <span className={cn("text-[9px] font-semibold px-3 py-1 rounded-xl border-2 tracking-widest uppercase",
-                          isCompleted && !isActive ? "bg-zinc-50 border-zinc-100 text-zinc-600" :
-                            isActive ? "bg-zinc-950 border-zinc-950 text-white" : "bg-transparent border-zinc-100 text-zinc-500"
-                        )}>{step.acting_role}</span>
+                const action = fd.get('action') as string
+                const nextStatus = fd.get('status') as string
+                const nextAssignee = fd.get('current_assignee_id') as string
+                const note = fd.get('handoff_note') as string
+
+                if (action === 'save') {
+                  await saveStageData(project.id, currentStage.id, stageData)
+                } else {
+                  await submitStageData(project.id, currentStage.id, stageData, nextStatus, nextAssignee, note)
+                }
+              }} className="space-y-12">
+                
+                {canAction && ( 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    {/* Workflow Logistics Block */}
+                    <div className="w-full bg-white border border-zinc-200 p-8 shadow-sm rounded-none">
+                      <div className="flex items-center justify-between mb-8 pb-4 border-b border-zinc-100">
+                         <h3 style={{ fontFamily: mazzardFont }} className="text-lg font-black uppercase tracking-tighter italic text-zinc-950">Workflow Logistics</h3>
+                         <Badge variant="outline" className="bg-zinc-100 text-zinc-900 border-none font-bold px-3 py-1 rounded-none text-[9px] uppercase tracking-widest">
+                            {currentStage?.display_name || project.status}
+                         </Badge>
                       </div>
-                      
-                      {isCompleted && audit && (
-                        <div className="space-y-6 mt-4">
-                          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-600 bg-zinc-50 w-fit px-4 py-2 rounded-xl border-2 border-zinc-950/5">
-                             <User className="w-3 h-3 text-zinc-600" />
-                             <span className="text-zinc-600 font-semibold">{submitter?.full_name || 'System'}</span>
-                             <span className="mx-2 opacity-20">•</span>
-                             <Clock className="w-3 h-3 text-zinc-600" />
-                             <span className="font-semibold text-zinc-700">{new Date(audit.submitted_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                      <HandoffOverride 
+                        project={project}
+                        templateStages={templateStages}
+                        currentStageIndex={currentStageIndex}
+                        staff={staff || []}
+                        isManager={isManager}
+                      />
+                    </div>
+
+                    {/* Production Hub Block */}
+                    <div className="w-full bg-zinc-950 border border-zinc-950 p-8 shadow-xl rounded-none relative flex flex-col group/hub">
+                      <div className="flex items-center gap-3 mb-8 pb-4 border-b border-zinc-800">
+                         <div className="w-2 h-2 bg-[#67A708] rounded-none animate-pulse" />
+                         <h3 style={{ fontFamily: mazzardFont }} className="text-lg font-black uppercase tracking-tighter italic text-white leading-none mt-1">Production Hub</h3>
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center">
+                        {user.profile.role?.toLowerCase() === 'developer' || isManager || isAdmin ? (
+                          <ProjectGeneratorActions 
+                            project={project}
+                            websiteConfig={websiteConfig}
+                          />
+                        ) : (
+                          <div className="py-8 text-center border border-dashed border-zinc-800 bg-black/50 p-6">
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] leading-relaxed">Architect clearance required.</p>
                           </div>
-                          {audit.data && Object.keys(audit.data).length > 0 && (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 p-6 bg-white rounded-2xl border-2 border-zinc-950 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] relative overflow-hidden group/data">
-                              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/data:opacity-30 transition-opacity">
-                                <FileText className="w-10 h-10 text-zinc-950" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-white border border-zinc-200 shadow-sm rounded-none p-0 overflow-hidden flex flex-col">
+                   <div className="p-8 md:p-12 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                      <WorkflowForm 
+                        key={`${project.id}-active-${currentStage?.id || 'none'}`}
+                        workflowId={project.workflow_template_id} 
+                        stageId={currentStage?.id}
+                        initialData={{
+                          ...(currentStageData || {}),
+                          ...(project.config?.builder?.content_overrides || {}),
+                          ...(project.config?.builder?.global_styles || {}),
+                          ...(project.config?.seo || {})
+                        }}
+                        financials={{ totalPaid, balance }}
+                        userRole={user.profile.role}
+                        readOnly={!canAction}
+                        prefix="dyn_"
+                      />
+                   </div>
+
+                   {canAction && (
+                      <div className="flex flex-col md:flex-row justify-end gap-0 border-t border-zinc-200 bg-[#fafafa]">
+                        <PendingButton 
+                          type="submit" 
+                          name="action" 
+                          value="save"
+                          variant="ghost"
+                          style={{ fontFamily: mazzardFont }}
+                          className="w-full md:w-auto h-16 px-10 rounded-none text-zinc-600 font-bold uppercase tracking-widest hover:bg-zinc-200 hover:text-zinc-950 transition-all text-[12px]"
+                        >
+                          Save State
+                        </PendingButton>
+                        <PendingButton 
+                          type="submit" 
+                          name="action" 
+                          value="handover"
+                          style={{ fontFamily: mazzardFont }}
+                          className="w-full md:w-auto h-16 px-12 rounded-none bg-zinc-950 text-white font-bold uppercase tracking-[0.2em] hover:bg-black transition-all text-[13px] flex items-center justify-center gap-4 group"
+                        >
+                          Protocol Handover <ArrowRight className="w-5 h-5 text-[#67A708] group-hover:translate-x-2 transition-transform" />
+                        </PendingButton>
+                      </div>
+                   )}
+                </div>
+              </form>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="details" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="max-w-5xl bg-white border border-zinc-200 shadow-sm p-8 md:p-12">
+              <h3 style={{ fontFamily: mazzardFont }} className="text-xl font-black uppercase tracking-tighter italic text-zinc-950 mb-8 pb-4 border-b border-zinc-100">Compiled Mission Intelligence</h3>
+              {project.stage_data && Object.keys(project.stage_data).length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                  {Object.entries(project.stage_data).map(([key, value]) => {
+                    const formatKey = (k: string) => {
+                      if (k === 'custom_code') return 'Custom Development Code'
+                      return k.replace(/_/g, ' ')
+                    }
+                    
+                    const renderValue = (v: any) => {
+                      if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+                      if (Array.isArray(v)) return v.join(', ')
+                      if (typeof v === 'object' && v !== null) return JSON.stringify(v)
+                      if (!v || v === '') return 'N/A'
+                      return String(v)
+                    }
+
+                    return (
+                      <div key={key} className="flex flex-col gap-1 border-b border-zinc-50 pb-4">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                          {formatKey(key)}
+                        </span>
+                        <span className="text-[13px] font-semibold text-zinc-900 leading-relaxed break-words">
+                          {renderValue(value)}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="py-12 text-center text-zinc-500 font-semibold text-sm uppercase tracking-widest border border-dashed border-zinc-200 bg-zinc-50/50">
+                  No recorded intelligence found.
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="workflow" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="max-w-4xl space-y-16">
+              {/* Timeline Block */}
+              <div className="bg-white border border-zinc-200 p-8 md:p-16 shadow-sm rounded-none">
+                <h3 style={{ fontFamily: mazzardFont }} className="text-2xl font-black uppercase tracking-tighter italic text-zinc-950 mb-12 border-b border-zinc-100 pb-6">Lifecycle Record</h3>
+                
+                <div className="space-y-16 relative before:absolute before:inset-0 before:ml-7 before:-translate-x-px before:h-full before:w-[2px] before:bg-zinc-100">
+                  {project.workflow_template?.workflow_stages?.map((step: any, i: number) => {
+                    const isCompleted = (project.stage_data && project.stage_data[step.id]) || project.status === step.status_key
+                    const isActive = project.status === step.status_key
+                    const isPending = !isCompleted && !isActive
+                    
+                    const audit = project.stage_data?.[step.id]
+                    const submitter = staff?.find(s => s.id === audit?.submitted_by)
+
+                    return (
+                       <div key={i} className="relative flex items-start group">
+                        <div className={cn(
+                          "flex items-center justify-center w-14 h-14 border-2 shrink-0 transition-all duration-500 z-10 rounded-none",
+                          isActive ? "bg-zinc-950 border-zinc-950 text-white shadow-xl rotate-45" :
+                            isCompleted ? "bg-zinc-100 border-zinc-200 text-zinc-950 rotate-45" :
+                              "bg-white border-zinc-200 text-zinc-300"
+                        )}>
+                           <div className={cn("transition-transform duration-500", (isActive || isCompleted) && "-rotate-45")}>
+                              {isCompleted && !isActive ? <CheckCircle className="w-5 h-5" /> : <div className="w-2 h-2 bg-current" />}
+                           </div>
+                        </div>
+                        <div className="ml-10 pt-1 flex-1">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-2 gap-2">
+                            <h4 style={{ fontFamily: mazzardFont }} className={cn("text-lg font-black uppercase tracking-tight italic transition-colors", isPending ? "text-zinc-400" : "text-zinc-950")}>
+                              {step.display_name}
+                            </h4>
+                            <span className={cn("text-[9px] font-bold px-3 py-1 rounded-none border uppercase tracking-[0.2em]",
+                              isCompleted && !isActive ? "bg-zinc-50 border-zinc-200 text-zinc-600" :
+                                isActive ? "bg-zinc-950 border-zinc-950 text-[#67A708]" : "bg-transparent border-zinc-200 text-zinc-400"
+                            )}>{step.acting_role}</span>
+                          </div>
+                          
+                          {isCompleted && audit && (
+                            <div className="space-y-6 mt-6">
+                              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-50 w-fit px-4 py-3 rounded-none border border-zinc-200">
+                                 <User className="w-3.5 h-3.5" />
+                                 <span className="text-zinc-900">{submitter?.full_name || 'System'}</span>
+                                 <span className="opacity-30">|</span>
+                                 <Clock className="w-3.5 h-3.5" />
+                                 <span>{new Date(audit.submitted_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                               </div>
-                              {Object.entries(audit.data).map(([key, value]) => (
-                                <div key={key} className="space-y-2 relative z-10">
-                                  <span className="text-[9px] text-zinc-600 font-semibold uppercase block tracking-widest truncate">{key.replace(/_/g, ' ')}</span>
-                                  <span className="text-xs text-zinc-950 font-semibold break-words leading-tight">{String(value)}</span>
+                              {audit.data && Object.keys(audit.data).length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1 p-1 bg-zinc-100 rounded-none border border-zinc-200">
+                                  {Object.entries(audit.data).map(([key, value]) => (
+                                    <div key={key} className="p-4 bg-white space-y-2">
+                                      <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em] truncate block">{key.replace(/_/g, ' ')}</span>
+                                      <span className="text-[12px] text-zinc-950 font-bold leading-tight line-clamp-3">{String(value)}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-
-                      <p className="text-[11px] text-zinc-700 font-semibold leading-relaxed max-w-xl mt-3 tracking-tight">
-                        {isActive ? `Currently being handled by ${step.acting_role}.` :
-                          isCompleted ? `Phase verified and handoff completed.` : `Awaiting previous stages.`}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Workflow History / Handoff Notes */}
-            {project.comments?.filter((c: any) => c.content.includes('Handoff Note:') || c.content.includes('Workflow Changed:')).length > 0 && (
-              <div className="mt-16 pt-10 border-t border-zinc-100">
-                <div className="flex items-center gap-3 mb-10">
-                  <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-900 flex items-center justify-center shadow-lg shadow-zinc-900/10">
-                    <TrendingUp className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-zinc-900 leading-none mb-1">Directional Logs</h3>
-                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Recorded workflow changes</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-8 relative before:absolute before:inset-0 before:ml-2 before:w-[1px] before:bg-zinc-100">
-                  {project.comments
-                    .filter((c: any) => {
-                      const isSystem = c.content.includes('Handoff Note:') || c.content.includes('Workflow Changed:')
-                      if (!isSystem) return false
-                      const content = c.content.replace('Handoff Note: ', '').replace('Workflow Changed: ', '').trim()
-                      // Filter out legacy "Project X is ready for Y" dummy messages
-                      const isDummy = content.includes('is ready for') && content.split(' ').length < 15
-                      return content.length > 0 && !isDummy
-                    })
-                    .reverse()
-                    .map((comment: any) => (
-                      <div key={comment.id} className="relative pl-10 group">
-                        <div className="absolute left-0 top-2.5 w-4 h-4 bg-white border-2 border-zinc-100 rounded-full z-10 group-hover:border-zinc-900 transition-colors duration-300" />
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-                              {new Date(comment.created_at).toLocaleDateString('en-GB')}
-                            </span>
-                            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-200">•</span>
-                            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-                              {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <Badge variant="outline" className="bg-zinc-50/50 border-zinc-100 text-[8px] font-semibold text-zinc-600 uppercase tracking-widest rounded-lg py-0.5 px-2 h-5">
-                            System Event
-                          </Badge>
-                        </div>
-                        <div className="bg-white border border-zinc-100 p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300">
-                          <p className="text-xs font-semibold text-zinc-800 leading-relaxed tracking-tight">
-                            {comment.content.replace('Handoff Note: ', '').replace('Workflow Changed: ', '')}
-                          </p>
-                        </div>
                       </div>
-                    ))}
+                    )
+                  })}
                 </div>
               </div>
-            )}
-          </Card>
-        </TabsContent>
 
-        {canManagePayments && (
-          <TabsContent value="finances" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <PaymentForm projectId={project.id} payments={project.payments || []} />
+              {/* Logs Block */}
+              {project.comments?.filter((c: any) => c.content.includes('Handoff Note:') || c.content.includes('Workflow Changed:')).length > 0 && (
+                <div className="bg-white border border-zinc-200 p-8 md:p-12 shadow-sm rounded-none">
+                  <div className="flex items-center gap-4 mb-10 pb-6 border-b border-zinc-100">
+                    <div className="w-12 h-12 rounded-none bg-zinc-950 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: mazzardFont }} className="text-xl font-black uppercase tracking-tighter italic text-zinc-950 leading-none mb-1">System Logs</h3>
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Protocol Amendments</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {project.comments
+                      .filter((c: any) => c.content.includes('Handoff Note:') || c.content.includes('Workflow Changed:'))
+                      .reverse()
+                      .map((comment: any) => (
+                        <div key={comment.id} className="p-6 bg-zinc-50 border border-zinc-200 rounded-none flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-white transition-colors">
+                           <div className="flex-1">
+                             <p className="text-[13px] font-bold text-zinc-900 leading-relaxed">
+                               {comment.content.replace('Handoff Note: ', '').replace('Workflow Changed: ', '')}
+                             </p>
+                           </div>
+                           <div className="flex items-center gap-3 shrink-0">
+                              <Badge variant="outline" className="bg-white border-zinc-200 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] rounded-none px-3 py-1">
+                                System Event
+                              </Badge>
+                              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">
+                                {new Date(comment.created_at).toLocaleDateString('en-GB')} <br/>
+                                {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                           </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </TabsContent>
-        )}
 
-        {(isManager || isAdmin || user.profile.role === 'Developer') && (
-          <TabsContent value="generator" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <WebsiteBuilderConfigurator
+          {canManagePayments && (
+            <TabsContent value="finances" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <PaymentForm projectId={project.id} payments={project.payments || []} />
+            </TabsContent>
+          )}
+
+
+
+          <TabsContent value="comments" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <RealtimeComments
               projectId={project.id}
-              initialConfig={websiteConfig}
-              project={project}
+              initialComments={project.comments || []}
+              userId={user.profile.id}
+              projects={allProjects || []}
+              staff={staff || []}
             />
           </TabsContent>
-        )}
-
-        <TabsContent value="comments" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <RealtimeComments
-            projectId={project.id}
-            initialComments={project.comments || []}
-            userId={user.profile.id}
-            projects={allProjects || []}
-            staff={staff || []}
-          />
-        </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   )
 }
